@@ -1,6 +1,6 @@
 Package: E2E
 Title: Easy to Ensemble: A flexible and convenient package that implements various integrated algorithms
-Version: 0.0.1.9000
+Version: 0.0.1
 Authors@R: person("Shanjie", "Luan", email = "Luan20050519@163.com", role = c("aut", "cre"))
 Description: You can freely use multiple basic algorithms in the stacking, voting, and bagging integration frameworks to build diagnosis or prognosis models and perform visualization and interpretative analysis.
 License: MIT + file LICENSE
