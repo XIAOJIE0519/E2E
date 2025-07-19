@@ -266,16 +266,16 @@ figure_shap(data = eval_bagging_pro, raw_data_path = "train_prognosis.csv",
 
 ### Principle
 
-<img width="960" height="540" alt="q" src="https://github.com/user-attachments/assets/c4d696de-f6e3-40a8-8419-957694108a39" />
+<img width="1015.2" height="695.52" alt="q" src="https://github.com/user-attachments/assets/6a908218-f84d-4b40-83ed-a6c6acb0fe37" />
 
 ### SHAP
 
-<img width="603.52" height="721.28" alt="image" src="https://github.com/user-attachments/assets/aac6754d-c34b-49d1-987c-49e4b6417268" />
+<img width="846" height="1011" alt="image" src="https://github.com/user-attachments/assets/aac6754d-c34b-49d1-987c-49e4b6417268" />
 
 ### Other
 
-<img width="730.8" height="645.68" alt="image" src="https://github.com/user-attachments/assets/59589d68-cd46-4b31-be84-839105121919" />
+<img width="846" height="747.46" alt="image" src="https://github.com/user-attachments/assets/59589d68-cd46-4b31-be84-839105121919" />
 
-<img width="703.68" height="558.24" alt="image" src="https://github.com/user-attachments/assets/f9adeea4-8635-44a2-b573-7017b8ca14ca" />
+<img width="846" height="671.14" alt="image" src="https://github.com/user-attachments/assets/f9adeea4-8635-44a2-b573-7017b8ca14ca" />
 
 ---
