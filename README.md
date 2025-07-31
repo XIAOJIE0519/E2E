@@ -43,9 +43,9 @@ The E2E package distinguishes between **Diagnostic Models** (for classification)
 
 Before running any models, you **must initialize** the respective modeling system to register default models.
 
-To follow the examples, you'll need sample data files. Create dummy `train.csv`, `test.csv`, `train_prognosis.csv`, and `test_prognosis.csv` in your working directory. 
+To follow the examples, you'll need sample data files. There are four data frame for you to have a try: train_dia, test_dia, train_pro, test_pro. 
 
-Or you can use the data we have provided. `train.csv` and `test.csv` are for diagnosis, with column names sample, outcome, variable 1, 2, 3. `train_prognosis.csv` and `test_prognosis.csv` are for prognosis, with column names sample, outcome, time, variable 1, 2, 3.
+`train_dia` and `test_dia` are for diagnosis, with column names sample, outcome, variable 1, 2, 3. `train_pro` and `test_pro` are for prognosis, with column names sample, outcome, time, variable 1, 2, 3.
 
 
 ## 1. Diagnostic Models (Classification)
@@ -61,7 +61,7 @@ initialize_modeling_system_dia()
 Run a selection or all available diagnostic models and print their summaries:
 
 ```R
-results_dia <- run_models_dia("train.csv", label_col_name = "outcome",
+results_dia <- models_dia(train_dia, label_col_name = "outcome",
                               model = c("rf", "lasso", "xb"), tune = FALSE)
 print_model_summary_dia("rf", results_dia$rf) # View specific model summary
 ```
@@ -69,7 +69,7 @@ print_model_summary_dia("rf", results_dia$rf) # View specific model summary
 To run all registered models:
 
 ```R
-results_all_dia <- run_models_dia("train.csv", label_col_name = "outcome",
+results_all_dia <- models_dia(train_dia, label_col_name = "outcome",
                                   model = "all_dia", tune = FALSE)
 for (m_name in names(results_all_dia)) print_model_summary_dia(m_name, results_all_dia[[m_name]])
 ```
@@ -79,7 +79,7 @@ for (m_name in names(results_all_dia)) print_model_summary_dia(m_name, results_a
 Train a Bagging ensemble (e.g., with XGBoost as base learners):
 
 ```R
-bagging_xb_results <- bagging_dia(data_path = "train.csv", label_col_name = "outcome",
+bagging_xb_results <- bagging_dia(train_dia, label_col_name = "outcome",
                                   base_model_name = "xb", n_estimators = 5)
 print_model_summary_dia("Bagging (XGBoost)", bagging_xb_results)
 ```
@@ -90,7 +90,7 @@ Train a Voting ensemble (e.g., soft voting based on top 3 AUROC models):
 
 ```R
 voting_soft_results <- voting_dia(results_all_models = results_all_dia,
-                                  data_path = "train.csv", label_col_name = "outcome",
+                                  train_dia, label_col_name = "outcome",
                                   type = "soft", weight_metric = "AUROC", top = 3)
 print_model_summary_dia("Voting (Soft)", voting_soft_results)
 ```
@@ -101,7 +101,7 @@ Train a Stacking ensemble (e.g., with Lasso meta-model on top 3 AUROC models):
 
 ```R
 stacking_lasso_results <- stacking_dia(results_all_models = results_all_dia,
-                                       data_path = "train.csv", label_col_name = "outcome",
+                                       train_dia, label_col_name = "outcome",
                                        meta_model_name = "lasso", top = 3)
 print_model_summary_dia("Stacking (Lasso)", stacking_lasso_results)
 ```
@@ -111,7 +111,7 @@ print_model_summary_dia("Stacking (Lasso)", stacking_lasso_results)
 Train a imbalance ensemble (e.g., with XGBoost as base learners):
 
 ```R
-results_imbalance_dia <- imbalance_dia(data_path = "train.csv", label_col_name = "outcome",
+results_imbalance_dia <- imbalance_dia(train_dia, label_col_name = "outcome",
                                        base_model_name = "xb", n_estimators = 10,
                                        tune_base_model = FALSE, threshold_choices = "f1",
                                        positive_label_value = 1, negative_label_value = 0,
@@ -125,8 +125,8 @@ print_model_summary_dia("Imbalance (XGBoost)", results_imbalance_dia)
 Apply a trained diagnostic model (e.g., Bagging) to new, unseen data:
 
 ```R
-bagging_pred_new <- apply_model_to_new_data_dia(trained_model_object = bagging_xb_results$model_object,
-                                                new_data_path = "test.csv", label_col_name = "outcome",
+bagging_pred_new <- apply_dia(trained_model_object = bagging_xb_results$model_object,
+                                                test_dia, label_col_name = "outcome",
                                                 pos_class = "Positive", neg_class = "Negative")
 head(bagging_pred_new)
 ```
@@ -180,7 +180,7 @@ initialize_modeling_system_pro()
 Run a selection or all available prognostic models and print their summaries:
 
 ```R
-results_pro <- run_models_pro(data_path = "train_prognosis.csv", outcome_col_name = "outcome",
+results_pro <- models_pro(train_pro, outcome_col_name = "outcome",
                               time_col_name = "time", model = c("lasso_pro", "rsf_pro"))
 print_model_summary_pro("lasso_pro", results_pro$lasso_pro)
 ```
@@ -188,7 +188,7 @@ print_model_summary_pro("lasso_pro", results_pro$lasso_pro)
 To run all registered models:
 
 ```R
-results_all_pro <- run_models_pro(data_path = "train_prognosis.csv", outcome_col_name = "outcome",
+results_all_pro <- run_models_pro(train_pro, outcome_col_name = "outcome",
                                   time_col_name = "time", model = "all_pro")
 for (m_name in names(results_all_pro)) print_model_summary_pro(m_name, results_all_pro[[m_name]])
 ```
@@ -198,7 +198,7 @@ for (m_name in names(results_all_pro)) print_model_summary_pro(m_name, results_a
 Train a Bagging ensemble (e.g., with GBM as base learners):
 
 ```R
-bagging_gbm_pro_results <- bagging_pro(data_path = "train_prognosis.csv",
+bagging_gbm_pro_results <- bagging_pro(train_pro,
                                        outcome_col_name = "outcome", time_col_name = "time",
                                        base_model_name = "gbm_pro", n_estimators = 5)
 print_model_summary_pro("Bagging (GBM)", bagging_gbm_pro_results)
@@ -210,7 +210,7 @@ Train a Stacking ensemble (e.g., with GBM meta-model on top 3 C-index models):
 
 ```R
 stacking_gbm_pro_results <- stacking_pro(results_all_models = results_all_pro,
-                                         data_path = "train_prognosis.csv",
+                                         train_pro,
                                          outcome_col_name = "outcome", time_col_name = "time",
                                          meta_model_name = "gbm_pro", top = 3)
 print_model_summary_pro("Stacking (GBM)", stacking_gbm_pro_results)
@@ -221,9 +221,9 @@ print_model_summary_pro("Stacking (GBM)", stacking_gbm_pro_results)
 Apply a trained prognostic model (e.g., Bagging) to new, unseen data:
 
 ```R
-bagging_pro_pred_new <- apply_model_to_new_data_pro(
+bagging_pro_pred_new <- apply_pro(
   trained_model_object = bagging_gbm_pro_results$model_object,
-  new_data_path = "test_prognosis.csv", outcome_col_name = "outcome", time_col_name = "time"
+  test_pro, outcome_col_name = "outcome", time_col_name = "time"
 )
 head(bagging_pro_pred_new)
 ```
@@ -266,16 +266,17 @@ figure_shap(data = eval_bagging_pro, raw_data_path = "train_prognosis.csv",
 
 ### Principle
 
-<img width="1015.2" height="695.52" alt="q" src="https://github.com/user-attachments/assets/6a908218-f84d-4b40-83ed-a6c6acb0fe37" />
+![q](https://github.com/user-attachments/assets/6a908218-f84d-4b40-83ed-a6c6acb0fe37)
 
 ### SHAP
 
-<img width="846" height="1011" alt="image" src="https://github.com/user-attachments/assets/aac6754d-c34b-49d1-987c-49e4b6417268" />
+![image](https://github.com/user-attachments/assets/aac6754d-c34b-49d1-987c-49e4b6417268)
 
 ### Other
 
-<img width="846" height="747.46" alt="image" src="https://github.com/user-attachments/assets/59589d68-cd46-4b31-be84-839105121919" />
+![image](https://github.com/user-attachments/assets/59589d68-cd46-4b31-be84-839105121919)
 
-<img width="846" height="671.14" alt="image" src="https://github.com/user-attachments/assets/f9adeea4-8635-44a2-b573-7017b8ca14ca" />
+![image](https://github.com/user-attachments/assets/f9adeea4-8635-44a2-b573-7017b8ca14ca)
 
 ---
+
