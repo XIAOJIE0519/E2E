@@ -8,13 +8,14 @@ figure_pro(type, data, output_file, output_type = "pdf", time_unit = "days")
 }
 \arguments{
 \item{type}{String, specifies the type of plot to generate. Options are "km"
-(Kaplan-Meier curve) or "tdroc" (Time-Dependent ROC curve).}
+(Kaplan-Meier curve) or "tdroc" (Time-Dependent ROC curve). For "tdroc", multiple
+ROC curves for specified time points are overlaid on a single plot.}
 
 \item{data}{A list object containing model evaluation results. It must include:
 \itemize{
 \item \code{sample_score}: A data frame with at least "ID", "time", "outcome" (0/1), and "score" columns.
 \item \code{evaluation_metrics}: A list with a "KM_Cutoff" value for KM plots, and
-"AUROC_Years" (a numeric vector of evaluation years) for tdROC plots.
+"AUROC_Years" (a numeric vector or list of evaluation years) for tdROC plots.
 }}
 
 \item{output_file}{String, the base name for the output file (without extension).}
@@ -22,40 +23,46 @@ figure_pro(type, data, output_file, output_type = "pdf", time_unit = "days")
 \item{output_type}{String, the desired output file format. Options: "pdf", "png", "svg".
 Defaults to "pdf".}
 
-\item{time_unit}{String, specifies the unit of time for the x-axis label in tdROC plots
-and for internal time conversions (e.g., "days", "months", "years"). Defaults to "days".}
+\item{time_unit}{String, specifies the unit of time for the \code{time} column in \code{sample_score}
+(e.g., "days", "months", "years"). This is crucial for correctly calculating tdROC.
+Defaults to "days".}
 }
 \value{
 NULL. The function saves the generated plot directly to a file.
 }
 \description{
 Generates Kaplan-Meier (KM) survival curves or time-dependent ROC curves
-based on prognostic model evaluation results.
+based on prognostic model evaluation results. This version uses the 'timeROC'
+package for more robust and efficient tdROC calculations.
 }
 \examples{
 \dontrun{
+# Ensure required packages are installed
+# install.packages(c("survival", "survminer", "timeROC", "ggplot2", "Cairo"))
+
 # Example data structure for prognostic model evaluation results:
+set.seed(42)
 external_eval_example_pro <- list(
   sample_score = data.frame(
-    ID = paste0("S", 1:100),
-    time = runif(100, 10, 1000), # time in days
-    outcome = sample(c(0, 1), 100, replace = TRUE),
-    score = runif(100, 0, 1)
+    ID = paste0("S", 1:200),
+    time = runif(200, 10, 1825), # time in days
+    outcome = sample(c(0, 1), 200, replace = TRUE, prob = c(0.7, 0.3)),
+    score = runif(200, 0, 1)
   ),
   evaluation_metrics = list(
     KM_Cutoff = 0.5,
-    AUROC_Years = c(1, 2, 3, 5) # Evaluation years
+    AUROC_Years = c(1, 3, 5) # Evaluation years
   )
 )
 
 # Plot Kaplan-Meier curve
 figure_pro(type = "km", data = external_eval_example_pro,
-           output_file = "Prognostic_Model_KM", output_type = "svg",
+           output_file = "Prognostic_Model_KM", output_type = "png",
            time_unit = "days")
 
-# Plot Time-Dependent ROC curve
+# Plot Time-Dependent ROC curves (1-year, 3-year, 5-year overlaid)
 figure_pro(type = "tdroc", data = external_eval_example_pro,
-           output_file = "Prognostic_Model_TDROC", output_type = "pdf",
-           time_unit = "days") # Assume sample_score$time is in days, AUROC_Years is in years
+           output_file = "Prognostic_Model_TDROC", output_type = "png",
+           time_unit = "days")
 }
 }
