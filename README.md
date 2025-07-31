@@ -7,7 +7,7 @@ Welcome to E2E, an R package designed to simplify ensemble modeling for both dia
 **Citation:** If you use E2E in your research, please cite it as:
 "Shanjie Luan (2025). E2E: An R Package that makes it easy to ensemble. [https://github.com/XIAOJIE0519/E2E](https://github.com/XIAOJIE0519/E2E)"
 
-**Note:** The article is in the process of being written/submitted and is undergoing review by Cran and further revisions. If you have any questions, please contact Luan20050519@163.com.
+  **Note:** The article is in the process of being written/submitted and is undergoing review by CRAN and further revisions. If you have any questions, please contact Luan20050519@163.com.
 
 ---
 
@@ -118,8 +118,18 @@ Apply a trained diagnostic model (e.g., Bagging) to new, unseen data:
 
 ```R
 bagging_pred_new <- apply_dia(trained_model_object = bagging_xb_results$model_object,
-                                                test_dia, pos_class = "Positive", neg_class = "Negative")
+                              test_dia, label_col_name = "outcome",
+                              pos_class = "Positive", neg_class = "Negative")
 head(bagging_pred_new)
+
+eval_results_new <- evaluate_model_dia(
+  precomputed_prob = bagging_pred_new$score,
+  y_data = factor(bagging_pred_new$label, levels = c(0, 1), labels = c("Negative", "Positive")),
+  sample_ids = bagging_pred_new$sample,
+  pos_class = "Positive",
+  neg_class = "Negative",
+  y_original_numeric = bagging_pred_new$label
+)
 ```
 
 ### 1.7 Figure (Visualization)
@@ -210,6 +220,14 @@ Apply a trained prognostic model (e.g., Bagging) to new, unseen data:
 ```R
 bagging_pro_pred_new <- apply_pro(trained_model_object = bagging_gbm_pro_results$model_object, test_pro)
 head(bagging_pro_pred_new)
+
+Y_surv_new <- Surv(time = test_pro[[3]], event = test_pro[[2]])
+eval_results_new <- evaluate_model_pro(
+  precomputed_score = bagging_pro_pred_new$score,
+  Y_surv_obj = Y_surv_new, 
+  sample_ids = bagging_pro_pred_new$ID,
+  years_to_evaluate = c(1, 3, 5) 
+)
 ```
 
 ### 2.5 Figure (Visualization)
