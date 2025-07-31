@@ -348,6 +348,21 @@ figure_dia <- function(type, data, output_file, output_type = "pdf") {
 #' @export
 figure_pro <- function(type, data, output_file, output_type = "pdf", time_unit = "days") {
 
+  required_pkgs <- c("survival", "ggplot2", "Cairo")
+  if (type == "km") {
+    required_pkgs <- c(required_pkgs, "survminer")
+  } else if (type == "tdroc") {
+    required_pkgs <- c(required_pkgs, "timeROC")
+  }
+
+  for (pkg in required_pkgs) {
+    if (!requireNamespace(pkg, quietly = TRUE)) {
+      stop(paste("Package '", pkg, "' is required but not installed. Please install it with install.packages('", pkg, "')."))
+    }
+    # Load the package into the session
+    suppressPackageStartupMessages(library(pkg, character.only = TRUE))
+  }
+
   # --- Input Validation and Data Preparation (Unchanged) ---
   if (!type %in% c("km", "tdroc")) {
     stop("Invalid 'type'. Prognostic model supports 'km' or 'tdroc'.")

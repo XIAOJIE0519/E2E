@@ -1470,7 +1470,10 @@ voting_dia <- function(results_all_models, data,
     }
 
     prob_matrix <- sapply(results_all_models[selected_base_models_names], function(res) res$sample_score$score)
-    final_prob_predictions <- as.numeric(stats::weighted.mean(x = prob_matrix, w = weights, na.rm = TRUE))
+
+    final_prob_predictions <- apply(prob_matrix, 1, function(sample_probs) {
+      stats::weighted.mean(x = sample_probs, w = weights, na.rm = TRUE)
+    })
 
   } else { # type == "hard"
     predictions <- sapply(selected_base_models_names, function(name) {
