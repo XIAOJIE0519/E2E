@@ -178,7 +178,7 @@ print_model_summary_pro("lasso_pro", results_pro$lasso_pro)
 To run all registered models:
 
 ```R
-results_all_pro <- run_models_pro(train_pro, model = "all_pro")
+results_all_pro <- models_pro(train_pro, model = "all_pro")
 for (m_name in names(results_all_pro)) print_model_summary_pro(m_name, results_all_pro[[m_name]])
 ```
 
