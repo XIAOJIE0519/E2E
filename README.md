@@ -254,13 +254,17 @@ figure_shap(data = stacking_gbm_pro_results, raw_data = train_pro,
 
 ### SHAP
 
-![image](https://github.com/user-attachments/assets/aac6754d-c34b-49d1-987c-49e4b6417268)
+![image](https://github.com/user-attachments/assets/fd9f21c3-8104-4dce-a449-62d59d191cc4)
 
 ### Other
 
-![image](https://github.com/user-attachments/assets/59589d68-cd46-4b31-be84-839105121919)
+![image](https://github.com/user-attachments/assets/3f89f1c7-3e27-4ace-a331-f5a6b040df15)
 
-![image](https://github.com/user-attachments/assets/f9adeea4-8635-44a2-b573-7017b8ca14ca)
+![image](https://github.com/user-attachments/assets/a7a002e0-8f65-4c34-bc73-07db57f9a2c0)
+
+![image](https://github.com/user-attachments/assets/d21df09c-9492-42a9-96fd-46385bcab48d)
+
+![image](https://github.com/user-attachments/assets/971c3a7f-3927-4fce-baeb-33401f9159ad)
 
 ---
 
