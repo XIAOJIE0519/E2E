@@ -11,6 +11,84 @@ utils::globalVariables(c("x", "y", "recall", "Actual", "Predicted", "Freq", "Per
 .model_registry_env_pro$known_models_internal <- list()
 .model_registry_env_pro$is_initialized <- FALSE
 
+#' @title Prepare Data for Prognostic Models (Internal)
+#' @description Prepares an input data frame for survival analysis by separating
+#'   ID, outcome, time, and features based on a fixed column structure
+#'   (1st=ID, 2nd=Outcome, 3rd=Time, 4th+=Features). It also handles
+#'   time unit conversion and creates a survival object.
+#'
+#' @param data A data frame where the first column is sample ID, second is
+#'   outcome status (0/1), third is time, and subsequent columns are features.
+#' @param time_unit A character string ("day", "month", "year") for time conversion.
+#'
+#' @return A list containing `X`, `Y_surv`, `sample_ids`, `outcome_numeric`,
+#'   and `time_numeric`.
+#' @importFrom survival Surv
+#' @noRd
+.prepare_data_pro <- function(data, time_unit = c("day", "month", "year")) {
+  if (!is.data.frame(data)) {
+    stop("Input 'data' must be a data frame.")
+  }
+  if (ncol(data) < 4) {
+    stop("Input data for prognosis must have at least four columns: ID, Outcome, Time, and at least one Feature.")
+  }
+
+  time_unit <- match.arg(time_unit)
+
+  sample_ids <- data[[1]]
+  y_outcome <- base::as.numeric(data[[2]])
+  time_val <- base::as.numeric(data[[3]])
+
+  if (any(is.na(time_val)) || any(is.na(y_outcome))) {
+    warning("NA values found in time or outcome columns. These rows might be problematic.")
+  }
+
+  # Convert time to days
+  if (time_unit == "month") {
+    time_val <- time_val * (365.25 / 12)
+  } else if (time_unit == "year") {
+    time_val <- time_val * 365.25
+  }
+
+  # Validate data and remove invalid rows
+  valid_rows <- !is.na(time_val) & !is.na(y_outcome) & time_val > 0
+  if (any(!valid_rows)) {
+    original_rows <- nrow(data)
+    warning(sprintf("Found %d rows with NA time/outcome or non-positive time. These rows will be excluded.", sum(!valid_rows)))
+
+    data <- data[valid_rows, , drop = FALSE]
+    sample_ids <- sample_ids[valid_rows]
+    y_outcome <- y_outcome[valid_rows]
+    time_val <- time_val[valid_rows]
+
+    if (nrow(data) == 0) {
+      stop("After removing invalid rows, no data remains for analysis.")
+    }
+  }
+
+  if (!all(y_outcome %in% c(0, 1))) {
+    stop("Outcome column (2nd column) must contain only 0 (censored) and 1 (event).")
+  }
+
+  Y_surv <- survival::Surv(time = time_val, event = y_outcome)
+  X <- data[, -c(1, 2, 3), drop = FALSE]
+
+  # Convert character columns to factors
+  for (col_name in names(X)) {
+    if (is.character(X[[col_name]])) {
+      X[[col_name]] <- base::as.factor(X[[col_name]])
+    }
+  }
+
+  list(
+    X = as.data.frame(X),
+    Y_surv = Y_surv,
+    sample_ids = sample_ids,
+    outcome_numeric = y_outcome,
+    time_numeric = time_val
+  )
+}
+
 # ------------------------------------------------------------------------------
 # Model Registry and Utility Functions
 # ------------------------------------------------------------------------------
@@ -679,19 +757,16 @@ evaluate_model_pro <- function(trained_model_obj = NULL, X_data = NULL, Y_surv_o
 }
 
 #' @title Run Multiple Prognostic Models
-#' @description Trains and evaluates one or more prognostic models on the provided
-#'   dataset. Models must be registered with the system using `register_model_pro()`.
+#' @description Trains and evaluates one or more registered prognostic models on a given dataset.
 #'
-#' @param data_path A character string, the file path to the input CSV data.
-#' @param outcome_col_name A character string, the name of the column containing
-#'   event status (0 for censored, 1 for event).
-#' @param time_col_name A character string, the name of the column containing
-#'   event or censoring time.
+#' @param data A data frame for training. The first column must be the sample ID,
+#'   the second column the event status (0/1), the third column the time, and
+#'   subsequent columns the features.
 #' @param model A character string or vector of character strings, specifying
 #'   which models to run. Use "all_pro" to run all registered models.
-#' @param tune Logical, whether to enable tuning for individual models.
+#' @param tune Logical, whether to enable hyperparameter tuning for individual models.
 #' @param seed An integer, for reproducibility of random processes.
-#' @param time_unit A character string, the unit of time in `time_col_name`.
+#' @param time_unit A character string, the unit of time in the third column of `data`.
 #'   Can be "day", "month", or "year".
 #' @param years_to_evaluate A numeric vector of specific years at which to
 #'   calculate time-dependent AUROC.
@@ -701,46 +776,40 @@ evaluate_model_pro <- function(trained_model_obj = NULL, X_data = NULL, Y_surv_o
 #'   `evaluation_metrics`.
 #' @examples
 #' \dontrun{
-#' # 1. Create a dummy CSV file
-#' set.seed(123)
-#' dummy_data <- data.frame(
-#'   ID = paste0("Patient", 1:100),
-#'   FeatureA = rnorm(100),
-#'   FeatureB = runif(100, 0, 100),
-#'   FeatureC = sample(c(1, 2, 3), 100, replace = TRUE),
-#'   Outcome_Status = sample(c(0, 1), 100, replace = TRUE),
-#'   Followup_Time_Days = runif(100, 100, 2000)
-#' )
-#' write.csv(dummy_data, "dummy_prognosis_data.csv", row.names = FALSE)
+#' # 1. Assume 'train_pro' is a data frame loaded from your package
+#' # data(train_pro)
+#' # str(train_pro)
+#' # > 'data.frame': 100 obs. of 5 variables:
+#' # > $ ID               : chr "Patient1" "Patient2" ...
+#' # > $ Event_Status     : int 0 1 1 0 1 ...
+#' # > $ Followup_Time_Days: num 1500 890 ...
+#' # > $ FeatureA         : num -0.56 0.82 ...
+#' # > $ FeatureB         : num 89.2 26.6 ...
 #'
-#' # 2. Initialize the modeling system to register default models
+#' # 2. Initialize the modeling system
 #' initialize_modeling_system_pro()
 #'
 #' # 3. Run selected models
-#' # results <- run_models_pro(
-#' #   data_path = "dummy_prognosis_data.csv",
-#' #   outcome_col_name = "Outcome_Status",
-#' #   time_col_name = "Followup_Time_Days",
-#' #   model = c("lasso_pro", "rsf_pro"), # Run only Lasso and RSF
-#' #   years_to_evaluate = c(1, 3, 5),
-#' #   seed = 42
-#' # )
+#' results <- models_pro(
+#'   data = train_pro,
+#'   model = c("lasso_pro", "rsf_pro"), # Run only Lasso and RSF
+#'   years_to_evaluate = c(1, 3, 5),
+#'   seed = 42
+#' )
 #'
 #' # 4. Print summaries
-#' # for (model_name in names(results)) {
-#' #   print_model_summary_pro(model_name, results[[model_name]])
-#' # }
-#'
-#' # 5. Clean up
-#' # unlink("dummy_prognosis_data.csv")
+#' for (model_name in names(results)) {
+#'   print_model_summary_pro(model_name, results[[model_name]])
 #' }
-#' @seealso \code{\link{initialize_modeling_system_pro}}, \code{\link{register_model_pro}},
-#'   \code{\link{load_and_prepare_data_pro}}, \code{\link{evaluate_model_pro}},
-#'   \code{\link{print_model_summary_pro}}
+#' }
+#' @seealso \code{\link{initialize_modeling_system_pro}}, \code{\link{evaluate_model_pro}}
 #' @export
-run_models_pro <- function(data_path, outcome_col_name = "outcome", time_col_name = "time",
-                           model = "all_pro", tune = FALSE, seed = 123,
-                           time_unit = "day", years_to_evaluate = c(1, 3, 5)) {
+models_pro <- function(data,
+                       model = "all_pro",
+                       tune = FALSE,
+                       seed = 123,
+                       time_unit = "day",
+                       years_to_evaluate = c(1, 3, 5)) {
 
   if (!.model_registry_env_pro$is_initialized) {
     stop("Prognosis modeling system not initialized. Please call 'initialize_modeling_system_pro()' first.")
@@ -758,7 +827,7 @@ run_models_pro <- function(data_path, outcome_col_name = "outcome", time_col_nam
   }
 
   set.seed(seed)
-  data_prepared <- load_and_prepare_data_pro(data_path, outcome_col_name, time_col_name, time_unit)
+  data_prepared <- .prepare_data_pro(data, time_unit)
 
   X_data <- data_prepared$X
   Y_surv_obj <- data_prepared$Y_surv
@@ -807,7 +876,6 @@ run_models_pro <- function(data_path, outcome_col_name = "outcome", time_col_nam
       )
     }
   }
-
   return(all_model_results)
 }
 
@@ -816,71 +884,49 @@ run_models_pro <- function(data_path, outcome_col_name = "outcome", time_col_nam
 #'   prognostic models. It trains multiple base models on bootstrapped samples
 #'   of the training data and aggregates their predictions.
 #'
-#' @param data_path A character string, the file path to the input CSV data.
-#' @param outcome_col_name A character string, the name of the column containing
-#'   event status (0 for censored, 1 for event).
-#' @param time_col_name A character string, the name of the column containing
-#'   event or censoring time.
+#' @param data A data frame for training. The first column must be the sample ID,
+#'   the second column the event status (0/1), the third column the time, and
+#'   subsequent columns the features.
 #' @param base_model_name A character string, the name of the base prognostic
 #'   model to use (e.g., "lasso_pro", "rsf_pro"). This model must be registered.
 #' @param n_estimators An integer, the number of base models to train.
 #' @param subset_fraction A numeric value between 0 and 1, the fraction of
-#'   samples to bootstrap for each base model (0.632 is common for Bagging).
+#'   samples to bootstrap for each base model.
 #' @param tune_base_model Logical, whether to enable tuning for each base model.
-#' @param time_unit A character string, the unit of time in `time_col_name`.
+#' @param time_unit A character string, the unit of time in the third column of `data`.
 #' @param years_to_evaluate A numeric vector of specific years at which to
 #'   calculate time-dependent AUROC for evaluation.
 #' @param seed An integer, for reproducibility.
 #'
-#' @return A list containing:
-#'   \itemize{
-#'     \item `model_object`: A list describing the ensemble model, including
-#'       the base model name, number of estimators, and all trained base model objects.
-#'     \item `sample_score`: A data frame with `ID`, `outcome`, `time`, and
-#'       aggregated `score` from the ensemble.
-#'     \item `evaluation_metrics`: Performance metrics for the Bagging model.
-#'   }
+#' @return A list containing the `model_object`, `sample_score`, and `evaluation_metrics`.
 #' @examples
 #' \dontrun{
-#' # 1. Create dummy data (same as for run_models_pro)
-#' set.seed(123)
-#' dummy_data <- data.frame(
-#'   ID = paste0("Patient", 1:100),
-#'   FeatureA = rnorm(100),
-#'   FeatureB = runif(100, 0, 100),
-#'   Outcome_Status = sample(c(0, 1), 100, replace = TRUE),
-#'   Followup_Time_Days = runif(100, 100, 2000)
-#' )
-#' write.csv(dummy_data, "dummy_prognosis_data.csv", row.names = FALSE)
-#'
-#' # 2. Initialize the modeling system
+#' # Assume 'train_pro' is a data frame loaded from your package
+#' # data(train_pro)
 #' initialize_modeling_system_pro()
 #'
-#' # 3. Run Bagging with Lasso as base model
-#' # bagging_lasso_results <- bagging_pro(
-#' #   data_path = "dummy_prognosis_data.csv",
-#' #   outcome_col_name = "Outcome_Status",
-#' #   time_col_name = "Followup_Time_Days",
-#' #   base_model_name = "lasso_pro",
-#' #   n_estimators = 5, # Use a small number for example speed
-#' #   subset_fraction = 0.8,
-#' #   years_to_evaluate = c(1, 3)
-#' # )
-#' # print_model_summary_pro("Bagging (Lasso)", bagging_lasso_results)
-#'
-#' # 4. Clean up
-#' # unlink("dummy_prognosis_data.csv")
+#' bagging_lasso_results <- bagging_pro(
+#'   data = train_pro,
+#'   base_model_name = "lasso_pro",
+#'   n_estimators = 5, # Small number for example speed
+#'   subset_fraction = 0.8,
+#'   years_to_evaluate = c(1, 3)
+#' )
+#' print_model_summary_pro("Bagging (Lasso)", bagging_lasso_results)
 #' }
-#' @seealso \code{\link{initialize_modeling_system_pro}}, \code{\link{register_model_pro}},
-#'   \code{\link{load_and_prepare_data_pro}}, \code{\link{evaluate_model_pro}}
+#' @seealso \code{\link{initialize_modeling_system_pro}}, \code{\link{evaluate_model_pro}}
 #' @export
-bagging_pro <- function(data_path, outcome_col_name, time_col_name,
-                        base_model_name, n_estimators = 10, subset_fraction = 0.632,
-                        tune_base_model = FALSE, time_unit = "day",
-                        years_to_evaluate = c(1, 3, 5), seed = 456) {
+bagging_pro <- function(data,
+                        base_model_name,
+                        n_estimators = 10,
+                        subset_fraction = 0.632,
+                        tune_base_model = FALSE,
+                        time_unit = "day",
+                        years_to_evaluate = c(1, 3, 5),
+                        seed = 456) {
 
   if (!.model_registry_env_pro$is_initialized) {
-    initialize_modeling_system_pro() # Ensure initialization if not already done
+    initialize_modeling_system_pro()
   }
 
   all_registered_models <- get_registered_models_pro()
@@ -891,12 +937,11 @@ bagging_pro <- function(data_path, outcome_col_name, time_col_name,
   message(sprintf("Running Bagging model: %s (base: %s)", "Bagging_pro", base_model_name))
 
   set.seed(seed)
-  data_prepared <- load_and_prepare_data_pro(data_path, outcome_col_name, time_col_name, time_unit)
+  data_prepared <- .prepare_data_pro(data, time_unit)
 
   X_data <- data_prepared$X
   Y_surv_obj <- data_prepared$Y_surv
   sample_ids <- data_prepared$sample_ids
-
   n_samples <- nrow(X_data)
   subset_size <- base::floor(n_samples * subset_fraction)
   if (subset_size == 0) stop("Subset size is 0. Please check your data or subset_fraction.")
@@ -907,7 +952,6 @@ bagging_pro <- function(data_path, outcome_col_name, time_col_name,
   for (i in 1:n_estimators) {
     set.seed(seed + i)
     indices <- sample(1:n_samples, subset_size, replace = TRUE)
-
     X_boot <- X_data[indices, , drop = FALSE]
     Y_surv_boot <- Y_surv_obj[indices]
 
@@ -935,20 +979,13 @@ bagging_pro <- function(data_path, outcome_col_name, time_col_name,
         warning(sprintf("Prediction for base model %s for bootstrap %d failed: %s", base_model_name, i, e$message))
       })
     }
-
     trained_models_and_scores[[i]] <- list(model = current_model, score = score_on_full_data)
   }
 
-  valid_models <- list()
-  valid_scores_list <- list()
-  valid_model_count <- 0
-  for (i in 1:n_estimators) {
-    if (!is.null(trained_models_and_scores[[i]]$model)) {
-      valid_model_count <- valid_model_count + 1
-      valid_models[[valid_model_count]] <- trained_models_and_scores[[i]]$model
-      valid_scores_list[[valid_model_count]] <- trained_models_and_scores[[i]]$score
-    }
-  }
+  valid_models <- lapply(trained_models_and_scores, `[[`, "model")
+  valid_scores_list <- lapply(trained_models_and_scores, `[[`, "score")
+  valid_models <- valid_models[!sapply(valid_models, is.null)]
+  valid_scores_list <- valid_scores_list[!sapply(valid_scores_list, function(s) all(is.na(s)))]
 
   if (length(valid_scores_list) == 0) {
     stop("No base models were successfully trained or made valid predictions. Cannot perform bagging.")
@@ -964,105 +1001,65 @@ bagging_pro <- function(data_path, outcome_col_name, time_col_name,
   )
 
   eval_results <- evaluate_model_pro(
-    trained_model_obj = bagging_model_obj_for_eval, # This will trigger prediction within eval_model_pro
-    X_data = X_data,
     Y_surv_obj = Y_surv_obj,
     sample_ids = sample_ids,
     years_to_evaluate = years_to_evaluate,
-    precomputed_score = aggregated_score # Pass precomputed aggregated score to avoid re-calculating inside evaluate_model_pro
+    precomputed_score = aggregated_score
   )
 
-  bagging_results <- list(
+  list(
     model_object = bagging_model_obj_for_eval,
     sample_score = eval_results$sample_score,
     evaluation_metrics = eval_results$evaluation_metrics
   )
-
-  return(bagging_results)
 }
 
 #' @title Train a Stacking Prognostic Model
 #' @description Implements a Stacking ensemble for prognostic models. It trains
-#'   multiple base models, then uses their predictions as features to train a
-#'   meta-model, which makes the final prediction. It selects top-performing
-#'   base models based on C-index.
+#'   multiple base models and uses their predictions to train a meta-model.
 #'
-#' @param results_all_models A list of results from `run_models_pro()`,
+#' @param results_all_models A list of results from `models_pro()`,
 #'   containing trained base model objects and their evaluation metrics.
-#' @param data_path A character string, the file path to the input CSV data.
-#'   (Used to re-load and prepare original data for meta-model training).
-#' @param outcome_col_name A character string, the name of the column containing
-#'   event status (0 for censored, 1 for event).
-#' @param time_col_name A character string, the name of the column containing
-#'   event or censoring time.
+#' @param data A data frame for training the meta-model. The first column must be ID,
+#'   second event status (0/1), third time, and subsequent columns features.
 #' @param meta_model_name A character string, the name of the meta-model to use
 #'   (e.g., "lasso_pro", "gbm_pro"). This model must be registered.
 #' @param top An integer, the number of top-performing base models (ranked by C-index)
 #'   to select for the stacking ensemble.
 #' @param tune_meta Logical, whether to enable tuning for the meta-model.
-#' @param time_unit A character string, the unit of time in `time_col_name`.
+#' @param time_unit A character string, the unit of time in the third column of `data`.
 #' @param years_to_evaluate A numeric vector of specific years at which to
 #'   calculate time-dependent AUROC for evaluation.
 #' @param seed An integer, for reproducibility.
 #'
-#' @return A list containing:
-#'   \itemize{
-#'     \item `model_object`: A list describing the ensemble model, including
-#'       meta-model details, selected base models, and normalization parameters.
-#'     \item `sample_score`: A data frame with `ID`, `outcome`, `time`, and
-#'       final `score` from the stacking model.
-#'     \item `evaluation_metrics`: Performance metrics for the Stacking model.
-#'   }
+#' @return A list containing the `model_object`, `sample_score`, and `evaluation_metrics`.
 #' @examples
 #' \dontrun{
-#' # 1. Create dummy data (same as for run_models_pro)
-#' set.seed(123)
-#' dummy_data <- data.frame(
-#'   ID = paste0("Patient", 1:100),
-#'   FeatureA = rnorm(100),
-#'   FeatureB = runif(100, 0, 100),
-#'   FeatureC = sample(c(1, 2, 3), 100, replace = TRUE),
-#'   Outcome_Status = sample(c(0, 1), 100, replace = TRUE),
-#'   Followup_Time_Days = runif(100, 100, 2000)
+#' # Assume 'train_pro' is loaded and 'base_model_results' from models_pro() exist
+#' # data(train_pro)
+#' # base_model_results <- models_pro(data = train_pro, model = "all_pro")
+#'
+#' stacking_gbm_results <- stacking_pro(
+#'   results_all_models = base_model_results,
+#'   data = train_pro,
+#'   meta_model_name = "gbm_pro",
+#'   top = 3,
+#'   years_to_evaluate = c(1, 3)
 #' )
-#' write.csv(dummy_data, "dummy_prognosis_data.csv", row.names = FALSE)
-#'
-#' # 2. Initialize the modeling system
-#' initialize_modeling_system_pro()
-#'
-#' # 3. Run a set of base models first
-#' # base_model_results <- run_models_pro(
-#' #   data_path = "dummy_prognosis_data.csv",
-#' #   outcome_col_name = "Outcome_Status",
-#' #   time_col_name = "Followup_Time_Days",
-#' #   model = c("lasso_pro", "ridge_pro", "rsf_pro", "gbm_pro", "stepcox_pro"),
-#' #   years_to_evaluate = c(1, 3)
-#' # )
-#'
-#' # 4. Run Stacking with GBM as meta-model, using top 3 base models
-#' # stacking_gbm_results <- stacking_pro(
-#' #   results_all_models = base_model_results,
-#' #   data_path = "dummy_prognosis_data.csv",
-#' #   outcome_col_name = "Outcome_Status",
-#' #   time_col_name = "Followup_Time_Days",
-#' #   meta_model_name = "gbm_pro",
-#' #   top = 3,
-#' #   years_to_evaluate = c(1, 3)
-#' # )
-#' # print_model_summary_pro("Stacking (GBM)", stacking_gbm_results)
-#'
-#' # 5. Clean up
-#' # unlink("dummy_prognosis_data.csv")
+#' print_model_summary_pro("Stacking (GBM)", stacking_gbm_results)
 #' }
 #' @importFrom dplyr select left_join
 #' @importFrom magrittr %>%
-#' @seealso \code{\link{initialize_modeling_system_pro}}, \code{\link{register_model_pro}},
-#'   \code{\link{run_models_pro}}, \code{\link{load_and_prepare_data_pro}},
-#'   \code{\link{evaluate_model_pro}}, \code{\link{min_max_normalize}}
+#' @seealso \code{\link{models_pro}}, \code{\link{evaluate_model_pro}}
 #' @export
-stacking_pro <- function(results_all_models, data_path, outcome_col_name, time_col_name,
-                         meta_model_name, top = 3, tune_meta = FALSE, time_unit = "day",
-                         years_to_evaluate = c(1, 3, 5), seed = 789) {
+stacking_pro <- function(results_all_models,
+                         data,
+                         meta_model_name,
+                         top = 3,
+                         tune_meta = FALSE,
+                         time_unit = "day",
+                         years_to_evaluate = c(1, 3, 5),
+                         seed = 789) {
 
   if (!.model_registry_env_pro$is_initialized) {
     stop("Prognosis modeling system not initialized. Please call 'initialize_modeling_system_pro()' first.")
@@ -1076,14 +1073,13 @@ stacking_pro <- function(results_all_models, data_path, outcome_col_name, time_c
   message(sprintf("Running Stacking model: %s (meta: %s)", "Stacking_pro", meta_model_name))
 
   set.seed(seed)
-  data_prepared <- load_and_prepare_data_pro(data_path, outcome_col_name, time_col_name, time_unit)
+  data_prepared <- .prepare_data_pro(data, time_unit)
 
-  X_data <- data_prepared$X
   Y_surv_obj <- data_prepared$Y_surv
   sample_ids <- data_prepared$sample_ids
 
   model_c_indices <- sapply(results_all_models, function(res) {
-    if (!is.null(res$evaluation_metrics$C_index)) res$evaluation_metrics$C_index else NA
+    res$evaluation_metrics$C_index %||% NA
   })
   model_c_indices <- model_c_indices[!is.na(model_c_indices)]
 
@@ -1093,26 +1089,19 @@ stacking_pro <- function(results_all_models, data_path, outcome_col_name, time_c
 
   sorted_models_names <- names(sort(model_c_indices, decreasing = TRUE))
   selected_base_models_names <- utils::head(sorted_models_names, base::min(top, length(sorted_models_names)))
+  if (length(selected_base_models_names) < 1) stop("No base models selected for stacking.")
 
-  if (length(selected_base_models_names) < 1) {
-    stop("No base models selected for stacking. Adjust 'top' parameter or check base model results.")
-  }
+  selected_base_model_objects <- lapply(results_all_models[selected_base_models_names], `[[`, "model_object")
 
-  selected_base_model_objects <- list()
-  for (model_name in selected_base_models_names) {
-    selected_base_model_objects[[model_name]] <- results_all_models[[model_name]]$model_object
-  }
-
+  # Create meta-features (normalized scores from base models)
   X_meta <- data.frame(ID = sample_ids)
   meta_normalize_params <- list()
 
   for (model_name in selected_base_models_names) {
     current_scores <- results_all_models[[model_name]]$sample_score$score
-
     min_val <- base::min(current_scores, na.rm = TRUE)
     max_val <- base::max(current_scores, na.rm = TRUE)
     meta_normalize_params[[model_name]] <- list(min_val = min_val, max_val = max_val)
-
     normalized_scores <- min_max_normalize(current_scores, min_val, max_val)
 
     temp_df <- data.frame(ID = sample_ids, score_col = normalized_scores)
@@ -1122,34 +1111,25 @@ stacking_pro <- function(results_all_models, data_path, outcome_col_name, time_c
 
   X_meta_features <- X_meta %>% dplyr::select(-ID)
 
+  # Train the meta-model
   meta_model_func <- all_registered_models[[meta_model_name]]
-
   meta_mdl <- tryCatch({
     set.seed(seed)
     meta_model_func(X_meta_features, Y_surv_obj, tune = tune_meta)
   }, error = function(e) {
-    warning(paste("Meta-model", meta_model_name, "failed with error:", conditionMessage(e)))
-    NULL
+    stop(paste("Meta-model", meta_model_name, "failed with error:", conditionMessage(e)))
   })
 
-  if (is.null(meta_mdl)) {
-    return(list(
-      model_object = NULL,
-      sample_score = data.frame(ID = sample_ids, outcome = Y_surv_obj[,2], time = Y_surv_obj[,1], score = NA),
-      evaluation_metrics = list(error = paste("Meta-model training failed:", conditionMessage(e)))
-    ))
-  }
-
   # Evaluate the stacking model itself
-  eval_results <- evaluate_model_pro(trained_model_obj = meta_mdl, # Pass the trained meta-model
-                                     X_data = X_meta_features,     # Meta-features are the predictions of base models
-                                     Y_surv_obj = Y_surv_obj,
-                                     sample_ids = sample_ids,
-                                     years_to_evaluate = years_to_evaluate,
-                                     precomputed_score = meta_mdl$finalModel$fitted_scores # Use meta-model's scores
+  eval_results <- evaluate_model_pro(
+    trained_model_obj = meta_mdl,
+    X_data = X_meta_features,
+    Y_surv_obj = Y_surv_obj,
+    sample_ids = sample_ids,
+    years_to_evaluate = years_to_evaluate
   )
 
-  stacking_results <- list(
+  list(
     model_object = list(
       model_type = "stacking_pro",
       meta_model_name = meta_model_name,
@@ -1162,220 +1142,82 @@ stacking_pro <- function(results_all_models, data_path, outcome_col_name, time_c
     sample_score = eval_results$sample_score,
     evaluation_metrics = eval_results$evaluation_metrics
   )
-
-  return(stacking_results)
 }
 
 #' @title Apply a Trained Prognostic Model to New Data
 #' @description Applies a previously trained prognostic model (or ensemble) to a
 #'   new, unseen dataset to generate prognostic scores.
 #'
-#' @param trained_model_object A trained model object, as returned by `run_models_pro()`,
-#'   `bagging_pro()`, or `stacking_pro()`.
-#' @param new_data_path A character string, the file path to the new CSV data
-#'   for prediction.
-#' @param outcome_col_name A character string, the name of the column containing
-#'   event status (0 for censored, 1 for event) in the new data. Used for data
-#'   preparation, but not for prediction by the model itself.
-#' @param time_col_name A character string, the name of the column containing
-#'   event or censoring time in the new data. Used for data preparation.
-#' @param time_unit A character string, the unit of time in `time_col_name` of
-#'   the new data.
+#' @param trained_model_object A trained model object, as returned by `models_pro`,
+#'   `bagging_pro`, or `stacking_pro`.
+#' @param new_data A data frame containing the new data for prediction. It should
+#'   follow the same structure as the training data: ID, Outcome, Time, Features.
+#'   The outcome and time columns are used for data preparation and can be included
+#'   in the output, but the model's prediction only uses the features. If outcome/time
+#'   are unknown, they can be filled with NA.
+#' @param time_unit A character string, the unit of time in the third column of
+#'   `new_data`.
 #'
-#' @return A data frame with `ID`, `outcome`, `time`, and `score` for the new data.
-#'   `score` represents the predicted prognostic score from the model.
+#' @return A data frame with `ID`, `outcome`, `time`, and predicted `score` for the new data.
 #' @examples
 #' \dontrun{
-#' # 1. Create dummy training data and new data
-#' set.seed(123)
-#' dummy_train_data <- data.frame(
-#'   ID = paste0("Train", 1:100),
-#'   FeatureA = rnorm(100),
-#'   FeatureB = runif(100, 0, 100),
-#'   Outcome_Status = sample(c(0, 1), 100, replace = TRUE),
-#'   Followup_Time_Days = runif(100, 100, 2000)
-#' )
-#' write.csv(dummy_train_data, "dummy_prognosis_train_data.csv", row.names = FALSE)
-#'
-#' dummy_new_data <- data.frame(
-#'   ID = paste0("Test", 1:20),
-#'   FeatureA = rnorm(20),
-#'   FeatureB = runif(20, 0, 100),
-#'   Outcome_Status = sample(c(0, 1), 20, replace = TRUE), # Include for data prep
-#'   Followup_Time_Days = runif(20, 50, 1500)             # Include for data prep
-#' )
-#' write.csv(dummy_new_data, "dummy_prognosis_new_data.csv", row.names = FALSE)
-#'
-#' # 2. Initialize the modeling system
-#' initialize_modeling_system_pro()
-#'
-#' # 3. Train a model (e.g., Lasso) on training data
-#' # train_results <- run_models_pro(
-#' #   data_path = "dummy_prognosis_train_data.csv",
-#' #   outcome_col_name = "Outcome_Status",
-#' #   time_col_name = "Followup_Time_Days",
-#' #   model = "lasso_pro"
-#' # )
+#' # Assume 'train_pro', 'test_pro' are loaded and 'trained_lasso_model' exists
+#' # data(train_pro)
+#' # data(test_pro)
+#' # initialize_modeling_system_pro()
+#' # train_results <- models_pro(data = train_pro, model = "lasso_pro")
 #' # trained_lasso_model <- train_results$lasso_pro$model_object
 #'
-#' # 4. Apply the trained model to new data
-#' # new_data_predictions <- apply_model_to_new_data_pro(
-#' #   trained_model_object = trained_lasso_model,
-#' #   new_data_path = "dummy_prognosis_new_data.csv",
-#' #   outcome_col_name = "Outcome_Status",
-#' #   time_col_name = "Followup_Time_Days"
-#' # )
-#' # utils::head(new_data_predictions)
-#'
-#' # 5. Clean up
-#' # unlink("dummy_prognosis_train_data.csv")
-#' # unlink("dummy_prognosis_new_data.csv")
+#' # Apply the trained model to new data
+#' new_data_predictions <- apply_pro(
+#'   trained_model_object = trained_lasso_model,
+#'   new_data = test_pro,
+#'   time_unit = "day" # Specify time unit of test_pro
+#' )
+#' utils::head(new_data_predictions)
 #' }
 #' @importFrom dplyr select
-#' @seealso \code{\link{load_and_prepare_data_pro}}, \code{\link{evaluate_model_pro}}
+#' @seealso \code{\link{evaluate_model_pro}}
 #' @export
-apply_model_to_new_data_pro <- function(trained_model_object, new_data_path, outcome_col_name = "outcome", time_col_name = "time",
-                                        time_unit = "day") {
+apply_pro <- function(trained_model_object,
+                      new_data,
+                      time_unit = "day") {
+
   if (is.null(trained_model_object)) {
     stop("Trained model object is NULL. Cannot apply to new data.")
   }
+  if (!is.data.frame(new_data)) {
+    stop("'new_data' must be a data.frame.")
+  }
 
-  message(sprintf("Applying model on new data: %s", new_data_path))
+  message("Applying model on new data...")
 
-  new_data_prepared <- load_and_prepare_data_pro(new_data_path, outcome_col_name, time_col_name, time_unit)
+  new_data_prepared <- .prepare_data_pro(new_data, time_unit)
   X_new <- new_data_prepared$X
   Y_surv_new <- new_data_prepared$Y_surv
   new_sample_ids <- new_data_prepared$sample_ids
 
-  score_new <- NULL
-  model_obj_type <- trained_model_object$model_type
+  # The core prediction logic is now handled by evaluate_model_pro
+  # which can predict on new data given the model object and new features.
+  # This avoids duplicating the complex prediction logic for different model types.
 
-  X_train_cols <- NULL
-  if (!is.null(trained_model_object$X_train_cols)) {
-    X_train_cols <- trained_model_object$X_train_cols
-  } else if (!is.null(trained_model_object$finalModel) && !is.null(trained_model_object$finalModel$X_train_cols)) {
-    X_train_cols <- trained_model_object$finalModel$X_train_cols
-  } else if (!is.null(trained_model_object$base_model_objects)) { # For ensembles
-    first_base_model_obj <- trained_model_object$base_model_objects[[1]]
-    if (!is.null(first_base_model_obj) && !is.null(first_base_model_obj$X_train_cols)) {
-      X_train_cols <- first_base_model_obj$X_train_cols
-    }
-  }
+  # The 'meta_normalize_params' are only needed for stacking models
+  meta_params <- trained_model_object$meta_normalize_params %||% NULL
 
-  if (is.null(X_train_cols)) {
-    warning("Could not retrieve original training feature names. Prediction might fail if new data features are not aligned.")
-  } else {
-    missing_cols <- setdiff(X_train_cols, names(X_new))
-    if (length(missing_cols) > 0) {
-      for (col in missing_cols) { X_new[[col]] <- NA }
-      warning(paste("New data is missing features that were present in training data:", paste(missing_cols, collapse = ", ")))
-    }
-    extra_cols <- setdiff(names(X_new), X_train_cols)
-    if (length(extra_cols) > 0) {
-      X_new <- X_new[, !names(X_new) %in% extra_cols, drop = FALSE]
-      warning(paste("New data has extra features not in training data; removing:", paste(extra_cols, collapse = ", ")))
-    }
-    X_new <- X_new[, X_train_cols, drop = FALSE]
-  }
-
-  if (model_obj_type %in% c("survival_glmnet", "survival_rsf",
-                            "survival_stepcox", "survival_gbm")) {
-    # Directly evaluate for single models
-    score_new <- evaluate_model_pro(trained_model_obj = trained_model_object, X_data = X_new,
-                                    Y_surv_obj = Y_surv_new, sample_ids = new_sample_ids, precomputed_score = NULL)$sample_score$score
-  } else if (model_obj_type == "bagging_pro") {
-    all_scores <- matrix(NA, nrow = nrow(X_new), ncol = length(trained_model_object$base_model_objects))
-    for (i in seq_along(trained_model_object$base_model_objects)) {
-      current_base_model_obj <- trained_model_object$base_model_objects[[i]]
-      if (!is.null(current_base_model_obj)) {
-        all_scores[, i] <- evaluate_model_pro(trained_model_obj = current_base_model_obj,
-                                              X_data = X_new,
-                                              Y_surv_obj = Y_surv_new, # Y_surv_new is needed for evaluate_model_pro call
-                                              sample_ids = new_sample_ids, precomputed_score = NULL)$sample_score$score
-      }
-    }
-    score_new <- rowMeans(all_scores, na.rm = TRUE)
-  } else if (model_obj_type == "stacking_pro") {
-    base_models <- trained_model_object$base_model_objects
-    meta_model <- trained_model_object$trained_meta_model
-    meta_normalize_params <- trained_model_object$meta_normalize_params
-
-    all_base_scores <- matrix(NA, nrow = nrow(X_new), ncol = length(base_models))
-    names(base_models) <- trained_model_object$base_models_used
-
-    for (i in seq_along(base_models)) {
-      current_base_model_obj <- base_models[[i]]
-      if (!is.null(current_base_model_obj)) {
-        base_score_eval <- evaluate_model_pro(trained_model_obj = current_base_model_obj,
-                                              X_data = X_new,
-                                              Y_surv_obj = Y_surv_new, # Y_surv_new is needed for evaluate_model_pro call
-                                              sample_ids = new_sample_ids, precomputed_score = NULL)
-        all_base_scores[, i] <- base_score_eval$sample_score$score
-      }
-    }
-    colnames(all_base_scores) <- trained_model_object$base_models_used
-
-    for (j in 1:ncol(all_base_scores)) {
-      model_name <- colnames(all_base_scores)[j]
-      if (model_name %in% names(meta_normalize_params)) {
-        params <- meta_normalize_params[[model_name]]
-        all_base_scores[, j] <- min_max_normalize(all_base_scores[, j], params$min_val, params$max_val)
-      } else {
-        warning(paste("Normalization parameters for base model", model_name, "not found. Normalizing based on current data range."))
-        all_base_scores[, j] <- min_max_normalize(all_base_scores[, j])
-      }
-    }
-
-    X_meta_new <- as.data.frame(all_base_scores)
-    names(X_meta_new) <- paste0("pred_", trained_model_object$base_models_used)
-
-    meta_train_features <- NULL
-    if (!is.null(meta_model$X_train_cols)) {
-      meta_train_features <- meta_model$X_train_cols
-    } else if (!is.null(meta_model$trainingData)) {
-      meta_train_features <- names(meta_model$trainingData)[-ncol(meta_model$trainingData)]
-    }
-
-    if (is.null(meta_train_features)) {
-      stop("Could not retrieve meta-model training feature names. Cannot predict.")
-    }
-
-    missing_meta_features <- setdiff(meta_train_features, names(X_meta_new))
-    if (length(missing_meta_features) > 0) {
-      for(mf in missing_meta_features) { X_meta_new[[mf]] <- NA }
-      warning(paste("Meta-model expected features missing from new base model predictions:", paste(missing_meta_features, collapse = ", ")))
-    }
-    X_meta_new <- X_meta_new[, meta_train_features, drop = FALSE]
-
-    meta_model_type <- trained_model_object$meta_model_type
-
-    if (meta_model_type == "survival_glmnet") {
-      score_new <- base::as.numeric(stats::predict(meta_model$finalModel, newx = stats::model.matrix(~ . - 1, data = X_meta_new), type = "link"))
-    } else if (meta_model_type == "survival_gbm") {
-      score_new <- stats::predict(meta_model$finalModel, newdata = X_meta_new, n.trees = meta_model$finalModel$best_iter, type = "link")
-    } else if (meta_model_type == "survival_rsf") {
-      score_new <- randomForestSRC::predict.rfsrc(meta_model$finalModel, newdata = X_meta_new)$predicted
-    } else if (meta_model_type == "survival_stepcox") {
-      score_new <- stats::predict(meta_model$finalModel, newdata = X_meta_new, type = "lp")
-    } else {
-      stop(paste("Unsupported meta model type for prediction on new data:", meta_model_type))
-    }
-
-  } else {
-    stop("Unsupported trained model object type for prediction on new data.")
-  }
-
-  score_new[is.na(score_new)] <- stats::median(score_new, na.rm = TRUE)
-
-  results_df <- data.frame(
-    ID = new_sample_ids,
-    outcome = Y_surv_new[,2],
-    time = Y_surv_new[,1],
-    score = score_new
+  eval_on_new <- evaluate_model_pro(
+    trained_model_obj = trained_model_object,
+    X_data = X_new,
+    Y_surv_obj = Y_surv_new, # Y_surv_new is needed for C-index etc., but not for score prediction
+    sample_ids = new_sample_ids,
+    precomputed_score = NULL, # We want it to compute the score
+    meta_normalize_params = meta_params
   )
 
-  return(results_df)
+  # The result is the sample_score data frame from the evaluation
+  # which contains ID, original outcome/time, and the new score.
+  return(eval_on_new$sample_score)
 }
+
 
 #' @title Initialize Prognostic Modeling System
 #' @description Initializes the prognostic modeling system by loading required

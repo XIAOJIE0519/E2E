@@ -6,7 +6,7 @@
 \usage{
 figure_shap(
   data,
-  raw_data_path,
+  model,
   output_file,
   model_type = "xgboost",
   output_type = "pdf",
@@ -14,11 +14,18 @@ figure_shap(
 )
 }
 \arguments{
-\item{data}{A list object containing model evaluation results. It must contain
-\code{sample_score}, which is a data frame with at least "sample" (or "ID") and "score" columns.}
+\item{data}{A data frame containing the raw data. The function expects a specific
+column structure based on \code{target_type}:
+\itemize{
+\item For "diagnosis": Column 1 is sample ID, Column 2 is the outcome/label,
+Columns 3 onwards are features.
+\item For "prognosis": Column 1 is sample ID, Column 2 is the outcome, Column 3
+is time, Columns 4 onwards are features.
+}}
 
-\item{raw_data_path}{String, the file path to the original feature data in CSV format.
-The first column of this CSV should be the sample ID (matching "sample" or "ID" in \code{data$sample_score}).}
+\item{model}{A list object containing model evaluation results. It must contain
+\code{sample_score}, which is a data frame with at least a sample ID column
+(e.g., "sample" or "ID") and a "score" column.}
 
 \item{output_file}{String, the base name for the output filename (without extension).}
 
@@ -29,34 +36,34 @@ value calculation. Options: "xgboost" (default) or "lasso".}
 Defaults to "pdf".}
 
 \item{target_type}{String, indicates whether the SHAP analysis is for a
-"diagnosis" or "prognosis" model. This helps in correctly identifying and
-excluding non-feature columns (like "label", "outcome", "time") from the raw data.}
+"diagnosis" or "prognosis" model. This is crucial for correctly identifying
+and excluding non-feature columns based on their position.}
 }
 \value{
 NULL. The function saves a combined plot (SHAP beeswarm and importance bar chart)
 to the specified output file.
 }
 \description{
-Trains a surrogate model (XGBoost or Lasso) to approximate the original
-model's output scores. It then calculates and visualizes SHAP (SHapley Additive
-exPlanations) values to explain each feature's contribution to the
-surrogate model's predictions, thereby providing insights into the
-original model's behavior.
+Trains a surrogate model (XGBoost or Lasso) to approximate an
+original model's output scores. It then calculates and visualizes
+SHAP (SHapley Additive exPlanations) values to explain each
+feature's contribution, providing insights into the original model's behavior.
 }
 \examples{
 \dontrun{
-# Create dummy raw data and model evaluation results for demonstration
-# For diagnostic model:
+# --- Example for a Diagnostic Model ---
 set.seed(123)
+# Create dummy raw data for diagnosis
+# Col 1: sample ID, Col 2: label, Cols 3-5: features
 dummy_raw_dia_data <- data.frame(
   sample = paste0("S", 1:100),
+  label = sample(c(0, 1), 100, replace = TRUE),
   featureA = rnorm(100),
   featureB = runif(100),
-  featureC = sample(1:10, 100, replace = TRUE),
-  label = sample(c(0, 1), 100, replace = TRUE) # Example label column
+  featureC = sample(1:10, 100, replace = TRUE)
 )
-write.csv(dummy_raw_dia_data, "dummy_raw_dia_data.csv", row.names = FALSE)
 
+# Create dummy model evaluation results (scores)
 dummy_eval_dia_results <- list(
   sample_score = data.frame(
     sample = paste0("S", 1:100),
@@ -64,25 +71,27 @@ dummy_eval_dia_results <- list(
   )
 )
 
-# Run SHAP for a diagnostic model
-figure_shap(data = dummy_eval_dia_results,
-            raw_data_path = "dummy_raw_dia_data.csv",
+# Run SHAP for the diagnostic model
+figure_shap(data = dummy_raw_dia_data,
+            model = dummy_eval_dia_results,
             output_file = "Diagnostic_SHAP_XGBoost",
             model_type = "xgboost",
             output_type = "pdf",
             target_type = "diagnosis")
 
-# For prognostic model:
+# --- Example for a Prognostic Model ---
+# Create dummy raw data for prognosis
+# Col 1: ID, Col 2: outcome, Col 3: time, Cols 4-6: features
 dummy_raw_pro_data <- data.frame(
   ID = paste0("P", 1:100),
+  outcome = sample(c(0, 1), 100, replace = TRUE),
+  time = runif(100, 50, 1000),
   gene1 = rnorm(100),
   gene2 = runif(100),
-  clinic_var = sample(c(10, 20), 100, replace = TRUE),
-  time = runif(100, 50, 1000), # Example time column
-  outcome = sample(c(0, 1), 100, replace = TRUE) # Example outcome column
+  clinic_var = sample(c(10, 20), 100, replace = TRUE)
 )
-write.csv(dummy_raw_pro_data, "dummy_raw_pro_data.csv", row.names = FALSE)
 
+# Create dummy model evaluation results (scores)
 dummy_eval_pro_results <- list(
   sample_score = data.frame(
     ID = paste0("P", 1:100),
@@ -90,16 +99,12 @@ dummy_eval_pro_results <- list(
   )
 )
 
-# Run SHAP for a prognostic model
-figure_shap(data = dummy_eval_pro_results,
-            raw_data_path = "dummy_raw_pro_data.csv",
+# Run SHAP for the prognostic model
+figure_shap(data = dummy_raw_pro_data,
+            model = dummy_eval_pro_results,
             output_file = "Prognostic_SHAP_Lasso",
             model_type = "lasso",
             output_type = "png",
             target_type = "prognosis")
-
-# Clean up dummy files
-unlink("dummy_raw_dia_data.csv")
-unlink("dummy_raw_pro_data.csv")
 }
 }

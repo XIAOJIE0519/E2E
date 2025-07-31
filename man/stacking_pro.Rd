@@ -6,9 +6,7 @@
 \usage{
 stacking_pro(
   results_all_models,
-  data_path,
-  outcome_col_name,
-  time_col_name,
+  data,
   meta_model_name,
   top = 3,
   tune_meta = FALSE,
@@ -18,17 +16,11 @@ stacking_pro(
 )
 }
 \arguments{
-\item{results_all_models}{A list of results from \code{run_models_pro()},
+\item{results_all_models}{A list of results from \code{models_pro()},
 containing trained base model objects and their evaluation metrics.}
 
-\item{data_path}{A character string, the file path to the input CSV data.
-(Used to re-load and prepare original data for meta-model training).}
-
-\item{outcome_col_name}{A character string, the name of the column containing
-event status (0 for censored, 1 for event).}
-
-\item{time_col_name}{A character string, the name of the column containing
-event or censoring time.}
+\item{data}{A data frame for training the meta-model. The first column must be ID,
+second event status (0/1), third time, and subsequent columns features.}
 
 \item{meta_model_name}{A character string, the name of the meta-model to use
 (e.g., "lasso_pro", "gbm_pro"). This model must be registered.}
@@ -38,7 +30,7 @@ to select for the stacking ensemble.}
 
 \item{tune_meta}{Logical, whether to enable tuning for the meta-model.}
 
-\item{time_unit}{A character string, the unit of time in \code{time_col_name}.}
+\item{time_unit}{A character string, the unit of time in the third column of \code{data}.}
 
 \item{years_to_evaluate}{A numeric vector of specific years at which to
 calculate time-dependent AUROC for evaluation.}
@@ -46,65 +38,28 @@ calculate time-dependent AUROC for evaluation.}
 \item{seed}{An integer, for reproducibility.}
 }
 \value{
-A list containing:
-\itemize{
-\item \code{model_object}: A list describing the ensemble model, including
-meta-model details, selected base models, and normalization parameters.
-\item \code{sample_score}: A data frame with \code{ID}, \code{outcome}, \code{time}, and
-final \code{score} from the stacking model.
-\item \code{evaluation_metrics}: Performance metrics for the Stacking model.
-}
+A list containing the \code{model_object}, \code{sample_score}, and \code{evaluation_metrics}.
 }
 \description{
 Implements a Stacking ensemble for prognostic models. It trains
-multiple base models, then uses their predictions as features to train a
-meta-model, which makes the final prediction. It selects top-performing
-base models based on C-index.
+multiple base models and uses their predictions to train a meta-model.
 }
 \examples{
 \dontrun{
-# 1. Create dummy data (same as for run_models_pro)
-set.seed(123)
-dummy_data <- data.frame(
-  ID = paste0("Patient", 1:100),
-  FeatureA = rnorm(100),
-  FeatureB = runif(100, 0, 100),
-  FeatureC = sample(c(1, 2, 3), 100, replace = TRUE),
-  Outcome_Status = sample(c(0, 1), 100, replace = TRUE),
-  Followup_Time_Days = runif(100, 100, 2000)
+# Assume 'train_pro' is loaded and 'base_model_results' from models_pro() exist
+# data(train_pro)
+# base_model_results <- models_pro(data = train_pro, model = "all_pro")
+
+stacking_gbm_results <- stacking_pro(
+  results_all_models = base_model_results,
+  data = train_pro,
+  meta_model_name = "gbm_pro",
+  top = 3,
+  years_to_evaluate = c(1, 3)
 )
-write.csv(dummy_data, "dummy_prognosis_data.csv", row.names = FALSE)
-
-# 2. Initialize the modeling system
-initialize_modeling_system_pro()
-
-# 3. Run a set of base models first
-# base_model_results <- run_models_pro(
-#   data_path = "dummy_prognosis_data.csv",
-#   outcome_col_name = "Outcome_Status",
-#   time_col_name = "Followup_Time_Days",
-#   model = c("lasso_pro", "ridge_pro", "rsf_pro", "gbm_pro", "stepcox_pro"),
-#   years_to_evaluate = c(1, 3)
-# )
-
-# 4. Run Stacking with GBM as meta-model, using top 3 base models
-# stacking_gbm_results <- stacking_pro(
-#   results_all_models = base_model_results,
-#   data_path = "dummy_prognosis_data.csv",
-#   outcome_col_name = "Outcome_Status",
-#   time_col_name = "Followup_Time_Days",
-#   meta_model_name = "gbm_pro",
-#   top = 3,
-#   years_to_evaluate = c(1, 3)
-# )
-# print_model_summary_pro("Stacking (GBM)", stacking_gbm_results)
-
-# 5. Clean up
-# unlink("dummy_prognosis_data.csv")
+print_model_summary_pro("Stacking (GBM)", stacking_gbm_results)
 }
 }
 \seealso{
-\code{\link{initialize_modeling_system_pro}}, \code{\link{register_model_pro}},
-\code{\link{run_models_pro}}, \code{\link{load_and_prepare_data_pro}},
-\code{\link{evaluate_model_pro}}, \code{\link{min_max_normalize}}
+\code{\link{models_pro}}, \code{\link{evaluate_model_pro}}
 }

@@ -5,9 +5,7 @@
 \title{Train a Bagging Prognostic Model}
 \usage{
 bagging_pro(
-  data_path,
-  outcome_col_name,
-  time_col_name,
+  data,
   base_model_name,
   n_estimators = 10,
   subset_fraction = 0.632,
@@ -18,13 +16,9 @@ bagging_pro(
 )
 }
 \arguments{
-\item{data_path}{A character string, the file path to the input CSV data.}
-
-\item{outcome_col_name}{A character string, the name of the column containing
-event status (0 for censored, 1 for event).}
-
-\item{time_col_name}{A character string, the name of the column containing
-event or censoring time.}
+\item{data}{A data frame for training. The first column must be the sample ID,
+the second column the event status (0/1), the third column the time, and
+subsequent columns the features.}
 
 \item{base_model_name}{A character string, the name of the base prognostic
 model to use (e.g., "lasso_pro", "rsf_pro"). This model must be registered.}
@@ -32,11 +26,11 @@ model to use (e.g., "lasso_pro", "rsf_pro"). This model must be registered.}
 \item{n_estimators}{An integer, the number of base models to train.}
 
 \item{subset_fraction}{A numeric value between 0 and 1, the fraction of
-samples to bootstrap for each base model (0.632 is common for Bagging).}
+samples to bootstrap for each base model.}
 
 \item{tune_base_model}{Logical, whether to enable tuning for each base model.}
 
-\item{time_unit}{A character string, the unit of time in \code{time_col_name}.}
+\item{time_unit}{A character string, the unit of time in the third column of \code{data}.}
 
 \item{years_to_evaluate}{A numeric vector of specific years at which to
 calculate time-dependent AUROC for evaluation.}
@@ -44,14 +38,7 @@ calculate time-dependent AUROC for evaluation.}
 \item{seed}{An integer, for reproducibility.}
 }
 \value{
-A list containing:
-\itemize{
-\item \code{model_object}: A list describing the ensemble model, including
-the base model name, number of estimators, and all trained base model objects.
-\item \code{sample_score}: A data frame with \code{ID}, \code{outcome}, \code{time}, and
-aggregated \code{score} from the ensemble.
-\item \code{evaluation_metrics}: Performance metrics for the Bagging model.
-}
+A list containing the \code{model_object}, \code{sample_score}, and \code{evaluation_metrics}.
 }
 \description{
 Implements a Bagging (Bootstrap Aggregating) ensemble for
@@ -60,37 +47,20 @@ of the training data and aggregates their predictions.
 }
 \examples{
 \dontrun{
-# 1. Create dummy data (same as for run_models_pro)
-set.seed(123)
-dummy_data <- data.frame(
-  ID = paste0("Patient", 1:100),
-  FeatureA = rnorm(100),
-  FeatureB = runif(100, 0, 100),
-  Outcome_Status = sample(c(0, 1), 100, replace = TRUE),
-  Followup_Time_Days = runif(100, 100, 2000)
-)
-write.csv(dummy_data, "dummy_prognosis_data.csv", row.names = FALSE)
-
-# 2. Initialize the modeling system
+# Assume 'train_pro' is a data frame loaded from your package
+# data(train_pro)
 initialize_modeling_system_pro()
 
-# 3. Run Bagging with Lasso as base model
-# bagging_lasso_results <- bagging_pro(
-#   data_path = "dummy_prognosis_data.csv",
-#   outcome_col_name = "Outcome_Status",
-#   time_col_name = "Followup_Time_Days",
-#   base_model_name = "lasso_pro",
-#   n_estimators = 5, # Use a small number for example speed
-#   subset_fraction = 0.8,
-#   years_to_evaluate = c(1, 3)
-# )
-# print_model_summary_pro("Bagging (Lasso)", bagging_lasso_results)
-
-# 4. Clean up
-# unlink("dummy_prognosis_data.csv")
+bagging_lasso_results <- bagging_pro(
+  data = train_pro,
+  base_model_name = "lasso_pro",
+  n_estimators = 5, # Small number for example speed
+  subset_fraction = 0.8,
+  years_to_evaluate = c(1, 3)
+)
+print_model_summary_pro("Bagging (Lasso)", bagging_lasso_results)
 }
 }
 \seealso{
-\code{\link{initialize_modeling_system_pro}}, \code{\link{register_model_pro}},
-\code{\link{load_and_prepare_data_pro}}, \code{\link{evaluate_model_pro}}
+\code{\link{initialize_modeling_system_pro}}, \code{\link{evaluate_model_pro}}
 }

@@ -5,8 +5,7 @@
 \title{Train a Bagging Diagnostic Model}
 \usage{
 bagging_dia(
-  data_path,
-  label_col_name,
+  data,
   base_model_name,
   n_estimators = 50,
   subset_fraction = 0.632,
@@ -21,10 +20,8 @@ bagging_dia(
 )
 }
 \arguments{
-\item{data_path}{A character string, the file path to the input CSV data.}
-
-\item{label_col_name}{A character string, the name of the column containing
-the class labels.}
+\item{data}{A data frame where the first column is the sample ID, the second
+is the outcome label, and subsequent columns are features.}
 
 \item{base_model_name}{A character string, the name of the base diagnostic
 model to use (e.g., "rf", "lasso"). This model must be registered.}
@@ -32,7 +29,7 @@ model to use (e.g., "rf", "lasso"). This model must be registered.}
 \item{n_estimators}{An integer, the number of base models to train.}
 
 \item{subset_fraction}{A numeric value between 0 and 1, the fraction of
-samples to bootstrap for each base model (0.632 is common for Bagging).}
+samples to bootstrap for each base model.}
 
 \item{tune_base_model}{Logical, whether to enable tuning for each base model.}
 
@@ -57,14 +54,7 @@ for the negative class (e.g., "Negative").}
 \item{seed}{An integer, for reproducibility.}
 }
 \value{
-A list containing:
-\itemize{
-\item \code{model_object}: A list describing the ensemble model, including
-the base model name, number of estimators, and all trained base model objects.
-\item \code{sample_score}: A data frame with \code{sample} (ID), \code{label} (original numeric),
-and aggregated \code{score} (probability) from the ensemble.
-\item \code{evaluation_metrics}: Performance metrics for the Bagging model.
-}
+A list containing the \code{model_object}, \code{sample_score}, and \code{evaluation_metrics}.
 }
 \description{
 Implements a Bagging (Bootstrap Aggregating) ensemble for
@@ -73,39 +63,23 @@ of the training data and aggregates their predictions by averaging probabilities
 }
 \examples{
 \dontrun{
-# 1. Create dummy data (same as for run_models_dia)
-set.seed(123)
-dummy_data <- data.frame(
-  ID = paste0("Patient", 1:100),
-  FeatureA = rnorm(100),
-  FeatureB = runif(100, 0, 100),
-  Disease_Status = sample(c(0, 1), 100, replace = TRUE)
-)
-write.csv(dummy_data, "dummy_diagnosis_data.csv", row.names = FALSE)
-
-# 2. Initialize the modeling system
+# Assume 'train_dia' is a data frame loaded from your package
+# data(train_dia)
 initialize_modeling_system_dia()
 
-# 3. Run Bagging with Random Forest as base model
-# bagging_rf_results <- bagging_dia(
-#   data_path = "dummy_diagnosis_data.csv",
-#   label_col_name = "Disease_Status",
-#   base_model_name = "rf",
-#   n_estimators = 5, # Use a small number for example speed
-#   subset_fraction = 0.8,
-#   threshold_strategy = "youden",
-#   positive_label_value = 1,
-#   negative_label_value = 0,
-#   new_positive_label = "Case",
-#   new_negative_label = "Control"
-# )
-# print_model_summary_dia("Bagging (RF)", bagging_rf_results)
-
-# 4. Clean up
-# unlink("dummy_diagnosis_data.csv")
+bagging_rf_results <- bagging_dia(
+  data = train_dia,
+  base_model_name = "rf",
+  n_estimators = 5,
+  threshold_strategy = "youden",
+  positive_label_value = 1,
+  negative_label_value = 0,
+  new_positive_label = "Case",
+  new_negative_label = "Control"
+)
+print_model_summary_dia("Bagging (RF)", bagging_rf_results)
 }
 }
 \seealso{
-\code{\link{initialize_modeling_system_dia}}, \code{\link{register_model_dia}},
-\code{\link{load_and_prepare_data_dia}}, \code{\link{evaluate_model_dia}}
+\code{\link{initialize_modeling_system_dia}}, \code{\link{evaluate_model_dia}}
 }

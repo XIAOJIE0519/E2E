@@ -5,8 +5,7 @@
 \title{Train an EasyEnsemble Model for Imbalanced Classification}
 \usage{
 imbalance_dia(
-  data_path,
-  label_col_name,
+  data,
   base_model_name = "xb",
   n_estimators = 10,
   tune_base_model = FALSE,
@@ -19,10 +18,8 @@ imbalance_dia(
 )
 }
 \arguments{
-\item{data_path}{A character string, the file path to the input CSV data.}
-
-\item{label_col_name}{A character string, the name of the column containing
-the class labels.}
+\item{data}{A data frame where the first column is the sample ID, the second
+is the outcome label, and subsequent columns are features.}
 
 \item{base_model_name}{A character string, the name of the base diagnostic
 model to use (e.g., "xb", "rf"). This model must be registered.}
@@ -49,55 +46,30 @@ for the negative class (e.g., "Negative").}
 \item{seed}{An integer, for reproducibility.}
 }
 \value{
-A list containing:
-\itemize{
-\item \code{model_object}: A list describing the ensemble model, including
-the base model name, number of estimators, and all trained base model objects.
-\item \code{sample_score}: A data frame with \code{sample} (ID), \code{label} (original numeric),
-and aggregated \code{score} (probability) from the EasyEnsemble model.
-\item \code{evaluation_metrics}: Performance metrics for the EasyEnsemble model.
-}
+A list containing the \code{model_object}, \code{sample_score}, and \code{evaluation_metrics}.
 }
 \description{
-Implements the EasyEnsemble algorithm for imbalanced classification.
-It trains multiple base models on balanced subsets of the training data (by
-undersampling the majority class) and aggregates their predictions by averaging
-probabilities.
+Implements the EasyEnsemble algorithm. It trains multiple base
+models on balanced subsets of the data (by undersampling the majority class)
+and aggregates their predictions.
 }
 \examples{
 \dontrun{
-# 1. Create dummy imbalanced data (e.g., 1:9 ratio)
-set.seed(123)
-dummy_imbalanced_data <- data.frame(
-  ID = paste0("Patient", 1:100),
-  FeatureA = rnorm(100),
-  FeatureB = runif(100, 0, 100),
-  Disease_Status = sample(c(0, 1), 100, replace = TRUE, prob = c(0.9, 0.1))
-)
-write.csv(dummy_imbalanced_data, "dummy_imbalanced_data.csv", row.names = FALSE)
-
-# 2. Initialize the modeling system
+# Assume 'train_dia_imbalanced' is a data frame loaded from your package
+# data(train_dia_imbalanced)
 initialize_modeling_system_dia()
 
-# 3. Run EasyEnsemble with XGBoost as base model
-# easyensemble_results <- imbalance_dia(
-#   data_path = "dummy_imbalanced_data.csv",
-#   label_col_name = "Disease_Status",
-#   base_model_name = "xb",
-#   n_estimators = 5, # Use a small number for example speed
-#   threshold_choices = "f1",
-#   positive_label_value = 1,
-#   negative_label_value = 0,
-#   new_positive_label = "Case",
-#   new_negative_label = "Control"
-# )
-# print_model_summary_dia("EasyEnsemble (XGBoost)", easyensemble_results)
-
-# 4. Clean up
-# unlink("dummy_imbalanced_data.csv")
+easyensemble_results <- imbalance_dia(
+  data = train_dia_imbalanced,
+  base_model_name = "xb",
+  n_estimators = 5,
+  threshold_choices = "f1",
+  positive_label_value = 1,
+  negative_label_value = 0
+)
+print_model_summary_dia("EasyEnsemble (XGBoost)", easyensemble_results)
 }
 }
 \seealso{
-\code{\link{initialize_modeling_system_dia}}, \code{\link{register_model_dia}},
-\code{\link{load_and_prepare_data_dia}}, \code{\link{evaluate_model_dia}}
+\code{\link{initialize_modeling_system_dia}}, \code{\link{evaluate_model_dia}}
 }

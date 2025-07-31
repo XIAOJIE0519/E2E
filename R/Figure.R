@@ -591,41 +591,46 @@ figure_pro <- function(type, data, output_file, output_type = "pdf", time_unit =
 # 4. SHAP Model Explanation Function (figure_shap)
 # ------------------------------------------------------------------------------
 #' @title Generate and Plot SHAP Explanation Figures
-#' @description Trains a surrogate model (XGBoost or Lasso) to approximate the original
-#'              model's output scores. It then calculates and visualizes SHAP (SHapley Additive
-#'              exPlanations) values to explain each feature's contribution to the
-#'              surrogate model's predictions, thereby providing insights into the
-#'              original model's behavior.
+#' @description Trains a surrogate model (XGBoost or Lasso) to approximate an
+#'              original model's output scores. It then calculates and visualizes
+#'              SHAP (SHapley Additive exPlanations) values to explain each
+#'              feature's contribution, providing insights into the original model's behavior.
 #'
-#' @param data A list object containing model evaluation results. It must contain
-#'   `sample_score`, which is a data frame with at least "sample" (or "ID") and "score" columns.
-#' @param raw_data_path String, the file path to the original feature data in CSV format.
-#'   The first column of this CSV should be the sample ID (matching "sample" or "ID" in `data$sample_score`).
+#' @param data A data frame containing the raw data. The function expects a specific
+#'   column structure based on `target_type`:
+#'   - For "diagnosis": Column 1 is sample ID, Column 2 is the outcome/label,
+#'     Columns 3 onwards are features.
+#'   - For "prognosis": Column 1 is sample ID, Column 2 is the outcome, Column 3
+#'     is time, Columns 4 onwards are features.
+#' @param model A list object containing model evaluation results. It must contain
+#'   `sample_score`, which is a data frame with at least a sample ID column
+#'   (e.g., "sample" or "ID") and a "score" column.
 #' @param output_file String, the base name for the output filename (without extension).
 #' @param model_type String, specifies the type of surrogate model to train for SHAP
 #'   value calculation. Options: "xgboost" (default) or "lasso".
 #' @param output_type String, the desired output file format. Options: "pdf", "png", "svg".
 #'   Defaults to "pdf".
 #' @param target_type String, indicates whether the SHAP analysis is for a
-#'   "diagnosis" or "prognosis" model. This helps in correctly identifying and
-#'   excluding non-feature columns (like "label", "outcome", "time") from the raw data.
+#'   "diagnosis" or "prognosis" model. This is crucial for correctly identifying
+#'   and excluding non-feature columns based on their position.
 #'
 #' @return NULL. The function saves a combined plot (SHAP beeswarm and importance bar chart)
 #'   to the specified output file.
 #' @examples
 #' \dontrun{
-#' # Create dummy raw data and model evaluation results for demonstration
-#' # For diagnostic model:
+#' # --- Example for a Diagnostic Model ---
 #' set.seed(123)
+#' # Create dummy raw data for diagnosis
+#' # Col 1: sample ID, Col 2: label, Cols 3-5: features
 #' dummy_raw_dia_data <- data.frame(
 #'   sample = paste0("S", 1:100),
+#'   label = sample(c(0, 1), 100, replace = TRUE),
 #'   featureA = rnorm(100),
 #'   featureB = runif(100),
-#'   featureC = sample(1:10, 100, replace = TRUE),
-#'   label = sample(c(0, 1), 100, replace = TRUE) # Example label column
+#'   featureC = sample(1:10, 100, replace = TRUE)
 #' )
-#' write.csv(dummy_raw_dia_data, "dummy_raw_dia_data.csv", row.names = FALSE)
 #'
+#' # Create dummy model evaluation results (scores)
 #' dummy_eval_dia_results <- list(
 #'   sample_score = data.frame(
 #'     sample = paste0("S", 1:100),
@@ -633,25 +638,27 @@ figure_pro <- function(type, data, output_file, output_type = "pdf", time_unit =
 #'   )
 #' )
 #'
-#' # Run SHAP for a diagnostic model
-#' figure_shap(data = dummy_eval_dia_results,
-#'             raw_data_path = "dummy_raw_dia_data.csv",
+#' # Run SHAP for the diagnostic model
+#' figure_shap(data = dummy_raw_dia_data,
+#'             model = dummy_eval_dia_results,
 #'             output_file = "Diagnostic_SHAP_XGBoost",
 #'             model_type = "xgboost",
 #'             output_type = "pdf",
 #'             target_type = "diagnosis")
 #'
-#' # For prognostic model:
+#' # --- Example for a Prognostic Model ---
+#' # Create dummy raw data for prognosis
+#' # Col 1: ID, Col 2: outcome, Col 3: time, Cols 4-6: features
 #' dummy_raw_pro_data <- data.frame(
 #'   ID = paste0("P", 1:100),
+#'   outcome = sample(c(0, 1), 100, replace = TRUE),
+#'   time = runif(100, 50, 1000),
 #'   gene1 = rnorm(100),
 #'   gene2 = runif(100),
-#'   clinic_var = sample(c(10, 20), 100, replace = TRUE),
-#'   time = runif(100, 50, 1000), # Example time column
-#'   outcome = sample(c(0, 1), 100, replace = TRUE) # Example outcome column
+#'   clinic_var = sample(c(10, 20), 100, replace = TRUE)
 #' )
-#' write.csv(dummy_raw_pro_data, "dummy_raw_pro_data.csv", row.names = FALSE)
 #'
+#' # Create dummy model evaluation results (scores)
 #' dummy_eval_pro_results <- list(
 #'   sample_score = data.frame(
 #'     ID = paste0("P", 1:100),
@@ -659,19 +666,14 @@ figure_pro <- function(type, data, output_file, output_type = "pdf", time_unit =
 #'   )
 #' )
 #'
-#' # Run SHAP for a prognostic model
-#' figure_shap(data = dummy_eval_pro_results,
-#'             raw_data_path = "dummy_raw_pro_data.csv",
+#' # Run SHAP for the prognostic model
+#' figure_shap(data = dummy_raw_pro_data,
+#'             model = dummy_eval_pro_results,
 #'             output_file = "Prognostic_SHAP_Lasso",
 #'             model_type = "lasso",
 #'             output_type = "png",
 #'             target_type = "prognosis")
-#'
-#' # Clean up dummy files
-#' unlink("dummy_raw_dia_data.csv")
-#' unlink("dummy_raw_pro_data.csv")
 #' }
-#' @importFrom readr read_csv
 #' @importFrom dplyr inner_join
 #' @importFrom xgboost xgb.DMatrix xgb.train
 #' @importFrom glmnet cv.glmnet
@@ -681,57 +683,40 @@ figure_pro <- function(type, data, output_file, output_type = "pdf", time_unit =
 #' @importFrom patchwork plot_layout
 #' @importFrom Cairo CairoPDF CairoPNG CairoSVG
 #' @export
-figure_shap <- function(data, raw_data_path, output_file,
+figure_shap <- function(data, model, output_file,
                         model_type = "xgboost", output_type = "pdf",
                         target_type = c("diagnosis", "prognosis")) {
 
   target_type <- match.arg(target_type)
 
-  # Parameter validation
+  # --- 1. Parameter Validation ---
+  if (!is.data.frame(data)) {
+    stop("'data' must be a data frame containing the raw feature data.")
+  }
+  if (!is.list(model) || !("sample_score" %in% names(model))) {
+    stop("'model' must be a list containing a 'sample_score' data frame.")
+  }
+  if (!"score" %in% names(model$sample_score)) {
+    stop("'model$sample_score' must contain a 'score' column.")
+  }
   if (!model_type %in% c("xgboost", "lasso")) {
     stop("Invalid 'model_type' parameter. Please choose 'xgboost' or 'lasso'.")
   }
-  if (!file.exists(raw_data_path)) {
-    stop(paste("Raw data file not found:", raw_data_path))
-  }
-  if (!all(c("sample_score") %in% names(data))) {
-    stop("'data' object format is incorrect; it must contain 'sample_score'.")
-  }
-  if (!"score" %in% names(data$sample_score)) {
-    stop("'data$sample_score' must contain a 'score' column.")
-  }
 
-  # Prepare data
+  # --- 2. Prepare Data ---
   message("Preparing data for SHAP analysis...")
-  raw_df <- readr::read_csv(raw_data_path, show_col_types = FALSE)
-  score_df <- as.data.frame(data$sample_score)
+  raw_df <- data
+  score_df <- as.data.frame(model$sample_score)
 
-  # Standardize ID column names for merging
-  # Attempt to find common ID names, otherwise default to first column
-  common_id_names <- c("sample", "ID")
-  id_col_raw <- intersect(names(raw_df), common_id_names)
-  id_col_score <- intersect(names(score_df), common_id_names)
-
-  if (length(id_col_raw) == 0) {
-    id_col_raw <- names(raw_df)[1] # Default to first column
-    warning(paste0("No explicit ID column ('sample' or 'ID') recognized in raw data; defaulting to first column '", id_col_raw, "' as ID."))
-  } else {
-    id_col_raw <- id_col_raw[1] # Take the first match if multiple exist
-  }
-  if (length(id_col_score) == 0) {
-    id_col_score <- names(score_df)[1] # Default to first column
-    warning(paste0("No explicit ID column ('sample' or 'ID') recognized in model scores; defaulting to first column '", id_col_score, "' as ID."))
-  } else {
-    id_col_score <- id_col_score[1] # Take the first match if multiple exist
-  }
+  # Standardize ID column names for merging. Default to the first column.
+  id_col_raw <- names(raw_df)[1]
+  id_col_score <- names(score_df)[1]
 
   # Ensure ID column names are identical for merging
   if (id_col_raw != id_col_score) {
-    # If different, rename one to match the other, prioritizing the raw_df's ID name
     names(score_df)[names(score_df) == id_col_score] <- id_col_raw
     message(paste0("Renamed score dataframe ID column from '", id_col_score, "' to '", id_col_raw, "' for merging."))
   }
-
 
   # Merge data
   merged_df <- dplyr::inner_join(raw_df, score_df, by = id_col_raw)
@@ -739,7 +724,7 @@ figure_shap <- function(data, raw_data_path, output_file,
   # Clean NA values in target score
   initial_rows_shap <- nrow(merged_df)
   if (any(is.na(merged_df$score))) {
-    warning("NA values found in model scores for SHAP analysis; these rows will be removed.")
+    warning("NA values found in model scores; these rows will be removed.")
     merged_df <- merged_df[!is.na(merged_df$score), ]
   }
   if (nrow(merged_df) == 0) {
@@ -749,105 +734,69 @@ figure_shap <- function(data, raw_data_path, output_file,
     message(sprintf("Removed %d rows from merged data due to NA values in scores.", initial_rows_shap - nrow(merged_df)))
   }
 
-  # Prepare surrogate model input
+  # --- 3. Identify Feature Columns (Crucial Fix) ---
+  # Exclude non-feature columns based on their specified positions in the input `data`
+  # This prevents outcomes/time from being treated as features.
   target_score <- merged_df$score
+  all_raw_col_names <- names(raw_df)
 
-  # Identify feature columns (excluding ID, label/outcome/time, and score)
-  exclude_cols <- c(id_col_raw, "score")
   if (target_type == "diagnosis") {
-    exclude_cols <- c(exclude_cols, "label")
+    # Exclude Col 1 (ID) and Col 2 (Outcome/Label)
+    if (ncol(raw_df) < 3) stop("Diagnosis data must have at least 3 columns (ID, Label, 1+ Features).")
+    non_feature_cols <- all_raw_col_names[1:2]
   } else if (target_type == "prognosis") {
-    exclude_cols <- c(exclude_cols, "outcome", "time")
+    # Exclude Col 1 (ID), Col 2 (Outcome), and Col 3 (Time)
+    if (ncol(raw_df) < 4) stop("Prognosis data must have at least 4 columns (ID, Outcome, Time, 1+ Features).")
+    non_feature_cols <- all_raw_col_names[1:3]
   }
 
-  feature_cols <- setdiff(names(merged_df), exclude_cols)
+  # The final set of columns to be excluded from the feature matrix
+  exclude_cols_final <- c(non_feature_cols, "score")
+
+  feature_cols <- setdiff(names(merged_df), exclude_cols_final)
+  if (length(feature_cols) == 0) {
+    stop("No feature columns were identified. Check data structure and 'target_type'.")
+  }
+  message(sprintf("Identified %d features for SHAP analysis.", length(feature_cols)))
+
   X_features <- merged_df[, feature_cols, drop = FALSE]
 
   # Ensure all feature columns are numeric and handle NAs
-  initial_X_rows <- nrow(X_features)
-  # Check for non-numeric columns and attempt conversion
-  for (col in names(X_features)) {
-    if (!is.numeric(X_features[[col]])) {
-      X_features[[col]] <- suppressWarnings(as.numeric(as.character(X_features[[col]])))
-      if (any(is.na(X_features[[col]]))) {
-        warning(paste0("Column '", col, "' converted to numeric but introduced NAs. These NAs will be handled later."))
-      }
-    }
-  }
+  X_features <- data.matrix(X_features) # data.matrix is efficient for this
 
   if (any(is.na(X_features))) {
-    warning("NA values found in feature data for SHAP analysis; rows containing NAs will be removed. For more complex missing value imputation, preprocess raw data before calling this function.")
+    warning("NA values found in feature data; rows with NAs will be removed. For complex imputation, preprocess data beforehand.")
     complete_cases_idx <- stats::complete.cases(X_features)
-    X_features <- X_features[complete_cases_idx, ]
+    X_features <- X_features[complete_cases_idx, , drop = FALSE]
     target_score <- target_score[complete_cases_idx] # Adjust target_score accordingly
   }
 
   if (nrow(X_features) == 0) {
-    stop("Feature dataframe is empty after removing NA values, cannot perform SHAP analysis.")
-  }
-  if (nrow(X_features) < initial_X_rows) {
-    message(sprintf("Removed %d rows from feature data due to NA values.", initial_X_rows - nrow(X_features)))
+    stop("Feature dataframe is empty after removing NA values.")
   }
 
-
-  X_matrix <- tryCatch({
-    data.matrix(X_features)
-  }, error = function(e) {
-    stop(paste0("Failed to convert feature data to numeric matrix. Check if feature columns contain non-numeric data that cannot be coerced: ", e$message))
-  })
-
-  # Train surrogate model and calculate SHAP values
+  # --- 4. Train Surrogate Model & Calculate SHAP ---
   message(sprintf("Training '%s' surrogate model and calculating SHAP values...", model_type))
 
   surrogate_model <- NULL
   if (model_type == "xgboost") {
-    dtrain <- xgboost::xgb.DMatrix(X_matrix, label = target_score)
-    xgb_params <- list(objective = "reg:squarederror", eta = 0.1, max_depth = 3, nthread = 1) # nthread=1 for reproducibility/simplicity
+    dtrain <- xgboost::xgb.DMatrix(X_features, label = target_score)
+    xgb_params <- list(objective = "reg:squarederror", eta = 0.1, max_depth = 3, nthread = 1)
     surrogate_model <- xgboost::xgb.train(params = xgb_params, data = dtrain, nrounds = 100)
-
   } else if (model_type == "lasso") {
-    # For Lasso, ensure target_score is not constant, otherwise cv.glmnet will error
     if (stats::sd(target_score, na.rm = TRUE) == 0) {
-      stop("Target score (model score) is constant; cannot train Lasso regression model. Please check your model output.")
+      stop("Target score is constant; cannot train Lasso model.")
     }
-    surrogate_model <- glmnet::cv.glmnet(X_matrix, target_score, alpha = 1, family = "gaussian")
-  }
-
-  if (is.null(surrogate_model)) {
-    stop("Surrogate model training failed.")
+    surrogate_model <- glmnet::cv.glmnet(X_features, target_score, alpha = 1, family = "gaussian")
   }
 
   # Calculate SHAP values using shapviz
-  sv <- shapviz::shapviz(surrogate_model, X_pred = X_matrix)
+  sv <- shapviz::shapviz(surrogate_model, X_pred = X_features)
 
-  # Plot figures
+  # --- 5. Generate and Save Plots ---
   message("Generating SHAP plots...")
 
-  # 1. SHAP Importance Plot (Bar chart)
-  # Use sv_importance to get the underlying data for custom ggplot
-  p_importance_raw <- shapviz::sv_importance(sv, kind = "bar", show_numbers = TRUE)
-
-  # Extract data from the internal ggplot object for full customization
-  importance_data <- p_importance_raw$data
-  p_bar <- ggplot2::ggplot(importance_data, ggplot2::aes(x = stats::reorder(feature, value), y = value, fill = value)) +
-    ggplot2::geom_col(show.legend = FALSE) +
-    ggplot2::coord_flip() +
-    ggplot2::scale_fill_gradient(low = "lightblue", high = primary_color) + # Use primary color for gradients
-    ggplot2::labs(
-      title = "Feature Importance",
-      subtitle = "Mean(|SHAP value|)",
-      x = "Feature",
-      y = "Mean Absolute SHAP Value"
-    ) +
-    ggplot2::theme_minimal(base_size = 14) +
-    ggplot2::theme(
-      plot.title = ggplot2::element_text(face = "bold", hjust = 0.5),
-      plot.subtitle = ggplot2::element_text(hjust = 0.5),
-      panel.grid.minor = ggplot2::element_blank(),
-      axis.text.x = ggplot2::element_text(angle = 45, hjust = 1)
-    )
-
-  # 2. SHAP Beeswarm Plot
+  # SHAP Beeswarm Plot
   p_beeswarm <- shapviz::sv_importance(sv, kind = "beeswarm", max_display = 15) +
     ggplot2::labs(
       title = "SHAP Summary Plot",
@@ -859,31 +808,46 @@ figure_shap <- function(data, raw_data_path, output_file,
       legend.position = "right"
     )
 
+  # SHAP Importance Plot (Bar chart)
+  p_importance_raw <- shapviz::sv_importance(sv, kind = "bar", show_numbers = TRUE)
+  importance_data <- p_importance_raw$data
+  p_bar <- ggplot2::ggplot(importance_data, ggplot2::aes(x = stats::reorder(feature, value), y = value, fill = value)) +
+    ggplot2::geom_col(show.legend = FALSE) +
+    ggplot2::coord_flip() +
+    ggplot2::scale_fill_gradient(low = "lightblue", high = "dodgerblue4") + # Fixed undefined `primary_color`
+    ggplot2::labs(
+      title = "Feature Importance",
+      subtitle = "Mean(|SHAP value|)",
+      x = "Feature",
+      y = "Mean Absolute SHAP Value"
+    ) +
+    ggplot2::theme_minimal(base_size = 14) +
+    ggplot2::theme(
+      plot.title = ggplot2::element_text(face = "bold", hjust = 0.5),
+      plot.subtitle = ggplot2::element_text(hjust = 0.5),
+      panel.grid.minor = ggplot2::element_blank()
+    )
+
   # Combine and save plots
   combined_plot <- p_beeswarm + p_bar + patchwork::plot_layout(ncol = 1, heights = c(2, 1))
-
   output_filename <- paste0(output_file, ".", output_type)
 
   # Save plot using Cairo for high-quality output
-  if (!is.null(combined_plot)) {
-    if (output_type == "pdf") {
-      Cairo::CairoPDF(output_filename, width = 10, height = 12)
-    } else if (output_type == "png") {
-      Cairo::CairoPNG(output_filename, width = 10 * 300, height = 12 * 300, res = 300)
-    } else if (output_type == "svg") {
-      Cairo::CairoSVG(output_filename, width = 10, height = 12)
-    } else {
-      warning(paste0("Unsupported output type: ", output_type, ". Attempting ggsave fallback."))
-      ggplot2::ggsave(output_filename, plot = combined_plot, device = output_type,
-                      width = 10, height = 12, dpi = 300)
-      message(sprintf("SHAP combined plot saved to: %s", output_filename))
-      return(invisible(NULL))
-    }
-    print(combined_plot) # Print to Cairo device
+  save_device <- switch(output_type,
+                        "pdf" = function(file, w, h) Cairo::CairoPDF(file, width = w, height = h),
+                        "png" = function(file, w, h) Cairo::CairoPNG(file, width = w * 300, height = h * 300, res = 300),
+                        "svg" = function(file, w, h) Cairo::CairoSVG(file, width = w, height = h),
+                        NULL)
+
+  if (!is.null(save_device)) {
+    save_device(output_filename, 10, 12)
+    print(combined_plot)
     grDevices::dev.off()
-    message(sprintf("SHAP combined plot saved to: %s", output_filename))
   } else {
-    warning("No combined SHAP plot object generated, file not saved.")
+    warning(paste0("Unsupported output type: ", output_type, ". Using ggsave fallback."))
+    ggplot2::ggsave(output_filename, plot = combined_plot, device = output_type,
+                    width = 10, height = 12, dpi = 300)
   }
+  message(sprintf("SHAP combined plot saved to: %s", output_filename))
 }
 

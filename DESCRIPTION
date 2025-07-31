@@ -1,10 +1,20 @@
 Package: E2E
-Title: Easy to Ensemble: A flexible and convenient package that implements various integrated algorithms
-Version: 0.0.1
+Title: Ensemble Learning Framework for Diagnostic and Prognostic Modeling
+Version: 0.0.2
 Authors@R: person("Shanjie", "Luan", email = "Luan20050519@163.com", role = c("aut", "cre"))
-Description: You can freely use multiple basic algorithms in the stacking, voting, and bagging integration frameworks to build diagnosis or prognosis models and perform visualization and interpretative analysis.
+Description: Provides a framework to build and evaluate diagnosis or 
+    prognosis models using stacking, voting, and bagging ensemble
+    techniques with various base learners. The package also includes
+    tools for visualization and interpretation of models. The development
+    version of the package is available on GitHub at 
+    <https://github.com/XIAOJIE0519/E2E>. The methods 
+    are based on the foundational work of Breiman (1996) <doi:10.1007/BF00058655>
+    on bagging and Wolpert (1992) <doi:10.1016/S0893-6080(05)80023-1> 
+    on stacking.
 License: MIT + file LICENSE
 Encoding: UTF-8
+URL: https://github.com/XIAOJIE0519/E2E
+BugReports: https://github.com/XIAOJIE0519/E2E/issues
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Imports: 
@@ -35,3 +45,6 @@ Suggests:
     randomForest,
     RColorBrewer,
     rpart
+Depends: 
+    R (>= 3.5)
+LazyData: true
