@@ -43,8 +43,10 @@ library(E2E)
 ## Core Concepts & Getting Started
 
 E2E operates on two parallel tracks: **Diagnostic Models** and **Prognostic Models**. Before using functions from either track, you **must initialize** the corresponding system. This step registers a suite of pre-defined, commonly used models.
-To follow the examples, you'll need sample data files. There are four data frame for you to have a try: 'train_dia', 'test_dia', 'train_pro', 'test_pro'. 
-train_dia and test_dia are for diagnosis, with column names sample, outcome, variable 1, 2, 3. train_pro and test_pro are for prognosis, with column names sample, outcome, time, variable 1, 2, 3.
+
+To follow the examples, you'll need sample data files. There are four data frame for you to have a try: `train_dia`, `test_dia`, `train_pro`, `test_pro`. 
+
+`train_dia` and `test_dia` are for diagnosis, with column names sample, outcome, variable 1, 2, 3. `train_pro` and `test_pro` are for prognosis, with column names sample, outcome, time, variable 1, 2, 3.
 
 ---
 
