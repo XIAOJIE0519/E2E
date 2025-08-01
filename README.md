@@ -43,50 +43,8 @@ library(E2E)
 ## Core Concepts & Getting Started
 
 E2E operates on two parallel tracks: **Diagnostic Models** and **Prognostic Models**. Before using functions from either track, you **must initialize** the corresponding system. This step registers a suite of pre-defined, commonly used models.
-
-### Sample Data for Examples
-
-To make the examples in this guide fully reproducible, let's create some sample data.
-
-```R
-set.seed(42) # for reproducibility
-
-# --- Sample Data for Diagnostic Models ---
-train_dia <- data.frame(
-  sample = paste0("Train", 1:100),
-  outcome = sample(c(0, 1), 100, replace = TRUE, prob = c(0.7, 0.3)),
-  var1 = rnorm(100, 5, 2),
-  var2 = runif(100, 0, 10),
-  var3 = rpois(100, 3)
-)
-
-test_dia <- data.frame(
-  sample = paste0("Test", 1:50),
-  outcome = sample(c(0, 1), 50, replace = TRUE, prob = c(0.6, 0.4)),
-  var1 = rnorm(50, 5.5, 2),
-  var2 = runif(50, 0.5, 9.5),
-  var3 = rpois(50, 3.5)
-)
-
-# --- Sample Data for Prognostic Models ---
-train_pro <- data.frame(
-  sample = paste0("Train", 1:100),
-  outcome = sample(c(0, 1), 100, replace = TRUE, prob = c(0.6, 0.4)),
-  time = rweibull(100, shape = 1.5, scale = 1000),
-  var1 = rnorm(100, 10, 3),
-  var2 = runif(100, 20, 30),
-  var3 = rgamma(100, shape = 2, rate = 0.1)
-)
-
-test_pro <- data.frame(
-  sample = paste0("Test", 1:50),
-  outcome = sample(c(0, 1), 50, replace = TRUE, prob = c(0.5, 0.5)),
-  time = rweibull(50, shape = 1.6, scale = 950),
-  var1 = rnorm(50, 10.5, 3),
-  var2 = runif(50, 21, 29),
-  var3 = rgamma(50, shape = 2.1, rate = 0.11)
-)
-```
+To follow the examples, you'll need sample data files. There are four data frame for you to have a try: train_dia, test_dia, train_pro, test_pro. 
+train_dia and test_dia are for diagnosis, with column names sample, outcome, variable 1, 2, 3. train_pro and test_pro are for prognosis, with column names sample, outcome, time, variable 1, 2, 3.
 
 ---
 
