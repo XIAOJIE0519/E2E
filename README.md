@@ -8,7 +8,7 @@
 **Author:** Shanjie Luan (ORCID: 0009-0002-8569-8526)
 
 **Citation:** If you use E2E in your research, please cite it as:
-"Shanjie Luan (2025). E2E: An R Package that makes it easy to ensemble. [https://github.com/XIAOJIE0519/E2E](https://github.com/XIAOJIE0519/E2E)"
+"Shanjie Luan (2025). E2E: An R Package for Easy-to-Build Ensemble Models. [https://github.com/XIAOJIE0519/E2E](https://github.com/XIAOJIE0519/E2E)"
 
 **Note:** The article is in the process of being written/submitted and is undergoing review by CRAN and further revisions. If you have any questions, please contact [Luan20050519@163.com](mailto:Luan20050519@163.com).
 
@@ -43,7 +43,7 @@ library(E2E)
 ## Core Concepts & Getting Started
 
 E2E operates on two parallel tracks: **Diagnostic Models** and **Prognostic Models**. Before using functions from either track, you **must initialize** the corresponding system. This step registers a suite of pre-defined, commonly used models.
-To follow the examples, you'll need sample data files. There are four data frame for you to have a try: train_dia, test_dia, train_pro, test_pro. 
+To follow the examples, you'll need sample data files. There are four data frame for you to have a try: 'train_dia', 'test_dia', 'train_pro', 'test_pro'. 
 train_dia and test_dia are for diagnosis, with column names sample, outcome, variable 1, 2, 3. train_pro and test_pro are for prognosis, with column names sample, outcome, time, variable 1, 2, 3.
 
 ---
