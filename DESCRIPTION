@@ -13,7 +13,7 @@ Description: Provides a framework to build and evaluate diagnosis or
     on stacking.
 License: MIT + file LICENSE
 Encoding: UTF-8
-URL: https://github.com/XIAOJIE0519/E2E
+URL: https://XIAOJIE0519.github.io/E2E
 BugReports: https://github.com/XIAOJIE0519/E2E/issues
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
@@ -42,10 +42,13 @@ Suggests:
     ada,
     e1071,
     klaR,
+    knitr,
     nnet,
     randomForest,
     RColorBrewer,
+    rmarkdown,
     rpart
 Depends: 
     R (>= 3.5)
 LazyData: true
+VignetteBuilder: knitr

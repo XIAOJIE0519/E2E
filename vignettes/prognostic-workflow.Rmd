@@ -1,0 +1,105 @@
+---
+title: "3. Prognostic Workflow"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{3. Prognostic Workflow}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(E2E)
+```
+
+# Prognostic Models (Survival Analysis)
+
+This track is dedicated to survival prediction tasks.
+
+## 1. Initialization
+
+First, initialize the prognostic modeling system.
+
+```{r}
+initialize_modeling_system_pro()
+```
+
+## 2. Training Single Models with `models_pro`
+
+The `models_pro` function trains one or more standard survival models. For this demonstration, we'll run a subset.
+
+```{r}
+# Run a subset of available prognostic models
+results_all_pro <- models_pro(train_pro, model = c("lasso_pro", "rsf_pro"))
+
+# Print summary for Random Survival Forest
+print_model_summary_pro("rsf_pro", results_all_pro$rsf_pro)
+```
+
+## 3. Ensemble Modeling
+
+### Bagging (`bagging_pro`)
+
+Builds a Bagging ensemble for survival models.
+
+```{r}
+# Create a Bagging ensemble with GBM as the base survival model
+# n_estimators is reduced for faster execution.
+bagging_gbm_pro_results <- bagging_pro(train_pro, base_model_name = "gbm_pro", n_estimators = 5, seed = 123)
+print_model_summary_pro("Bagging (GBM)", bagging_gbm_pro_results)
+```
+
+### Stacking (`stacking_pro`)
+
+Builds a Stacking ensemble for survival models.
+
+```{r}
+# Create a Stacking ensemble with GBM as the meta-model
+stacking_gbm_pro_results <- stacking_pro(
+  results_all_models = results_all_pro,
+  data = train_pro,
+  meta_model_name = "gbm_pro"
+)
+print_model_summary_pro("Stacking (GBM)", stacking_gbm_pro_results)
+```
+
+## 4. Applying Models to New Data (`apply_pro`)
+
+Generate prognostic scores for a new dataset.
+
+```{r}
+# Apply the trained stacking model to the test set
+pro_pred_new <- apply_pro(
+  trained_model_object = stacking_gbm_pro_results$model_object,
+  new_data = test_pro,
+  time_unit = "day"
+)
+
+# Evaluate the new prognostic scores
+eval_pro_new <- evaluate_model_pro(
+  precomputed_score = pro_pred_new$score,
+  Y_surv_obj = survival::Surv(time = test_pro$time, event = test_pro$outcome),
+  sample_ids = test_pro$sample,
+  years_to_evaluate = c(1, 3, 5)
+)
+print(eval_pro_new$evaluation_metrics)
+```
+
+## 5. Visualization (`figure_pro`)
+
+Generate Kaplan-Meier (KM) and time-dependent ROC (tdROC) curves.
+
+```{r, fig.width=6, fig.height=5, warning=FALSE}
+# Kaplan-Meier Curve (don't save to file in vignette)
+figure_pro(type = "km", data = stacking_gbm_pro_results, time_unit= "days", output_file = "Prognostic_KM",
+           output_type = "pdf")
+
+# Time-Dependent ROC Curve
+figure_pro(type = "tdroc", data = stacking_gbm_pro_results, time_unit = "days", output_file = "Prognostic_TDROC", output_type = "pdf")
+```

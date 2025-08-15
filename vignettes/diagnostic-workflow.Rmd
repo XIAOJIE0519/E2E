@@ -1,0 +1,163 @@
+---
+title: "2. Diagnostic Workflow"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{2. Diagnostic Workflow}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(E2E)
+```
+
+# Diagnostic Models (Classification)
+
+This track is dedicated to binary classification tasks.
+
+## 1. Initialization
+
+First, initialize the diagnostic modeling system. This registers all built-in classification models.
+
+```{r}
+initialize_modeling_system_dia()
+```
+
+## 2. Training Single Models with `models_dia`
+
+The `models_dia` function is the gateway to training one or more standard classification models.
+
+#### Basic Usage
+
+By default, `models_dia` runs all registered models. For this demonstration, we'll run a subset to save time.
+
+```{r}
+# To run all, use model = "all_dia" or omit the parameter.
+results_all_dia <- models_dia(train_dia, model = c("rf", "lasso", "xb"))
+
+# Print a summary for a specific model (e.g., Random Forest)
+print_model_summary_dia("rf", results_all_dia$rf)
+```
+
+#### Advanced Usage & Customization
+
+You can precisely control the modeling process by specifying parameters.
+
+```{r}
+# Run a specific subset of models with tuning enabled and custom thresholds
+results_dia_custom <- models_dia(
+  data = train_dia,
+  model = c("rf", "lasso", "xb"),
+  tune = TRUE,
+  seed = 123,
+  threshold_choices = list(rf = "f1", lasso = 0.6, xb = "youden"),
+  positive_label_value = 1,
+  negative_label_value = 0,
+  new_positive_label = "Case",
+  new_negative_label = "Control"
+)
+
+# View the custom results
+print_model_summary_dia("rf", results_dia_custom$rf)
+```
+
+## 3. Ensemble Modeling
+
+### Bagging (`bagging_dia`)
+
+Builds a Bagging ensemble by training a base model on multiple bootstrap samples.
+
+```{r}
+# Create a Bagging ensemble with XGBoost as the base model
+# n_estimators is reduced for faster execution in this example.
+bagging_xb_results <- bagging_dia(train_dia, base_model_name = "xb", n_estimators = 10, seed = 123)
+print_model_summary_dia("Bagging (XGBoost)", bagging_xb_results)
+```
+
+### Voting (`voting_dia`)
+
+Combines predictions from multiple pre-trained models.
+
+```{r}
+# Create a soft voting ensemble from the top models
+voting_soft_results <- voting_dia(
+  results_all_models = results_all_dia,
+  data = train_dia,
+  type = "soft"
+)
+print_model_summary_dia("Voting (Soft)", voting_soft_results)
+```
+
+### Stacking (`stacking_dia`)
+
+Uses predictions from base models as features to train a final meta-model.
+
+```{r}
+# Create a Stacking ensemble with Lasso as the meta-model
+stacking_lasso_results <- stacking_dia(
+  results_all_models = results_all_dia,
+  data = train_dia,
+  meta_model_name = "lasso"
+)
+print_model_summary_dia("Stacking (Lasso)", stacking_lasso_results)
+```
+
+### Handling Imbalanced Data (`imbalance_dia`)
+
+Implements the EasyEnsemble algorithm.
+
+```{r}
+# Create an EasyEnsemble with XGBoost as the base model
+# n_estimators is reduced for faster execution.
+results_imbalance_dia <- imbalance_dia(train_dia, base_model_name = "xb", n_estimators = 5, seed = 123)
+print_model_summary_dia("Imbalance (XGBoost)", results_imbalance_dia)
+```
+
+## 4. Applying Models to New Data (`apply_dia`)
+
+Use a trained model object to make predictions on a new, unseen dataset.
+
+```{r}
+# Apply the trained Bagging model to the test set
+bagging_pred_new <- apply_dia(
+  trained_model_object = bagging_xb_results$model_object,
+  new_data = test_dia,
+  label_col_name = "outcome",
+  pos_class = "Positive",
+  neg_class = "Negative"
+)
+
+# Evaluate these new predictions
+eval_results_new <- evaluate_model_dia(
+  precomputed_prob = bagging_pred_new$score,
+  y_data = factor(test_dia$outcome, levels = c(0, 1), labels = c("Positive", "Negative")),
+  sample_ids = test_dia$sample,
+  threshold_strategy = "default",
+  pos_class = "Positive",
+  neg_class = "Negative"
+)
+print(eval_results_new$evaluation_metrics)
+```
+
+
+## 5. Visualization (`figure_dia`)
+
+Generate high-quality plots to evaluate model performance.
+
+```{r, fig.width=5, fig.height=5, warning=FALSE}
+# ROC Curve (don't save to file in vignette)
+figure_dia(type = "roc", data = results_imbalance_dia, output_file = "Diagnostic_ROC", output_type = "pdf")
+
+# Precision-Recall Curve
+figure_dia(type = "prc", data = results_imbalance_dia, output_file = "Diagnostic_PRC", output_type = "png")
+
+# Confusion Matrix
+figure_dia(type = "matrix", data = results_imbalance_dia, output_file = "Diagnostic_Matrix", output_type = "pdf")
+```

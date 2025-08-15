@@ -1,0 +1,70 @@
+---
+title: "1. Getting Started"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{1. Getting Started}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# E2E: An R Package for Easy-to-Build Ensemble Models
+
+**E2E** is a comprehensive R package designed to streamline the development, evaluation, and interpretation of machine learning models for both **diagnostic (classification)** and **prognostic (survival analysis)** tasks. It provides a robust, extensible framework for training individual models and building powerful ensembles—including Bagging, Voting, and Stacking—with minimal code. The package also includes integrated tools for visualization and model explanation via SHAP values.
+
+**Author:** Shanjie Luan (ORCID: 0009-0002-8569-8526)
+
+**Citation:** If you use E2E in your research, please cite it as:
+"Shanjie Luan (2025). E2E: An R Package for Easy-to-Build Ensemble Models. [https://github.com/XIAOJIE0519/E2E](https://github.com/XIAOJIE0519/E2E)"
+
+**Note:** The article is in the process of being written/submitted and is undergoing review by CRAN and further revisions. If you have any questions, please contact [Luan20050519@163.com](mailto:Luan20050519@163.com).
+
+## Installation
+
+The development version of E2E can be installed directly from GitHub using `devtools` or `remotes`.
+
+```{r, eval=FALSE}
+# If you don't have devtools, install it first:
+# install.packages("devtools")
+devtools::install_github("XIAOJIE0519/E2E")
+```
+
+or
+
+```{r, eval=FALSE}
+# If you don't have remotes, install it first:
+# install.packages("remotes")
+remotes::install_github("XIAOJIE0519/E2E")
+```
+
+After installation, load the package into your R session:
+
+```{r setup}
+library(E2E)
+```
+
+## Core Concepts
+
+E2E operates on two parallel tracks: **Diagnostic Models** and **Prognostic Models**. Before using functions from either track, you **must initialize** the corresponding system. This step registers a suite of pre-defined, commonly used models.
+
+### Sample Data
+
+To follow the examples, you'll need sample data files. There are four data frames included in the package for you to try: `train_dia`, `test_dia`, `train_pro`, `test_pro`. 
+
+`train_dia` and `test_dia` are for diagnosis, with column names sample, outcome, variable 1, 2, 3. 
+
+```{r}
+head(train_dia)
+```
+
+`train_pro` and `test_pro` are for prognosis, with column names sample, outcome, time, variable 1, 2, 3.
+
+```{r}
+head(train_pro)
+```

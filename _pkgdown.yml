@@ -1,0 +1,65 @@
+url: https://XIAOJIE0519.github.io/E2E
+template:
+  bootstrap: 5
+
+navbar:
+  left:
+    - icon: fa-home fa-lg
+      href: index.html
+      aria-label: "Home"
+    - text: "Reference"
+      href: reference/index.html
+    - text: "Articles"
+      menu:
+        - text: "1. Getting Started"
+          href: articles/getting-started.html
+        - text: "2. Diagnostic Workflow"
+          href: articles/diagnostic-workflow.html
+        - text: "3. Prognostic Workflow"
+          href: articles/prognostic-workflow.html
+        - text: "4. Advanced Features & Customization"
+          href: articles/advanced-features.html
+    - text: "Changelog"
+      href: news/index.html
+
+reference:
+- title: "Core Modeling Functions"
+  desc: >
+    Main functions for building and evaluating models.
+  contents:
+    - starts_with("models_")
+    - starts_with("bagging_")
+    - starts_with("voting_")
+    - starts_with("stacking_")
+    - starts_with("imbalance_")
+- title: "Helpers & Visualization"
+  desc: >
+    Functions for applying, evaluating, visualizing, and explaining models.
+  contents:
+    - starts_with("apply_")
+    - starts_with("evaluate_")
+    - starts_with("figure_")
+    - starts_with("print_model_summary")
+- title: "Setup & Customization"
+  desc: >
+    Functions for initialization and framework extension.
+  contents:
+    - starts_with("initialize_")
+    - starts_with("register_")
+    - starts_with("get_registered_models")
+- title: "Datasets"
+  desc: "Example datasets included with the package."
+  contents:
+    - "train_dia"
+    - "test_dia"
+    - "train_pro"
+    - "test_pro"
+- title: "Internal & Component Functions"
+  desc: "These are lower-level functions, generally not called directly by the user."
+  contents:
+    - matches("_(dia|pro)$")
+    - "calculate_metrics_at_threshold_dia"
+    - "find_optimal_threshold_dia"
+    - "load_and_prepare_data_dia"
+    - "load_and_prepare_data_pro"
+    - "min_max_normalize"
