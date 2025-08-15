@@ -109,8 +109,6 @@ custom models. For example, to add Adaboost for diagnosis:</p>
 <span><span class="co"># 3. Now you can use "ab" in any diagnostic function</span></span>
 <span><span class="va">results_ab</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/models_dia.html">models_dia</a></span><span class="op">(</span><span class="va">train_dia</span>, model <span class="op">=</span> <span class="st">"ab"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Running model: ab</span></span>
-<span><span class="co">#&gt; Loading required package: ggplot2</span></span>
-<span><span class="co">#&gt; Loading required package: lattice</span></span>
 <span><span class="fu"><a href="../reference/print_model_summary_dia.html">print_model_summary_dia</a></span><span class="op">(</span><span class="st">"ab"</span>, <span class="va">results_ab</span><span class="op">$</span><span class="va">ab</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; --- ab Model (on Training Data) Metrics ---</span></span>
@@ -156,18 +154,18 @@ the most impact on the model’s output.</p>
 </h4>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># First, we need a model result object</span></span>
-<span><span class="va">stacking_gbm_pro_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/stacking_pro.html">stacking_pro</a></span><span class="op">(</span></span>
+<span><span class="va">stacking_stepcox_pro_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/stacking_pro.html">stacking_pro</a></span><span class="op">(</span></span>
 <span>  results_all_models <span class="op">=</span> <span class="fu"><a href="../reference/models_pro.html">models_pro</a></span><span class="op">(</span><span class="va">train_pro</span>, model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lasso_pro"</span>, <span class="st">"rsf_pro"</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  data <span class="op">=</span> <span class="va">train_pro</span>,</span>
-<span>  meta_model_name <span class="op">=</span> <span class="st">"gbm_pro"</span></span>
+<span>  meta_model_name <span class="op">=</span> <span class="st">"stepcox_pro"</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; Running Stacking model: Stacking_pro (meta: gbm_pro)</span></span>
+<span><span class="co">#&gt; Running Stacking model: Stacking_pro (meta: stepcox_pro)</span></span>
 <span><span class="co">#&gt; Running model: lasso_pro</span></span>
 <span><span class="co">#&gt; Running model: rsf_pro</span></span>
 <span></span>
 <span><span class="co"># Generate the SHAP explanation plot (don't save to file in vignette)</span></span>
 <span><span class="fu"><a href="../reference/figure_shap.html">figure_shap</a></span><span class="op">(</span></span>
-<span>  data <span class="op">=</span> <span class="va">stacking_gbm_pro_results</span>,</span>
+<span>  data <span class="op">=</span> <span class="va">stacking_stepcox_pro_results</span>,</span>
 <span>  raw_data <span class="op">=</span> <span class="va">train_pro</span>,</span>
 <span>  target_type <span class="op">=</span> <span class="st">"prognosis"</span>,</span>
 <span>  output_file <span class="op">=</span> <span class="st">"Pro_SHAP_Example"</span></span>

@@ -112,18 +112,18 @@ survival models. For this demonstration, we’ll run a subset.</p>
 </h4>
 <p>Builds a Bagging ensemble for survival models.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Create a Bagging ensemble with GBM as the base survival model</span></span>
+<code class="sourceCode R"><span><span class="co"># Create a Bagging ensemble with lasso as the base survival model</span></span>
 <span><span class="co"># n_estimators is reduced for faster execution.</span></span>
-<span><span class="va">bagging_gbm_pro_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bagging_pro.html">bagging_pro</a></span><span class="op">(</span><span class="va">train_pro</span>, base_model_name <span class="op">=</span> <span class="st">"gbm_pro"</span>, n_estimators <span class="op">=</span> <span class="fl">5</span>, seed <span class="op">=</span> <span class="fl">123</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Running Bagging model: Bagging_pro (base: gbm_pro)</span></span>
-<span><span class="fu"><a href="../reference/print_model_summary_pro.html">print_model_summary_pro</a></span><span class="op">(</span><span class="st">"Bagging (GBM)"</span>, <span class="va">bagging_gbm_pro_results</span><span class="op">)</span></span>
+<span><span class="va">bagging_lasso_pro_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bagging_pro.html">bagging_pro</a></span><span class="op">(</span><span class="va">train_pro</span>, base_model_name <span class="op">=</span> <span class="st">"lasso_pro"</span>, n_estimators <span class="op">=</span> <span class="fl">5</span>, seed <span class="op">=</span> <span class="fl">123</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Running Bagging model: Bagging_pro (base: lasso_pro)</span></span>
+<span><span class="fu"><a href="../reference/print_model_summary_pro.html">print_model_summary_pro</a></span><span class="op">(</span><span class="st">"Bagging (LASSO)"</span>, <span class="va">bagging_lasso_pro_results</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; --- Bagging (GBM) Prognosis Model (on Training Data) Metrics ---</span></span>
-<span><span class="co">#&gt; Ensemble Type: Bagging (Base: gbm_pro, Estimators: 5)</span></span>
-<span><span class="co">#&gt; C-index: 0.8766</span></span>
-<span><span class="co">#&gt; Time-dependent AUROC (years 1, 3, 5): 0.7535, 0.8088, 0.8101</span></span>
-<span><span class="co">#&gt; Average Time-dependent AUROC: 0.7908</span></span>
-<span><span class="co">#&gt; KM Group HR (High vs Low): 13.9828 (p-value: 3.342e-17, Cutoff: -4.2321)</span></span>
+<span><span class="co">#&gt; --- Bagging (LASSO) Prognosis Model (on Training Data) Metrics ---</span></span>
+<span><span class="co">#&gt; Ensemble Type: Bagging (Base: lasso_pro, Estimators: 5)</span></span>
+<span><span class="co">#&gt; C-index: 0.7330</span></span>
+<span><span class="co">#&gt; Time-dependent AUROC (years 1, 3, 5): 0.5318, 0.6148, 0.6028</span></span>
+<span><span class="co">#&gt; Average Time-dependent AUROC: 0.5831</span></span>
+<span><span class="co">#&gt; KM Group HR (High vs Low): 3.2048 (p-value: 2.22e-08, Cutoff: 0.3661)</span></span>
 <span><span class="co">#&gt; --------------------------------------------------</span></span></code></pre></div>
 </div>
 <div class="section level4">
@@ -131,21 +131,21 @@ survival models. For this demonstration, we’ll run a subset.</p>
 </h4>
 <p>Builds a Stacking ensemble for survival models.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Create a Stacking ensemble with GBM as the meta-model</span></span>
-<span><span class="va">stacking_gbm_pro_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/stacking_pro.html">stacking_pro</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="co"># Create a Stacking ensemble with lasso as the meta-model</span></span>
+<span><span class="va">stacking_lasso_pro_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/stacking_pro.html">stacking_pro</a></span><span class="op">(</span></span>
 <span>  results_all_models <span class="op">=</span> <span class="va">results_all_pro</span>,</span>
 <span>  data <span class="op">=</span> <span class="va">train_pro</span>,</span>
-<span>  meta_model_name <span class="op">=</span> <span class="st">"gbm_pro"</span></span>
+<span>  meta_model_name <span class="op">=</span> <span class="st">"lasso_pro"</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; Running Stacking model: Stacking_pro (meta: gbm_pro)</span></span>
-<span><span class="fu"><a href="../reference/print_model_summary_pro.html">print_model_summary_pro</a></span><span class="op">(</span><span class="st">"Stacking (GBM)"</span>, <span class="va">stacking_gbm_pro_results</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Running Stacking model: Stacking_pro (meta: lasso_pro)</span></span>
+<span><span class="fu"><a href="../reference/print_model_summary_pro.html">print_model_summary_pro</a></span><span class="op">(</span><span class="st">"Stacking (LASSO)"</span>, <span class="va">stacking_lasso_pro_results</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; --- Stacking (GBM) Prognosis Model (on Training Data) Metrics ---</span></span>
-<span><span class="co">#&gt; Ensemble Type: Stacking (Meta: gbm_pro, Base models used: lasso_pro, rsf_pro)</span></span>
-<span><span class="co">#&gt; C-index: 0.9460</span></span>
-<span><span class="co">#&gt; Time-dependent AUROC (years 1, 3, 5): 0.9117, 0.8733, 0.8643</span></span>
-<span><span class="co">#&gt; Average Time-dependent AUROC: 0.8831</span></span>
-<span><span class="co">#&gt; KM Group HR (High vs Low): 69.2328 (p-value: 1.145e-20, Cutoff: 0.0436)</span></span>
+<span><span class="co">#&gt; --- Stacking (LASSO) Prognosis Model (on Training Data) Metrics ---</span></span>
+<span><span class="co">#&gt; Ensemble Type: Stacking (Meta: lasso_pro, Base models used: lasso_pro, rsf_pro)</span></span>
+<span><span class="co">#&gt; C-index: 0.9016</span></span>
+<span><span class="co">#&gt; Time-dependent AUROC (years 1, 3, 5): 0.8114, 0.8389, 0.8498</span></span>
+<span><span class="co">#&gt; Average Time-dependent AUROC: 0.8334</span></span>
+<span><span class="co">#&gt; KM Group HR (High vs Low): 16.5634 (p-value: 3.489e-17, Cutoff: -1.6645)</span></span>
 <span><span class="co">#&gt; --------------------------------------------------</span></span></code></pre></div>
 </div>
 </div>
@@ -156,7 +156,7 @@ survival models. For this demonstration, we’ll run a subset.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Apply the trained stacking model to the test set</span></span>
 <span><span class="va">pro_pred_new</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/apply_pro.html">apply_pro</a></span><span class="op">(</span></span>
-<span>  trained_model_object <span class="op">=</span> <span class="va">stacking_gbm_pro_results</span><span class="op">$</span><span class="va">model_object</span>,</span>
+<span>  trained_model_object <span class="op">=</span> <span class="va">stacking_lasso_pro_results</span><span class="op">$</span><span class="va">model_object</span>,</span>
 <span>  new_data <span class="op">=</span> <span class="va">test_pro</span>,</span>
 <span>  time_unit <span class="op">=</span> <span class="st">"day"</span></span>
 <span><span class="op">)</span></span>
@@ -174,30 +174,30 @@ survival models. For this demonstration, we’ll run a subset.</p>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">eval_pro_new</span><span class="op">$</span><span class="va">evaluation_metrics</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $C_index</span></span>
-<span><span class="co">#&gt; [1] 0.5840969</span></span>
+<span><span class="co">#&gt; [1] 0.582789</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $AUROC_Years</span></span>
 <span><span class="co">#&gt; $AUROC_Years$`1`</span></span>
-<span><span class="co">#&gt; [1] 0.4655841</span></span>
+<span><span class="co">#&gt; [1] 0.4902709</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $AUROC_Years$`3`</span></span>
-<span><span class="co">#&gt; [1] 0.5852284</span></span>
+<span><span class="co">#&gt; [1] 0.5520019</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $AUROC_Years$`5`</span></span>
-<span><span class="co">#&gt; [1] 0.5627304</span></span>
+<span><span class="co">#&gt; [1] 0.5543455</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $AUROC_Average</span></span>
-<span><span class="co">#&gt; [1] 0.5378477</span></span>
+<span><span class="co">#&gt; [1] 0.5322061</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $KM_HR</span></span>
-<span><span class="co">#&gt; [1] 1.849412</span></span>
+<span><span class="co">#&gt; [1] 1.819616</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $KM_P_value</span></span>
-<span><span class="co">#&gt; [1] 0.04612042</span></span>
+<span><span class="co">#&gt; [1] 0.05237347</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $KM_Cutoff</span></span>
-<span><span class="co">#&gt; [1] -0.4979203</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] -2.396008</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="visualization-figure_pro">5. Visualization (<code>figure_pro</code>)<a class="anchor" aria-label="anchor" href="#visualization-figure_pro"></a>
@@ -205,12 +205,12 @@ survival models. For this demonstration, we’ll run a subset.</p>
 <p>Generate Kaplan-Meier (KM) and time-dependent ROC (tdROC) curves.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Kaplan-Meier Curve (don't save to file in vignette)</span></span>
-<span><span class="fu"><a href="../reference/figure_pro.html">figure_pro</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">"km"</span>, data <span class="op">=</span> <span class="va">stacking_gbm_pro_results</span>, time_unit<span class="op">=</span> <span class="st">"days"</span>, output_file <span class="op">=</span> <span class="st">"Prognostic_KM"</span>,</span>
+<span><span class="fu"><a href="../reference/figure_pro.html">figure_pro</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">"km"</span>, data <span class="op">=</span> <span class="va">stacking_lasso_pro_results</span>, time_unit<span class="op">=</span> <span class="st">"days"</span>, output_file <span class="op">=</span> <span class="st">"Prognostic_KM"</span>,</span>
 <span>           output_type <span class="op">=</span> <span class="st">"pdf"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; 'km' plot saved successfully to: Prognostic_KM.pdf</span></span>
 <span></span>
 <span><span class="co"># Time-Dependent ROC Curve</span></span>
-<span><span class="fu"><a href="../reference/figure_pro.html">figure_pro</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">"tdroc"</span>, data <span class="op">=</span> <span class="va">stacking_gbm_pro_results</span>, time_unit <span class="op">=</span> <span class="st">"days"</span>, output_file <span class="op">=</span> <span class="st">"Prognostic_TDROC"</span>, output_type <span class="op">=</span> <span class="st">"pdf"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/figure_pro.html">figure_pro</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">"tdroc"</span>, data <span class="op">=</span> <span class="va">stacking_lasso_pro_results</span>, time_unit <span class="op">=</span> <span class="st">"days"</span>, output_file <span class="op">=</span> <span class="st">"Prognostic_TDROC"</span>, output_type <span class="op">=</span> <span class="st">"pdf"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; 'tdroc' plot saved successfully to: Prognostic_TDROC.pdf</span></span></code></pre></div>
 </div>
 </div>
