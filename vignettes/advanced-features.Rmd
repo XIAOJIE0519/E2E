@@ -21,6 +21,13 @@ initialize_modeling_system_dia()
 initialize_modeling_system_pro()
 ```
 
+```{r, include=FALSE}
+# Set up a 2-core cluster for parallel processing in this vignette
+# This is crucial for passing R CMD check on CI/CD platforms
+cl <- parallel::makeCluster(2)
+doParallel::registerDoParallel(cl)
+```
+
 # Advanced Features
 
 This guide covers advanced topics such as extending the E2E framework with custom models and interpreting model predictions using SHAP.
@@ -77,17 +84,22 @@ figure_shap(
 
 ```{r, fig.width=7, fig.height=6, warning=FALSE}
 # First, we need a model result object
-stacking_gbm_pro_results <- stacking_pro(
+stacking_stepcox_pro_results <- stacking_pro(
   results_all_models = models_pro(train_pro, model = c("lasso_pro", "rsf_pro")),
   data = train_pro,
-  meta_model_name = "gbm_pro"
+  meta_model_name = "stepcox_pro"
 )
 
 # Generate the SHAP explanation plot (don't save to file in vignette)
 figure_shap(
-  data = stacking_gbm_pro_results,
+  data = stacking_stepcox_pro_results,
   raw_data = train_pro,
   target_type = "prognosis",
   output_file = "Pro_SHAP_Example"
 )
+```
+
+```{r, include=FALSE}
+# Stop the parallel cluster
+parallel::stopCluster(cl)
 ```

@@ -40,6 +40,7 @@ Imports:
     xgboost
 Suggests: 
     ada,
+    doParallel,
     e1071,
     klaR,
     knitr,

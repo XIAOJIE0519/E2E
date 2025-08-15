@@ -18,6 +18,13 @@ knitr::opts_chunk$set(
 library(E2E)
 ```
 
+```{r, include=FALSE}
+# Set up a 2-core cluster for parallel processing in this vignette
+# This is crucial for passing R CMD check on CI/CD platforms
+cl <- parallel::makeCluster(2)
+doParallel::registerDoParallel(cl)
+```
+
 # Prognostic Models (Survival Analysis)
 
 This track is dedicated to survival prediction tasks.
@@ -49,10 +56,10 @@ print_model_summary_pro("rsf_pro", results_all_pro$rsf_pro)
 Builds a Bagging ensemble for survival models.
 
 ```{r}
-# Create a Bagging ensemble with GBM as the base survival model
+# Create a Bagging ensemble with lasso as the base survival model
 # n_estimators is reduced for faster execution.
-bagging_gbm_pro_results <- bagging_pro(train_pro, base_model_name = "gbm_pro", n_estimators = 5, seed = 123)
-print_model_summary_pro("Bagging (GBM)", bagging_gbm_pro_results)
+bagging_lasso_pro_results <- bagging_pro(train_pro, base_model_name = "lasso_pro", n_estimators = 5, seed = 123)
+print_model_summary_pro("Bagging (LASSO)", bagging_lasso_pro_results)
 ```
 
 ### Stacking (`stacking_pro`)
@@ -60,13 +67,13 @@ print_model_summary_pro("Bagging (GBM)", bagging_gbm_pro_results)
 Builds a Stacking ensemble for survival models.
 
 ```{r}
-# Create a Stacking ensemble with GBM as the meta-model
-stacking_gbm_pro_results <- stacking_pro(
+# Create a Stacking ensemble with lasso as the meta-model
+stacking_lasso_pro_results <- stacking_pro(
   results_all_models = results_all_pro,
   data = train_pro,
-  meta_model_name = "gbm_pro"
+  meta_model_name = "lasso_pro"
 )
-print_model_summary_pro("Stacking (GBM)", stacking_gbm_pro_results)
+print_model_summary_pro("Stacking (LASSO)", stacking_lasso_pro_results)
 ```
 
 ## 4. Applying Models to New Data (`apply_pro`)
@@ -76,7 +83,7 @@ Generate prognostic scores for a new dataset.
 ```{r}
 # Apply the trained stacking model to the test set
 pro_pred_new <- apply_pro(
-  trained_model_object = stacking_gbm_pro_results$model_object,
+  trained_model_object = stacking_lasso_pro_results$model_object,
   new_data = test_pro,
   time_unit = "day"
 )
@@ -97,9 +104,14 @@ Generate Kaplan-Meier (KM) and time-dependent ROC (tdROC) curves.
 
 ```{r, fig.width=6, fig.height=5, warning=FALSE}
 # Kaplan-Meier Curve (don't save to file in vignette)
-figure_pro(type = "km", data = stacking_gbm_pro_results, time_unit= "days", output_file = "Prognostic_KM",
+figure_pro(type = "km", data = stacking_lasso_pro_results, time_unit= "days", output_file = "Prognostic_KM",
            output_type = "pdf")
 
 # Time-Dependent ROC Curve
-figure_pro(type = "tdroc", data = stacking_gbm_pro_results, time_unit = "days", output_file = "Prognostic_TDROC", output_type = "pdf")
+figure_pro(type = "tdroc", data = stacking_lasso_pro_results, time_unit = "days", output_file = "Prognostic_TDROC", output_type = "pdf")
+```
+
+```{r, include=FALSE}
+# Stop the parallel cluster
+parallel::stopCluster(cl)
 ```
