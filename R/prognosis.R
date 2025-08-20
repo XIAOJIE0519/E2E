@@ -417,7 +417,7 @@ rsf_pro <- function(X, y_surv, tune = FALSE) {
     message("RSF: Simplified tuning; consider tune.rfsrc for comprehensive tuning.")
   }
   fit <- randomForestSRC::rfsrc(stats::as.formula("Y_surv_ ~ ."), data = data_for_rsf, ntree = 100, mtry = base::floor(ncol(X)/3))
-  fit$fitted_scores <- -randomForestSRC::predict.rfsrc(fit, newdata = X)$predicted
+  fit$fitted_scores <- randomForestSRC::predict.rfsrc(fit, newdata = X)$predicted
   fit$y_surv <- y_surv
   structure(list(finalModel = fit, X_train_cols = colnames(X), model_type = "survival_rsf"), class = "train")
 }
@@ -669,7 +669,9 @@ evaluate_model_pro <- function(trained_model_obj = NULL, X_data = NULL, Y_surv_o
       if (model_type == "survival_glmnet") {
         score <- base::as.numeric(stats::predict(final_model, newx = stats::model.matrix(~ . - 1, data = X_data), type = "link"))
       } else if (model_type == "survival_rsf") {
-        score <- randomForestSRC::predict.rfsrc(final_model, newdata = X_data)$predicted
+        score_raw <- randomForestSRC::predict.rfsrc(final_model, newdata = X_data)$predicted
+        temp_c_index <- survcomp::concordance.index(x = score_raw, surv.time = Y_surv_obj[,1], surv.event = Y_surv_obj[,2])$c.index
+        score <- if(temp_c_index < 0.5) -score_raw else score_raw
       } else if (model_type == "survival_stepcox") {
         score <- stats::predict(final_model, newdata = X_data, type = "lp")
       } else if (model_type == "survival_gbm") {
