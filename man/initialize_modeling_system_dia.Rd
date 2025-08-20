@@ -13,12 +13,14 @@ Invisible NULL. Initializes the internal model registry.
 Initializes the diagnostic modeling system by loading required
 packages and registering default diagnostic models (Random Forest, XGBoost,
 SVM, MLP, Lasso, Elastic Net, Ridge, LDA, QDA, Naive Bayes, Decision Tree, GBM).
-This function should be called once before using \code{run_models_dia()} or ensemble methods.
+This function should be called once before using \code{models_dia()} or ensemble methods.
 }
 \examples{
+\donttest{
 # Initialize the system (typically run once at the start of a session or script)
 initialize_modeling_system_dia()
 
-# Check if models are now registered
-# get_registered_models_dia()
+# Check if a default model like Random Forest is now registered
+"rf" \%in\% names(get_registered_models_dia())
+}
 }

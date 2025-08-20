@@ -15,10 +15,13 @@ Retrieves a list of all diagnostic model functions currently
 registered in the internal environment.
 }
 \examples{
-# Get all currently registered models
-# initialize_modeling_system_dia() # Ensure system is initialized
-# models <- get_registered_models_dia()
-# names(models) # See available model names
+\donttest{
+# Ensure system is initialized to see the default models
+initialize_modeling_system_dia()
+models <- get_registered_models_dia()
+# See available model names
+print(names(models))
+}
 }
 \seealso{
 \code{\link{register_model_dia}}, \code{\link{initialize_modeling_system_dia}}

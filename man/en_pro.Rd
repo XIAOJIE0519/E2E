@@ -24,9 +24,16 @@ Trains a Cox proportional hazards model with Elastic Net regularization
 using \code{glmnet} (with alpha = 0.5).
 }
 \examples{
-\dontrun{
-# Assuming `prepared_data` from load_and_prepare_data_pro example
-# en_model <- en_pro(prepared_data$X, prepared_data$Y_surv)
-# print(en_model$finalModel)
-}
+set.seed(42)
+n_samples <- 50
+n_features <- 10
+X_data <- as.data.frame(matrix(rnorm(n_samples * n_features), ncol = n_features))
+Y_surv_obj <- survival::Surv(
+  time = runif(n_samples, 100, 1000),
+  event = sample(0:1, n_samples, replace = TRUE)
+)
+
+# Train the model
+en_model <- en_pro(X_data, Y_surv_obj)
+print(en_model$finalModel)
 }

@@ -50,20 +50,21 @@ and converts the label column into a factor suitable for classification
 models. Handles basic data cleaning like trimming whitespace and type conversion.
 }
 \examples{
-\dontrun{
-# Create a dummy CSV file for demonstration
+\donttest{
+# Create a dummy CSV file in a temporary directory for demonstration
+temp_csv_path <- tempfile(fileext = ".csv")
 dummy_data <- data.frame(
   ID = paste0("Patient", 1:50),
+  Disease_Status = sample(c(0, 1), 50, replace = TRUE),
   FeatureA = rnorm(50),
   FeatureB = runif(50, 0, 100),
-  CategoricalFeature = sample(c("X", "Y", "Z"), 50, replace = TRUE),
-  Disease_Status = sample(c(0, 1), 50, replace = TRUE)
+  CategoricalFeature = sample(c("X", "Y", "Z"), 50, replace = TRUE)
 )
-write.csv(dummy_data, "dummy_diagnosis_data.csv", row.names = FALSE)
+write.csv(dummy_data, temp_csv_path, row.names = FALSE)
 
-# Load and prepare data
+# Load and prepare data from the temporary file
 prepared_data <- load_and_prepare_data_dia(
-  data_path = "dummy_diagnosis_data.csv",
+  data_path = temp_csv_path,
   label_col_name = "Disease_Status",
   positive_label_value = 1,
   negative_label_value = 0,
@@ -75,7 +76,7 @@ prepared_data <- load_and_prepare_data_dia(
 str(prepared_data$X)
 table(prepared_data$y)
 
-# Clean up dummy file
-unlink("dummy_diagnosis_data.csv")
+# Clean up the dummy file
+unlink(temp_csv_path)
 }
 }

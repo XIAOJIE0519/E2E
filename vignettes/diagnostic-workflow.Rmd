@@ -159,14 +159,14 @@ print(eval_results_new$evaluation_metrics)
 Generate high-quality plots to evaluate model performance.
 
 ```{r, fig.width=5, fig.height=5, warning=FALSE}
-# ROC Curve (don't save to file in vignette)
-figure_dia(type = "roc", data = results_imbalance_dia, output_file = "Diagnostic_ROC", output_type = "pdf")
+# ROC Curve
+figure_dia(type = "roc", data = results_imbalance_dia)
 
 # Precision-Recall Curve
-figure_dia(type = "prc", data = results_imbalance_dia, output_file = "Diagnostic_PRC", output_type = "png")
+figure_dia(type = "prc", data = results_imbalance_dia)
 
 # Confusion Matrix
-figure_dia(type = "matrix", data = results_imbalance_dia, output_file = "Diagnostic_Matrix", output_type = "pdf")
+figure_dia(type = "matrix", data = results_imbalance_dia)
 ```
 
 

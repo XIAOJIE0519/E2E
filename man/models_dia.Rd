@@ -52,35 +52,42 @@ contains its trained \code{model_object}, \code{sample_score} data frame, and
 Trains and evaluates one or more registered diagnostic models on a given dataset.
 }
 \examples{
-\dontrun{
-# 1. Assume 'train_dia' is a data frame loaded from your package
+\donttest{
+# This example assumes your package includes a dataset named 'train_dia'.
+# If not, you should create a toy data frame similar to the one below.
+#
+# train_dia <- data.frame(
+#   ID = paste0("Patient", 1:100),
+#   Disease_Status = sample(c(0, 1), 100, replace = TRUE),
+#   FeatureA = rnorm(100),
+#   FeatureB = runif(100)
+# )
+
+# Ensure the 'train_dia' dataset is available in the environment
+# For example, if it is exported by your package:
 # data(train_dia)
-# str(train_dia)
-# > 'data.frame': 100 obs. of 5 variables:
-# > $ ID            : chr "Patient1" "Patient2" ...
-# > $ Disease_Status: int 0 1 1 0 1 ...
-# > $ FeatureA      : num -0.56 0.82 ...
-# > $ FeatureB      : num 89.2 26.6 ...
-# > $ FeatureC      : Factor w/ 3 levels "X","Y","Z": 2 3 1 2 3 ...
 
-# 2. Initialize the modeling system
-initialize_modeling_system_dia()
+# Check if 'train_dia' exists, otherwise skip the example
+if (exists("train_dia")) {
+  # 1. Initialize the modeling system
+  initialize_modeling_system_dia()
 
-# 3. Run selected models
-results <- models_dia(
-  data = train_dia,
-  model = c("rf", "lasso"), # Run only Random Forest and Lasso
-  threshold_choices = list(rf = "f1", lasso = 0.6), # Different thresholds
-  positive_label_value = 1,
-  negative_label_value = 0,
-  new_positive_label = "Case",
-  new_negative_label = "Control",
-  seed = 42
-)
+  # 2. Run selected models
+  results <- models_dia(
+    data = train_dia,
+    model = c("rf", "lasso"), # Run only Random Forest and Lasso
+    threshold_choices = list(rf = "f1", lasso = 0.6), # Different thresholds
+    positive_label_value = 1,
+    negative_label_value = 0,
+    new_positive_label = "Case",
+    new_negative_label = "Control",
+    seed = 42
+  )
 
-# 4. Print summaries
-for (model_name in names(results)) {
-  print_model_summary_dia(model_name, results[[model_name]])
+  # 3. Print summaries
+  for (model_name in names(results)) {
+    print_model_summary_dia(model_name, results[[model_name]])
+  }
 }
 }
 }

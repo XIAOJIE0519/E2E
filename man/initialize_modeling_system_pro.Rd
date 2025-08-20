@@ -20,5 +20,5 @@ be called once before using \code{run_models_pro()} or ensemble methods.
 initialize_modeling_system_pro()
 
 # Check if models are now registered
-# get_registered_models_pro()
+print(names(get_registered_models_pro()))
 }

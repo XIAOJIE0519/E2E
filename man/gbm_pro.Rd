@@ -4,7 +4,7 @@
 \alias{gbm_pro}
 \title{Train a Gradient Boosting Machine (GBM) for Survival Data}
 \usage{
-gbm_pro(X, y_surv, tune = FALSE)
+gbm_pro(X, y_surv, tune = FALSE, cv.folds = 3)
 }
 \arguments{
 \item{X}{A data frame of features.}
@@ -14,6 +14,9 @@ gbm_pro(X, y_surv, tune = FALSE)
 \item{tune}{Logical, whether to perform simplified hyperparameter tuning.
 If \code{TRUE}, \code{n.trees}, \code{interaction.depth}, and \code{shrinkage} are set to
 predefined values suitable for tuning; otherwise, default values are used.}
+
+\item{cv.folds}{Integer. The number of cross-validation folds to use.
+Setting this to 0 or 1 will disable cross-validation. Defaults to 3.}
 }
 \value{
 A list of class "train" containing the trained \code{gbm} model object,
@@ -25,9 +28,20 @@ Trains a Gradient Boosting Machine (GBM) model with a Cox
 proportional hazards loss function using \code{gbm}.
 }
 \examples{
-\dontrun{
-# Assuming `prepared_data` from load_and_prepare_data_pro example
-# gbm_model <- gbm_pro(prepared_data$X, prepared_data$Y_surv)
-# print(gbm_model$finalModel)
+\donttest{
+# Generate some dummy survival data
+set.seed(42)
+n_samples <- 200
+n_features <- 5
+X_data <- as.data.frame(matrix(rnorm(n_samples * n_features), ncol = n_features))
+Y_surv_obj <- survival::Surv(
+  time = runif(n_samples, 100, 1000),
+  event = sample(0:1, n_samples, replace = TRUE)
+)
+
+# Train the model for the example *without* cross-validation to pass R CMD check
+# In real use, you might use the default cv.folds = 3
+gbm_model <- gbm_pro(X_data, Y_surv_obj, cv.folds = 0)
+print(gbm_model$finalModel)
 }
 }

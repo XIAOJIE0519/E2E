@@ -59,20 +59,34 @@ Implements a Voting ensemble, combining predictions from multiple
 base models through soft or hard voting.
 }
 \examples{
-\dontrun{
-# Assume 'train_dia' and 'base_model_results' from previous examples exist
-# data(train_dia)
-# base_model_results <- models_dia(data = train_dia, model = c("rf", "lasso", "gbm"))
+\donttest{
+# 1. Initialize the modeling system
+initialize_modeling_system_dia()
 
+# 2. Create a toy dataset for demonstration
+set.seed(42)
+data_toy <- data.frame(
+  ID = paste0("Sample", 1:60),
+  Status = sample(c(0, 1), 60, replace = TRUE),
+  Feat1 = rnorm(60),
+  Feat2 = runif(60)
+)
+
+# 3. Generate mock base model results (as if from models_dia)
+base_model_results <- models_dia(
+  data = data_toy,
+  model = c("rf", "lasso"),
+  seed = 123
+)
+
+# 4. Run the soft voting ensemble
 soft_voting_results <- voting_dia(
   results_all_models = base_model_results,
-  data = train_dia,
+  data = data_toy,
   type = "soft",
   weight_metric = "AUROC",
-  top = 3,
-  threshold_choices = "f1",
-  positive_label_value = 1,
-  negative_label_value = 0
+  top = 2,
+  threshold_choices = "f1"
 )
 print_model_summary_dia("Soft Voting", soft_voting_results)
 }

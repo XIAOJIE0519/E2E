@@ -4,104 +4,52 @@
 \alias{figure_shap}
 \title{Generate and Plot SHAP Explanation Figures}
 \usage{
-figure_shap(
-  data,
-  raw_data,
-  output_file,
-  model_type = "xgboost",
-  output_type = "pdf",
-  target_type = c("diagnosis", "prognosis")
-)
+figure_shap(data, raw_data, target_type, file = NULL, model_type = "xgboost")
 }
 \arguments{
-\item{data}{A list object containing model evaluation results. It must contain
-\code{sample_score}, which is a data frame with the sample ID in the first column
-and the model's output \code{score} in another column.}
+\item{data}{A list containing \code{sample_score}, a data frame with sample IDs and \code{score}.}
 
-\item{raw_data}{A data frame containing the original feature data used for training.
-The column structure must be fixed based on \code{target_type}:
-\itemize{
-\item For "diagnosis": 1st col=ID, 2nd col=Outcome/Label, 3rd+ cols=Features.
-\item For "prognosis": 1st col=ID, 2nd col=Outcome, 3rd col=Time, 4th+ cols=Features.
-}}
+\item{raw_data}{A data frame with original features. The first column must be the sample ID.}
 
-\item{output_file}{A character string, the base name for the output filename
-(without extension).}
+\item{target_type}{String, the analysis type: "diagnosis" or "prognosis".
+This determines which columns in \code{raw_data} are treated as features.}
 
-\item{model_type}{A character string specifying the surrogate model for SHAP calculation.
-Options: "xgboost" (default) or "lasso".}
+\item{file}{Optional. A string specifying the path to save the plot. If \code{NULL}
+(default), the plot object is returned.}
 
-\item{output_type}{A character string, the desired output file format.
-Options: "pdf" (default), "png", "svg".}
-
-\item{target_type}{A character string indicating the analysis type. This determines
-how \code{raw_data} is interpreted. Options: "diagnosis" or "prognosis".}
+\item{model_type}{String, the surrogate model for SHAP calculation.
+"xgboost" (default) or "lasso".}
 }
 \value{
-NULL. The function saves a combined plot (SHAP summary and importance)
-to the specified output file.
+A patchwork object combining SHAP summary and importance plots. If \code{file} is
+provided, the plot is also saved.
 }
 \description{
-Trains a surrogate model (XGBoost or Lasso) on the original model's
-output scores. It then calculates and visualizes SHAP values to explain each
-feature's contribution, providing insights into the original model's behavior.
+Creates SHAP (SHapley Additive exPlanations) plots to explain
+feature contributions by training a surrogate model on the original model's scores.
 }
 \examples{
-\dontrun{
+\donttest{
 # --- Example for a Diagnosis Model ---
-# 1. Create dummy raw data and model results
 set.seed(123)
-train_dia <- data.frame(
+train_dia_data <- data.frame(
   SampleID = paste0("S", 1:100),
   Label = sample(c(0, 1), 100, replace = TRUE),
-  FeatureA = rnorm(100),
-  FeatureB = runif(100)
+  FeatureA = rnorm(100, 10, 2),
+  FeatureB = runif(100, 0, 5)
+)
+model_results <- list(
+  sample_score = data.frame(ID = paste0("S", 1:100), score = runif(100, 0, 1))
 )
 
-bagging_xb_results <- list(
-  sample_score = data.frame(
-    ID = paste0("S", 1:100),
-    score = runif(100, 0, 1) # Dummy scores from a model
-  )
+# Generate SHAP plot object
+shap_plot <- figure_shap(
+  data = model_results,
+  raw_data = train_dia_data,
+  target_type = "diagnosis",
+  model_type = "xgboost"
 )
-
-# 2. Generate SHAP plot
-# Features used will be 'FeatureA' and 'FeatureB'
-figure_shap(
-  data = bagging_xb_results,
-  raw_data = train_dia,
-  output_file = "Dia_SHAP_Example",
-  model_type = "xgboost",
-  output_type = "pdf",
-  target_type = "diagnosis"
-)
-
-# --- Example for a Prognosis Model ---
-# 1. Create dummy raw data and model results
-train_pro <- data.frame(
-  PatientID = paste0("P", 1:100),
-  Status = sample(c(0, 1), 100, replace = TRUE),
-  Time = runif(100, 50, 2000),
-  Gene1 = rnorm(100),
-  ClinicalVar = sample(c("Low", "High"), 100, replace = TRUE)
-)
-
-stacking_gbm_pro_results <- list(
-  sample_score = data.frame(
-    ID = paste0("P", 1:100),
-    score = runif(100, 0, 1) # Dummy scores from a stacking model
-  )
-)
-
-# 2. Generate SHAP plot
-# Features used will be 'Gene1' and 'ClinicalVar'
-figure_shap(
-  data = stacking_gbm_pro_results,
-  raw_data = train_pro,
-  output_file = "Pro_SHAP_Example",
-  model_type = "lasso",
-  output_type = "png",
-  target_type = "prognosis"
-)
+# To display the plot:
+# print(shap_plot)
 }
 }

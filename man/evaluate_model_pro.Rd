@@ -59,18 +59,26 @@ various metrics relevant to survival analysis, including C-index,
 time-dependent AUROC, and Kaplan-Meier (KM) group analysis (Hazard Ratio and p-value).
 }
 \examples{
-\dontrun{
-# Assuming `prepared_data` from load_and_prepare_data_pro example
-# And a trained model, e.g., lasso_model <- lasso_pro(prepared_data$X, prepared_data$Y_surv)
-#
-# Evaluate the model
-# eval_results <- evaluate_model_pro(
-#   trained_model_obj = lasso_model,
-#   X_data = prepared_data$X,
-#   Y_surv_obj = prepared_data$Y_surv,
-#   sample_ids = prepared_data$sample_ids,
-#   years_to_evaluate = c(1, 2, 3)
-# )
-# str(eval_results)
+\donttest{
+# Generate dummy data
+set.seed(42)
+n <- 50
+X <- as.data.frame(matrix(rnorm(n * 5), n, 5))
+Y_surv <- survival::Surv(time = runif(n, 1, 5*365), event = sample(0:1, n, TRUE))
+ids <- paste0("s", 1:n)
+
+# Train a simple model
+initialize_modeling_system_pro()
+model_obj <- lasso_pro(X, Y_surv)
+
+# Evaluate the model on the same data
+eval_results <- evaluate_model_pro(
+  trained_model_obj = model_obj,
+  X_data = X,
+  Y_surv_obj = Y_surv,
+  sample_ids = ids,
+  years_to_evaluate = c(1, 2, 3)
+)
+str(eval_results$evaluation_metrics)
 }
 }

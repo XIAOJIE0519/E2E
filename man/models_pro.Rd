@@ -40,31 +40,29 @@ contains its trained \code{model_object}, \code{sample_score} data frame, and
 Trains and evaluates one or more registered prognostic models on a given dataset.
 }
 \examples{
-\dontrun{
-# 1. Assume 'train_pro' is a data frame loaded from your package
-# data(train_pro)
-# str(train_pro)
-# > 'data.frame': 100 obs. of 5 variables:
-# > $ ID               : chr "Patient1" "Patient2" ...
-# > $ Event_Status     : int 0 1 1 0 1 ...
-# > $ Followup_Time_Days: num 1500 890 ...
-# > $ FeatureA         : num -0.56 0.82 ...
-# > $ FeatureB         : num 89.2 26.6 ...
+\donttest{
+# NOTE: This example requires the 'train_pro' dataset to be exported by the package.
+# If it is not, replace `data(train_pro)` with code to create a dummy dataframe.
+# For demonstration, we assume `train_pro` is available.
+if (requireNamespace("E2E", quietly = TRUE) &&
+ "train_pro" \%in\% utils::data(package = "E2E")$results[,3]) {
+  data(train_pro, package = "E2E")
 
-# 2. Initialize the modeling system
-initialize_modeling_system_pro()
+  # Initialize the modeling system
+  initialize_modeling_system_pro()
 
-# 3. Run selected models
-results <- models_pro(
-  data = train_pro,
-  model = c("lasso_pro", "rsf_pro"), # Run only Lasso and RSF
-  years_to_evaluate = c(1, 3, 5),
-  seed = 42
-)
+  # Run selected models
+  results <- models_pro(
+    data = train_pro,
+    model = c("lasso_pro", "rsf_pro"), # Run only Lasso and RSF
+    years_to_evaluate = c(1, 3, 5),
+    seed = 42
+  )
 
-# 4. Print summaries
-for (model_name in names(results)) {
-  print_model_summary_pro(model_name, results[[model_name]])
+  # Print summaries
+  for (model_name in names(results)) {
+    print_model_summary_pro(model_name, results[[model_name]])
+  }
 }
 }
 }

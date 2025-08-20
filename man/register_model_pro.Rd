@@ -24,18 +24,16 @@ later by its registered name, facilitating a modular model management system.
 \examples{
 # Example of a dummy model function for registration
 my_dummy_cox_model <- function(X, y_surv, tune = FALSE) {
-  # In a real scenario, this would train a survival model
-  # For example purposes, it just returns a dummy object
-  message("Training dummy Cox model...")
-  dummy_fit <- list(fitted_scores = runif(nrow(X)), y_surv = y_surv)
-  structure(list(finalModel = dummy_fit, X_train_cols = colnames(X),
+  # A minimal survival model for demonstration
+  model_fit <- survival::coxph(y_surv ~ ., data = X)
+  structure(list(finalModel = model_fit, X_train_cols = colnames(X),
                  model_type = "survival_dummy_cox"), class = "train")
 }
 
-# Register the dummy model (ensure initialize_modeling_system_pro() has run first)
-# initialize_modeling_system_pro() # Uncomment if running in a fresh session
-# register_model_pro("dummy_cox", my_dummy_cox_model)
-# get_registered_models_pro() # Check if registered
+# Register the dummy model
+initialize_modeling_system_pro() # Ensure system is initialized
+register_model_pro("dummy_cox", my_dummy_cox_model)
+"dummy_cox" \%in\% names(get_registered_models_pro()) # Check if registered
 }
 \seealso{
 \code{\link{get_registered_models_pro}}, \code{\link{initialize_modeling_system_pro}}

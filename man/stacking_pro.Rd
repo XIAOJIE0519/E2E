@@ -45,19 +45,26 @@ Implements a Stacking ensemble for prognostic models. It trains
 multiple base models and uses their predictions to train a meta-model.
 }
 \examples{
-\dontrun{
-# Assume 'train_pro' is loaded and 'base_model_results' from models_pro() exist
-# data(train_pro)
-# base_model_results <- models_pro(data = train_pro, model = "all_pro")
+\donttest{
+# NOTE: This example requires the 'train_pro' dataset.
+if (requireNamespace("E2E", quietly = TRUE) &&
+"train_pro" \%in\% utils::data(package = "E2E")$results[,3]) {
+  data(train_pro, package = "E2E")
+  initialize_modeling_system_pro()
 
-stacking_gbm_results <- stacking_pro(
-  results_all_models = base_model_results,
-  data = train_pro,
-  meta_model_name = "gbm_pro",
-  top = 3,
-  years_to_evaluate = c(1, 3)
-)
-print_model_summary_pro("Stacking (GBM)", stacking_gbm_results)
+  # First, generate results for base models
+  base_model_results <- models_pro(data = train_pro, model = c("lasso_pro", "rsf_pro"))
+
+  # Then, create the stacking ensemble
+  stacking_lasso_results <- stacking_pro(
+    results_all_models = base_model_results,
+    data = train_pro,
+    meta_model_name = "lasso_pro",
+    top = 3,
+    years_to_evaluate = c(1, 3)
+  )
+  print_model_summary_pro("Stacking (Lasso)", stacking_lasso_results)
+}
 }
 }
 \seealso{

@@ -16,9 +16,9 @@ registered in the internal environment.
 }
 \examples{
 # Get all currently registered models
-# initialize_modeling_system_pro() # Ensure system is initialized
-# models <- get_registered_models_pro()
-# names(models) # See available model names
+initialize_modeling_system_pro() # Ensure system is initialized
+models <- get_registered_models_pro()
+names(models) # See available model names
 }
 \seealso{
 \code{\link{register_model_pro}}, \code{\link{initialize_modeling_system_pro}}

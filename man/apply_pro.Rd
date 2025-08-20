@@ -27,21 +27,27 @@ Applies a previously trained prognostic model (or ensemble) to a
 new, unseen dataset to generate prognostic scores.
 }
 \examples{
-\dontrun{
-# Assume 'train_pro', 'test_pro' are loaded and 'trained_lasso_model' exists
-# data(train_pro)
-# data(test_pro)
-# initialize_modeling_system_pro()
-# train_results <- models_pro(data = train_pro, model = "lasso_pro")
-# trained_lasso_model <- train_results$lasso_pro$model_object
+\donttest{
+# NOTE: This example requires 'train_pro' and 'test_pro' datasets.
+if (requireNamespace("E2E", quietly = TRUE) &&
+    "train_pro" \%in\% utils::data(package = "E2E")$results[,3] &&
+    "test_pro" \%in\% utils::data(package = "E2E")$results[,3]) {
 
-# Apply the trained model to new data
-new_data_predictions <- apply_pro(
-  trained_model_object = trained_lasso_model,
-  new_data = test_pro,
-  time_unit = "day" # Specify time unit of test_pro
-)
-utils::head(new_data_predictions)
+  data(train_pro, package = "E2E")
+  data(test_pro, package = "E2E")
+  initialize_modeling_system_pro()
+
+  train_results <- models_pro(data = train_pro, model = "lasso_pro")
+  trained_lasso_model <- train_results$lasso_pro$model_object
+
+  # Apply the trained model to new data
+  new_data_predictions <- apply_pro(
+    trained_model_object = trained_lasso_model,
+    new_data = test_pro,
+    time_unit = "day" # Specify time unit of test_pro
+  )
+  utils::head(new_data_predictions)
+}
 }
 }
 \seealso{

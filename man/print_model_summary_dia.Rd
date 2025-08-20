@@ -10,7 +10,7 @@ print_model_summary_dia(model_name, results_list, on_new_data = FALSE)
 \item{model_name}{A character string, the name of the model (e.g., "rf", "Bagging (RF)").}
 
 \item{results_list}{A list containing model evaluation results, typically
-an element from the output of \code{run_models_dia()} or the result of \code{bagging_dia()},
+an element from the output of \code{models_dia()} or the result of \code{bagging_dia()},
 \code{stacking_dia()}, \code{voting_dia()}, or \code{imbalance_dia()}. It must contain
 \code{evaluation_metrics} and \code{model_object} (if applicable).}
 
@@ -26,14 +26,19 @@ Prints a formatted summary of the evaluation metrics for a
 diagnostic model, either from training data or new data evaluation.
 }
 \examples{
-\dontrun{
-# Assuming `results` from run_models_dia example
-# for (model_name in names(results)) {
-#   print_model_summary_dia(model_name, results[[model_name]], on_new_data = FALSE)
-# }
+# Example for a successfully evaluated model
+successful_results <- list(
+  evaluation_metrics = list(
+    Threshold_Strategy = "f1",
+    `_Threshold` = 0.45,
+    AUROC = 0.85, AUROC_95CI_Lower = 0.75, AUROC_95CI_Upper = 0.95,
+    AUPRC = 0.80, Accuracy = 0.82, F1 = 0.78,
+    Precision = 0.79, Recall = 0.77, Specificity = 0.85
+  )
+)
+print_model_summary_dia("MyAwesomeModel", successful_results)
 
 # Example for a failed model
-# failed_results <- list(evaluation_metrics = list(error = "Training failed due to invalid input"))
-# print_model_summary_dia("MyFailedModel", failed_results)
-}
+failed_results <- list(evaluation_metrics = list(error = "Training failed"))
+print_model_summary_dia("MyFailedModel", failed_results)
 }

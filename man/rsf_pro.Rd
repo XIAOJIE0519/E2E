@@ -24,9 +24,19 @@ also includes \code{fitted_scores} and \code{y_surv}.
 Trains a Random Survival Forest (RSF) model using \code{randomForestSRC}.
 }
 \examples{
-\dontrun{
-# Assuming `prepared_data` from load_and_prepare_data_pro example
-# rsf_model <- rsf_pro(prepared_data$X, prepared_data$Y_surv)
-# print(rsf_model$finalModel)
+\donttest{
+# Generate some dummy survival data
+set.seed(42)
+n_samples <- 50
+n_features <- 5
+X_data <- as.data.frame(matrix(rnorm(n_samples * n_features), ncol = n_features))
+Y_surv_obj <- survival::Surv(
+  time = runif(n_samples, 100, 1000),
+  event = sample(0:1, n_samples, replace = TRUE)
+)
+
+# Train the model (ntree is small for a quick example)
+rsf_model <- rsf_pro(X_data, Y_surv_obj)
+print(rsf_model$finalModel)
 }
 }

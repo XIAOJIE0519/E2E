@@ -24,9 +24,18 @@ Trains a Multi-Layer Perceptron (MLP) neural network model
 using \code{caret::train} for binary classification.
 }
 \examples{
-\dontrun{
-# Assuming `prepared_data` from load_and_prepare_data_dia example
-# mlp_model <- mlp_dia(prepared_data$X, prepared_data$y)
-# print(mlp_model)
+\donttest{
+set.seed(42)
+n_obs <- 50
+X_toy <- data.frame(
+  FeatureA = rnorm(n_obs),
+  FeatureB = runif(n_obs, 0, 100)
+)
+y_toy <- factor(sample(c("Control", "Case"), n_obs, replace = TRUE),
+                levels = c("Control", "Case"))
+
+# Train the model
+mlp_model <- mlp_dia(X_toy, y_toy)
+print(mlp_model)
 }
 }

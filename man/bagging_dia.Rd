@@ -62,22 +62,24 @@ diagnostic models. It trains multiple base models on bootstrapped samples
 of the training data and aggregates their predictions by averaging probabilities.
 }
 \examples{
-\dontrun{
-# Assume 'train_dia' is a data frame loaded from your package
-# data(train_dia)
-initialize_modeling_system_dia()
+\donttest{
+# This example assumes your package includes a dataset named 'train_dia'.
+# If not, create a toy data frame first.
+if (exists("train_dia")) {
+  initialize_modeling_system_dia()
 
-bagging_rf_results <- bagging_dia(
-  data = train_dia,
-  base_model_name = "rf",
-  n_estimators = 5,
-  threshold_strategy = "youden",
-  positive_label_value = 1,
-  negative_label_value = 0,
-  new_positive_label = "Case",
-  new_negative_label = "Control"
-)
-print_model_summary_dia("Bagging (RF)", bagging_rf_results)
+  bagging_rf_results <- bagging_dia(
+    data = train_dia,
+    base_model_name = "rf",
+    n_estimators = 5, # Reduced for a quick example
+    threshold_strategy = "youden",
+    positive_label_value = 1,
+    negative_label_value = 0,
+    new_positive_label = "Case",
+    new_negative_label = "Control"
+  )
+  print_model_summary_dia("Bagging (RF)", bagging_rf_results)
+}
 }
 }
 \seealso{

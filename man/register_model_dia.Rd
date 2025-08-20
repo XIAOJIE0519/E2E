@@ -22,29 +22,24 @@ with the internal model registry. This allows the function to be called
 later by its registered name, facilitating a modular model management system.
 }
 \examples{
+\donttest{
 # Example of a dummy model function for registration
 my_dummy_rf_model <- function(X, y, tune = FALSE, cv_folds = 5) {
   message("Training dummy RF model...")
-  # In a real scenario, this would train a random forest model
-  # For example purposes, it just returns a dummy object
-  list(finalModel = "dummy_rf_fit", method = "rf", tuneValue = list(mtry=1),
-       trainingData = cbind(X, .outcome = y), class = "train",
-       predict = function(newdata, type) {
-           if (type == "prob") {
-               probs <- matrix(runif(nrow(newdata)*2), ncol=2, byrow=TRUE)
-               probs <- t(apply(probs, 1, function(x) x/sum(x)))
-               colnames(probs) <- levels(y)
-               return(probs)
-           } else {
-               return(factor(sample(levels(y), nrow(newdata), replace = TRUE), levels = levels(y)))
-           }
-       })
+  # This is a placeholder and doesn't train a real model.
+  # It returns a list with a structure similar to a caret train object.
+  list(method = "dummy_rf")
 }
 
-# Register the dummy model (ensure initialize_modeling_system_dia() has run first)
-# initialize_modeling_system_dia() # Uncomment if running in a fresh session
-# register_model_dia("dummy_rf", my_dummy_rf_model)
-# get_registered_models_dia() # Check if registered
+# Initialize the system before registering
+initialize_modeling_system_dia()
+
+# Register the new model
+register_model_dia("dummy_rf", my_dummy_rf_model)
+
+# Verify that the model is now in the list of registered models
+"dummy_rf" \%in\% names(get_registered_models_dia())
+}
 }
 \seealso{
 \code{\link{get_registered_models_dia}}, \code{\link{initialize_modeling_system_dia}}

@@ -23,9 +23,16 @@ Trains a Cox proportional hazards model and performs backward
 stepwise selection using \code{MASS::stepAIC} to select important features.
 }
 \examples{
-\dontrun{
-# Assuming `prepared_data` from load_and_prepare_data_pro example
-# stepcox_model <- stepcox_pro(prepared_data$X, prepared_data$Y_surv)
-# print(stepcox_model$finalModel)
-}
+set.seed(42)
+n_samples <- 50
+n_features <- 5
+X_data <- as.data.frame(matrix(rnorm(n_samples * n_features), ncol = n_features))
+Y_surv_obj <- survival::Surv(
+  time = runif(n_samples, 100, 1000),
+  event = sample(0:1, n_samples, replace = TRUE)
+)
+
+# Train the model
+stepcox_model <- stepcox_pro(X_data, Y_surv_obj)
+print(stepcox_model$finalModel)
 }

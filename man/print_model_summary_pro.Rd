@@ -25,14 +25,19 @@ Prints a formatted summary of the evaluation metrics for a
 prognostic model, either from training data or new data evaluation.
 }
 \examples{
-\dontrun{
-# Assuming `results` from run_models_pro example
-# for (model_name in names(results)) {
-#   print_model_summary_pro(model_name, results[[model_name]], on_new_data = FALSE)
-# }
+\donttest{
+if (requireNamespace("E2E", quietly = TRUE) &&
+ "train_pro" \%in\% utils::data(package = "E2E")$results[,3]) {
+  data(train_pro, package = "E2E")
+  initialize_modeling_system_pro()
+  results <- models_pro(data = train_pro, model = "lasso_pro")
 
-# Example for a failed model
-# failed_results <- list(evaluation_metrics = list(error = "Training failed due to invalid input"))
-# print_model_summary_pro("MyFailedModel", failed_results)
+  # Print summary for the trained model
+  print_model_summary_pro("lasso_pro", results$lasso_pro, on_new_data = FALSE)
+
+  # Example for a failed model
+  failed_results <- list(evaluation_metrics = list(error = "Training failed"))
+  print_model_summary_pro("MyFailedModel", failed_results)
+}
 }
 }

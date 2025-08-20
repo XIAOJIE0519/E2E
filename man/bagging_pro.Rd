@@ -46,19 +46,22 @@ prognostic models. It trains multiple base models on bootstrapped samples
 of the training data and aggregates their predictions.
 }
 \examples{
-\dontrun{
-# Assume 'train_pro' is a data frame loaded from your package
-# data(train_pro)
-initialize_modeling_system_pro()
+\donttest{
+# NOTE: This example requires the 'train_pro' dataset.
+if (requireNamespace("E2E", quietly = TRUE) &&
+"train_pro" \%in\% utils::data(package = "E2E")$results[,3]) {
+  data(train_pro, package = "E2E")
+  initialize_modeling_system_pro()
 
-bagging_lasso_results <- bagging_pro(
-  data = train_pro,
-  base_model_name = "lasso_pro",
-  n_estimators = 5, # Small number for example speed
-  subset_fraction = 0.8,
-  years_to_evaluate = c(1, 3)
-)
-print_model_summary_pro("Bagging (Lasso)", bagging_lasso_results)
+  bagging_lasso_results <- bagging_pro(
+    data = train_pro,
+    base_model_name = "lasso_pro",
+    n_estimators = 3, # Small number for example speed
+    subset_fraction = 0.8,
+    years_to_evaluate = c(1, 3)
+  )
+  print_model_summary_pro("Bagging (Lasso)", bagging_lasso_results)
+}
 }
 }
 \seealso{

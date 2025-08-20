@@ -4,34 +4,31 @@
 \alias{figure_dia}
 \title{Plot Diagnostic Model Evaluation Figures}
 \usage{
-figure_dia(type, data, output_file, output_type = "pdf")
+figure_dia(type, data, file = NULL)
 }
 \arguments{
 \item{type}{String, specifies the type of plot to generate. Options are
-"roc" (ROC curve), "prc" (Precision-Recall curve), or "matrix" (Confusion Matrix).}
+"roc", "prc", or "matrix".}
 
 \item{data}{A list object containing model evaluation results. It must include:
 \itemize{
-\item \code{sample_score}: A data frame with at least "ID", "label" (0/1), and "score" columns.
-\item \code{evaluation_metrics}: A list with a "Final_Threshold" or "_Threshold" value.
+\item \code{sample_score}: A data frame with "label" (0/1) and "score" columns.
+\item \code{evaluation_metrics}: A list with a "Final_Threshold" or "Final_Threshold" value.
 }}
 
-\item{output_file}{String, the base name for the output file (without extension).}
-
-\item{output_type}{String, the desired output file format. Options: "pdf", "png", "svg".
-Defaults to "pdf".}
+\item{file}{Optional. A string specifying the path to save the plot (e.g.,
+"plot.png"). If \code{NULL} (the default), the plot object is returned instead of being saved.}
 }
 \value{
-NULL. The function saves the generated plot directly to a file.
+A ggplot object. If the \code{file} argument is provided, the plot is also
+saved to the specified path.
 }
 \description{
-Generates Receiver Operating Characteristic (ROC) curves,
-Precision-Recall (PRC) curves, or confusion matrices based on diagnostic model
-evaluation results.
+Generates and returns a ggplot object for Receiver Operating
+Characteristic (ROC) curves, Precision-Recall (PRC) curves, or confusion matrices.
 }
 \examples{
-\dontrun{
-# Example data structure for diagnostic model evaluation results:
+# Create example data for a diagnostic model
 external_eval_example_dia <- list(
   sample_score = data.frame(
     ID = paste0("S", 1:100),
@@ -39,22 +36,21 @@ external_eval_example_dia <- list(
     score = runif(100, 0, 1)
   ),
   evaluation_metrics = list(
-    Final_Threshold = 0.53,
-    AUROC = 0.75,
-    AUPRC = 0.68
+    Final_Threshold = 0.53
   )
 )
 
-# Plot ROC curve
-figure_dia(type = "roc", data = external_eval_example_dia,
-           output_file = "Diagnostic_Model_ROC", output_type = "png")
+# Generate an ROC curve plot object
+roc_plot <- figure_dia(type = "roc", data = external_eval_example_dia)
+# To display the plot, simply run:
+# print(roc_plot)
 
-# Plot PRC curve
-figure_dia(type = "prc", data = external_eval_example_dia,
-           output_file = "Diagnostic_Model_PRC", output_type = "png")
+# Generate a PRC curve and save it to a temporary file
+# tempfile() creates a safe, temporary path as required by CRAN
+temp_prc_path <- tempfile(fileext = ".png")
+figure_dia(type = "prc", data = external_eval_example_dia, file = temp_prc_path)
 
-# Plot Confusion Matrix
-figure_dia(type = "matrix", data = external_eval_example_dia,
-           output_file = "Diagnostic_Model_Matrix", output_type = "png")
-}
+# Generate a Confusion Matrix plot
+matrix_plot <- figure_dia(type = "matrix", data = external_eval_example_dia)
+
 }

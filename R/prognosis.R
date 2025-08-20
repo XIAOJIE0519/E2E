@@ -1,4 +1,3 @@
-# prognosis.R
 #' @importFrom utils globalVariables
 utils::globalVariables(c("x", "y", "recall", "Actual", "Predicted", "Freq", "Percentage",
                          "time", "AUROC", "feature", "value", "ID", "e", # 确保所有ggplot变量都列出
@@ -106,18 +105,16 @@ utils::globalVariables(c("x", "y", "recall", "Actual", "Predicted", "Freq", "Per
 #' @examples
 #' # Example of a dummy model function for registration
 #' my_dummy_cox_model <- function(X, y_surv, tune = FALSE) {
-#'   # In a real scenario, this would train a survival model
-#'   # For example purposes, it just returns a dummy object
-#'   message("Training dummy Cox model...")
-#'   dummy_fit <- list(fitted_scores = runif(nrow(X)), y_surv = y_surv)
-#'   structure(list(finalModel = dummy_fit, X_train_cols = colnames(X),
+#'   # A minimal survival model for demonstration
+#'   model_fit <- survival::coxph(y_surv ~ ., data = X)
+#'   structure(list(finalModel = model_fit, X_train_cols = colnames(X),
 #'                  model_type = "survival_dummy_cox"), class = "train")
 #' }
 #'
-#' # Register the dummy model (ensure initialize_modeling_system_pro() has run first)
-#' # initialize_modeling_system_pro() # Uncomment if running in a fresh session
-#' # register_model_pro("dummy_cox", my_dummy_cox_model)
-#' # get_registered_models_pro() # Check if registered
+#' # Register the dummy model
+#' initialize_modeling_system_pro() # Ensure system is initialized
+#' register_model_pro("dummy_cox", my_dummy_cox_model)
+#' "dummy_cox" %in% names(get_registered_models_pro()) # Check if registered
 #' @seealso \code{\link{get_registered_models_pro}}, \code{\link{initialize_modeling_system_pro}}
 #' @export
 register_model_pro <- function(name, func) {
@@ -138,9 +135,9 @@ register_model_pro <- function(name, func) {
 #'   are the corresponding model functions.
 #' @examples
 #' # Get all currently registered models
-#' # initialize_modeling_system_pro() # Ensure system is initialized
-#' # models <- get_registered_models_pro()
-#' # names(models) # See available model names
+#' initialize_modeling_system_pro() # Ensure system is initialized
+#' models <- get_registered_models_pro()
+#' names(models) # See available model names
 #' @seealso \code{\link{register_model_pro}}, \code{\link{initialize_modeling_system_pro}}
 #' @export
 get_registered_models_pro <- function() {
@@ -171,8 +168,7 @@ get_registered_models_pro <- function() {
 #'     \item `time_numeric`: A numeric vector of time, converted to days.
 #'   }
 #' @examples
-#' \dontrun{
-#' # Create a dummy CSV file for demonstration
+#' temp_csv_path <- tempfile(fileext = ".csv")
 #' dummy_data <- data.frame(
 #'   ID = paste0("Patient", 1:50),
 #'   FeatureA = rnorm(50),
@@ -181,11 +177,11 @@ get_registered_models_pro <- function() {
 #'   Outcome_Status = sample(c(0, 1), 50, replace = TRUE),
 #'   Followup_Time_Months = runif(50, 10, 60)
 #' )
-#' write.csv(dummy_data, "dummy_prognosis_data.csv", row.names = FALSE)
+#' write.csv(dummy_data, temp_csv_path, row.names = FALSE)
 #'
 #' # Load and prepare data
 #' prepared_data <- load_and_prepare_data_pro(
-#'   data_path = "dummy_prognosis_data.csv",
+#'   data_path = temp_csv_path,
 #'   outcome_col_name = "Outcome_Status",
 #'   time_col_name = "Followup_Time_Months",
 #'   time_unit = "month"
@@ -193,11 +189,10 @@ get_registered_models_pro <- function() {
 #'
 #' # Check prepared data structure
 #' str(prepared_data$X)
-#' print(prepared_data$Y_surv)
+#' print(prepared_data$Y_surv[1:5])
 #'
 #' # Clean up dummy file
-#' unlink("dummy_prognosis_data.csv")
-#' }
+#' unlink(temp_csv_path)
 #' @importFrom readr read_csv
 #' @importFrom survival Surv
 #' @export
@@ -273,6 +268,7 @@ load_and_prepare_data_pro <- function(data_path, outcome_col_name, time_col_name
   )
 }
 
+
 #' @title Train a Lasso Cox Proportional Hazards Model
 #' @description Trains a Cox proportional hazards model with Lasso regularization
 #'   using `glmnet`.
@@ -285,12 +281,18 @@ load_and_prepare_data_pro <- function(data_path, outcome_col_name, time_col_name
 #'   names of features used in training, and model type. The returned object
 #'   also includes `fitted_scores` (linear predictor) and `y_surv`.
 #' @examples
-#' \dontrun{
-#' # Assuming `prepared_data` from load_and_prepare_data_pro example
-#' # prepared_data <- load_and_prepare_data_pro(...)
-#' # lasso_model <- lasso_pro(prepared_data$X, prepared_data$Y_surv)
-#' # print(lasso_model$finalModel)
-#' }
+#' set.seed(42)
+#' n_samples <- 50
+#' n_features <- 10
+#' X_data <- as.data.frame(matrix(rnorm(n_samples * n_features), ncol = n_features))
+#' Y_surv_obj <- survival::Surv(
+#'   time = runif(n_samples, 100, 1000),
+#'   event = sample(0:1, n_samples, replace = TRUE)
+#' )
+#'
+#' # Train the model
+#' lasso_model <- lasso_pro(X_data, Y_surv_obj)
+#' print(lasso_model$finalModel)
 #' @importFrom glmnet cv.glmnet glmnet
 #' @export
 lasso_pro <- function(X, y_surv, tune = FALSE) {
@@ -315,11 +317,18 @@ lasso_pro <- function(X, y_surv, tune = FALSE) {
 #'   names of features used in training, and model type. The returned object
 #'   also includes `fitted_scores` (linear predictor), `y_surv`, `best_lambda`, and `alpha_val`.
 #' @examples
-#' \dontrun{
-#' # Assuming `prepared_data` from load_and_prepare_data_pro example
-#' # en_model <- en_pro(prepared_data$X, prepared_data$Y_surv)
-#' # print(en_model$finalModel)
-#' }
+#' set.seed(42)
+#' n_samples <- 50
+#' n_features <- 10
+#' X_data <- as.data.frame(matrix(rnorm(n_samples * n_features), ncol = n_features))
+#' Y_surv_obj <- survival::Surv(
+#'   time = runif(n_samples, 100, 1000),
+#'   event = sample(0:1, n_samples, replace = TRUE)
+#' )
+#'
+#' # Train the model
+#' en_model <- en_pro(X_data, Y_surv_obj)
+#' print(en_model$finalModel)
 #' @importFrom glmnet cv.glmnet glmnet
 #' @export
 en_pro <- function(X, y_surv, tune = FALSE) {
@@ -347,11 +356,18 @@ en_pro <- function(X, y_surv, tune = FALSE) {
 #'   names of features used in training, and model type. The returned object
 #'   also includes `fitted_scores` (linear predictor), `y_surv`, and `best_lambda`.
 #' @examples
-#' \dontrun{
-#' # Assuming `prepared_data` from load_and_prepare_data_pro example
-#' # ridge_model <- ridge_pro(prepared_data$X, prepared_data$Y_surv)
-#' # print(ridge_model$finalModel)
-#' }
+#' set.seed(42)
+#' n_samples <- 50
+#' n_features <- 10
+#' X_data <- as.data.frame(matrix(rnorm(n_samples * n_features), ncol = n_features))
+#' Y_surv_obj <- survival::Surv(
+#'   time = runif(n_samples, 100, 1000),
+#'   event = sample(0:1, n_samples, replace = TRUE)
+#' )
+#'
+#' # Train the model
+#' ridge_model <- ridge_pro(X_data, Y_surv_obj)
+#' print(ridge_model$finalModel)
 #' @importFrom glmnet cv.glmnet glmnet
 #' @export
 ridge_pro <- function(X, y_surv, tune = FALSE) {
@@ -377,10 +393,20 @@ ridge_pro <- function(X, y_surv, tune = FALSE) {
 #'   names of features used in training, and model type. The returned object
 #'   also includes `fitted_scores` and `y_surv`.
 #' @examples
-#' \dontrun{
-#' # Assuming `prepared_data` from load_and_prepare_data_pro example
-#' # rsf_model <- rsf_pro(prepared_data$X, prepared_data$Y_surv)
-#' # print(rsf_model$finalModel)
+#' \donttest{
+#' # Generate some dummy survival data
+#' set.seed(42)
+#' n_samples <- 50
+#' n_features <- 5
+#' X_data <- as.data.frame(matrix(rnorm(n_samples * n_features), ncol = n_features))
+#' Y_surv_obj <- survival::Surv(
+#'   time = runif(n_samples, 100, 1000),
+#'   event = sample(0:1, n_samples, replace = TRUE)
+#' )
+#'
+#' # Train the model (ntree is small for a quick example)
+#' rsf_model <- rsf_pro(X_data, Y_surv_obj)
+#' print(rsf_model$finalModel)
 #' }
 #' @importFrom randomForestSRC rfsrc predict.rfsrc
 #' @export
@@ -390,8 +416,8 @@ rsf_pro <- function(X, y_surv, tune = FALSE) {
   if (tune) {
     message("RSF: Simplified tuning; consider tune.rfsrc for comprehensive tuning.")
   }
-  fit <- randomForestSRC::rfsrc(stats::as.formula("Y_surv_ ~ ."), data = data_for_rsf, ntree = 1000, mtry = base::floor(ncol(X)/3))
-  fit$fitted_scores <- randomForestSRC::predict.rfsrc(fit, newdata = X)$predicted
+  fit <- randomForestSRC::rfsrc(stats::as.formula("Y_surv_ ~ ."), data = data_for_rsf, ntree = 100, mtry = base::floor(ncol(X)/3))
+  fit$fitted_scores <- -randomForestSRC::predict.rfsrc(fit, newdata = X)$predicted
   fit$y_surv <- y_surv
   structure(list(finalModel = fit, X_train_cols = colnames(X), model_type = "survival_rsf"), class = "train")
 }
@@ -407,11 +433,18 @@ rsf_pro <- function(X, y_surv, tune = FALSE) {
 #'   after stepwise selection, names of features used in training, and model type.
 #'   The returned object also includes `fitted_scores` (linear predictor) and `y_surv`.
 #' @examples
-#' \dontrun{
-#' # Assuming `prepared_data` from load_and_prepare_data_pro example
-#' # stepcox_model <- stepcox_pro(prepared_data$X, prepared_data$Y_surv)
-#' # print(stepcox_model$finalModel)
-#' }
+#' set.seed(42)
+#' n_samples <- 50
+#' n_features <- 5
+#' X_data <- as.data.frame(matrix(rnorm(n_samples * n_features), ncol = n_features))
+#' Y_surv_obj <- survival::Surv(
+#'   time = runif(n_samples, 100, 1000),
+#'   event = sample(0:1, n_samples, replace = TRUE)
+#' )
+#'
+#' # Train the model
+#' stepcox_model <- stepcox_pro(X_data, Y_surv_obj)
+#' print(stepcox_model$finalModel)
 #' @importFrom survival coxph
 #' @importFrom MASS stepAIC
 #' @export
@@ -438,30 +471,46 @@ stepcox_pro <- function(X, y_surv, tune = FALSE) {
 #' @param tune Logical, whether to perform simplified hyperparameter tuning.
 #'   If `TRUE`, `n.trees`, `interaction.depth`, and `shrinkage` are set to
 #'   predefined values suitable for tuning; otherwise, default values are used.
+#' @param cv.folds Integer. The number of cross-validation folds to use.
+#'   Setting this to 0 or 1 will disable cross-validation. Defaults to 3.
 #' @return A list of class "train" containing the trained `gbm` model object,
 #'   names of features used in training, and model type. The returned object
 #'   also includes `fitted_scores` (linear predictor), `y_surv`, and `best_iter`.
 #' @examples
-#' \dontrun{
-#' # Assuming `prepared_data` from load_and_prepare_data_pro example
-#' # gbm_model <- gbm_pro(prepared_data$X, prepared_data$Y_surv)
-#' # print(gbm_model$finalModel)
+#' \donttest{
+#' # Generate some dummy survival data
+#' set.seed(42)
+#' n_samples <- 200
+#' n_features <- 5
+#' X_data <- as.data.frame(matrix(rnorm(n_samples * n_features), ncol = n_features))
+#' Y_surv_obj <- survival::Surv(
+#'   time = runif(n_samples, 100, 1000),
+#'   event = sample(0:1, n_samples, replace = TRUE)
+#' )
+#'
+#' # Train the model for the example *without* cross-validation to pass R CMD check
+#' # In real use, you might use the default cv.folds = 3
+#' gbm_model <- gbm_pro(X_data, Y_surv_obj, cv.folds = 0)
+#' print(gbm_model$finalModel)
 #' }
 #' @importFrom gbm gbm gbm.perf
 #' @importFrom survival Surv
+#' @importFrom stats predict
 #' @export
-gbm_pro <- function(X, y_surv, tune = FALSE) {
+gbm_pro <- function(X, y_surv, tune = FALSE, cv.folds = 3) { # <--- 新增参数
   data_for_gbm <- cbind(y_surv_time = y_surv[,1], y_surv_event = y_surv[,2], X)
+
   if (tune) {
     message("GBM (Cox): Simplified tuning; comprehensive tuning for interaction.depth, shrinkage is recommended.")
-    n_trees_val <- 1000
+    n_trees_val <- 200
     interaction_depth_val <- 3
     shrinkage_val <- 0.01
   } else {
-    n_trees_val <- 500
+    n_trees_val <- 100
     interaction_depth_val <- 3
     shrinkage_val <- 0.1
   }
+
   fit <- gbm::gbm(
     formula = survival::Surv(y_surv_time, y_surv_event) ~ .,
     data = data_for_gbm,
@@ -469,13 +518,29 @@ gbm_pro <- function(X, y_surv, tune = FALSE) {
     n.trees = n_trees_val,
     interaction.depth = interaction_depth_val,
     shrinkage = shrinkage_val,
-    cv.folds = 5
+    cv.folds = cv.folds # <--- 使用新参数
   )
-  best_iter <- gbm::gbm.perf(fit, method = "cv", plot.it = FALSE)
+
+  # gbm.perf requires cv.folds > 1. Only run it if CV was performed.
+  if (cv.folds > 1) {
+    best_iter <- gbm::gbm.perf(fit, method = "cv", plot.it = FALSE)
+  } else {
+    # If no CV, use the total number of trees as best_iter
+    best_iter <- n_trees_val
+  }
+
   fit$fitted_scores <- stats::predict(fit, newdata = X, n.trees = best_iter, type = "link")
   fit$y_surv <- y_surv
   fit$best_iter <- best_iter
-  structure(list(finalModel = fit, X_train_cols = colnames(X), model_type = "survival_gbm"), class = "train")
+
+  structure(
+    list(
+      finalModel = fit,
+      X_train_cols = colnames(X),
+      model_type = "survival_gbm"
+    ),
+    class = "train"
+  )
 }
 
 #' @title Min-Max Normalization
@@ -544,19 +609,27 @@ min_max_normalize <- function(x, min_val = NULL, max_val = NULL) {
 #'       }
 #'   }
 #' @examples
-#' \dontrun{
-#' # Assuming `prepared_data` from load_and_prepare_data_pro example
-#' # And a trained model, e.g., lasso_model <- lasso_pro(prepared_data$X, prepared_data$Y_surv)
-#' #
-#' # Evaluate the model
-#' # eval_results <- evaluate_model_pro(
-#' #   trained_model_obj = lasso_model,
-#' #   X_data = prepared_data$X,
-#' #   Y_surv_obj = prepared_data$Y_surv,
-#' #   sample_ids = prepared_data$sample_ids,
-#' #   years_to_evaluate = c(1, 2, 3)
-#' # )
-#' # str(eval_results)
+#' \donttest{
+#' # Generate dummy data
+#' set.seed(42)
+#' n <- 50
+#' X <- as.data.frame(matrix(rnorm(n * 5), n, 5))
+#' Y_surv <- survival::Surv(time = runif(n, 1, 5*365), event = sample(0:1, n, TRUE))
+#' ids <- paste0("s", 1:n)
+#'
+#' # Train a simple model
+#' initialize_modeling_system_pro()
+#' model_obj <- lasso_pro(X, Y_surv)
+#'
+#' # Evaluate the model on the same data
+#' eval_results <- evaluate_model_pro(
+#'   trained_model_obj = model_obj,
+#'   X_data = X,
+#'   Y_surv_obj = Y_surv,
+#'   sample_ids = ids,
+#'   years_to_evaluate = c(1, 2, 3)
+#' )
+#' str(eval_results$evaluation_metrics)
 #' }
 #' @importFrom survival Surv coxph
 #' @importFrom survcomp concordance.index
@@ -712,9 +785,9 @@ evaluate_model_pro <- function(trained_model_obj = NULL, X_data = NULL, Y_surv_o
   auroc_yearly <- list()
   for (year in years_to_evaluate) {
     eval_time_days <- year * 365.25
-    if (base::max(Y_surv_obj[,1]) < eval_time_days) {
+    if (base::max(Y_surv_obj[,1], na.rm = TRUE) < eval_time_days) {
       auroc_yearly[[as.character(year)]] <- NA
-      warning(paste("Max follow-up time (", round(base::max(Y_surv_obj[,1])/365.25, 2), " years) is less than ", year, " years. Skipping time-dependent ROC for ", year, " years.", sep=""))
+      warning(paste("Max follow-up time (", round(base::max(Y_surv_obj[,1], na.rm = TRUE)/365.25, 2), " years) is less than ", year, " years. Skipping time-dependent ROC for ", year, " years.", sep=""))
       next
     }
     roc_obj <- tryCatch({
@@ -775,31 +848,29 @@ evaluate_model_pro <- function(trained_model_obj = NULL, X_data = NULL, Y_surv_o
 #'   contains its trained `model_object`, `sample_score` data frame, and
 #'   `evaluation_metrics`.
 #' @examples
-#' \dontrun{
-#' # 1. Assume 'train_pro' is a data frame loaded from your package
-#' # data(train_pro)
-#' # str(train_pro)
-#' # > 'data.frame': 100 obs. of 5 variables:
-#' # > $ ID               : chr "Patient1" "Patient2" ...
-#' # > $ Event_Status     : int 0 1 1 0 1 ...
-#' # > $ Followup_Time_Days: num 1500 890 ...
-#' # > $ FeatureA         : num -0.56 0.82 ...
-#' # > $ FeatureB         : num 89.2 26.6 ...
+#' \donttest{
+#' # NOTE: This example requires the 'train_pro' dataset to be exported by the package.
+#' # If it is not, replace `data(train_pro)` with code to create a dummy dataframe.
+#' # For demonstration, we assume `train_pro` is available.
+#' if (requireNamespace("E2E", quietly = TRUE) &&
+#'  "train_pro" %in% utils::data(package = "E2E")$results[,3]) {
+#'   data(train_pro, package = "E2E")
 #'
-#' # 2. Initialize the modeling system
-#' initialize_modeling_system_pro()
+#'   # Initialize the modeling system
+#'   initialize_modeling_system_pro()
 #'
-#' # 3. Run selected models
-#' results <- models_pro(
-#'   data = train_pro,
-#'   model = c("lasso_pro", "rsf_pro"), # Run only Lasso and RSF
-#'   years_to_evaluate = c(1, 3, 5),
-#'   seed = 42
-#' )
+#'   # Run selected models
+#'   results <- models_pro(
+#'     data = train_pro,
+#'     model = c("lasso_pro", "rsf_pro"), # Run only Lasso and RSF
+#'     years_to_evaluate = c(1, 3, 5),
+#'     seed = 42
+#'   )
 #'
-#' # 4. Print summaries
-#' for (model_name in names(results)) {
-#'   print_model_summary_pro(model_name, results[[model_name]])
+#'   # Print summaries
+#'   for (model_name in names(results)) {
+#'     print_model_summary_pro(model_name, results[[model_name]])
+#'   }
 #' }
 #' }
 #' @seealso \code{\link{initialize_modeling_system_pro}}, \code{\link{evaluate_model_pro}}
@@ -900,19 +971,22 @@ models_pro <- function(data,
 #'
 #' @return A list containing the `model_object`, `sample_score`, and `evaluation_metrics`.
 #' @examples
-#' \dontrun{
-#' # Assume 'train_pro' is a data frame loaded from your package
-#' # data(train_pro)
-#' initialize_modeling_system_pro()
+#' \donttest{
+#' # NOTE: This example requires the 'train_pro' dataset.
+#' if (requireNamespace("E2E", quietly = TRUE) &&
+#' "train_pro" %in% utils::data(package = "E2E")$results[,3]) {
+#'   data(train_pro, package = "E2E")
+#'   initialize_modeling_system_pro()
 #'
-#' bagging_lasso_results <- bagging_pro(
-#'   data = train_pro,
-#'   base_model_name = "lasso_pro",
-#'   n_estimators = 5, # Small number for example speed
-#'   subset_fraction = 0.8,
-#'   years_to_evaluate = c(1, 3)
-#' )
-#' print_model_summary_pro("Bagging (Lasso)", bagging_lasso_results)
+#'   bagging_lasso_results <- bagging_pro(
+#'     data = train_pro,
+#'     base_model_name = "lasso_pro",
+#'     n_estimators = 3, # Small number for example speed
+#'     subset_fraction = 0.8,
+#'     years_to_evaluate = c(1, 3)
+#'   )
+#'   print_model_summary_pro("Bagging (Lasso)", bagging_lasso_results)
+#' }
 #' }
 #' @seealso \code{\link{initialize_modeling_system_pro}}, \code{\link{evaluate_model_pro}}
 #' @export
@@ -997,7 +1071,8 @@ bagging_pro <- function(data,
     model_type = "bagging_pro",
     base_model_name = base_model_name,
     n_estimators = n_estimators,
-    base_model_objects = valid_models
+    base_model_objects = valid_models,
+    X_train_cols = colnames(X_data)
   )
 
   eval_results <- evaluate_model_pro(
@@ -1034,19 +1109,26 @@ bagging_pro <- function(data,
 #'
 #' @return A list containing the `model_object`, `sample_score`, and `evaluation_metrics`.
 #' @examples
-#' \dontrun{
-#' # Assume 'train_pro' is loaded and 'base_model_results' from models_pro() exist
-#' # data(train_pro)
-#' # base_model_results <- models_pro(data = train_pro, model = "all_pro")
+#' \donttest{
+#' # NOTE: This example requires the 'train_pro' dataset.
+#' if (requireNamespace("E2E", quietly = TRUE) &&
+#' "train_pro" %in% utils::data(package = "E2E")$results[,3]) {
+#'   data(train_pro, package = "E2E")
+#'   initialize_modeling_system_pro()
 #'
-#' stacking_gbm_results <- stacking_pro(
-#'   results_all_models = base_model_results,
-#'   data = train_pro,
-#'   meta_model_name = "gbm_pro",
-#'   top = 3,
-#'   years_to_evaluate = c(1, 3)
-#' )
-#' print_model_summary_pro("Stacking (GBM)", stacking_gbm_results)
+#'   # First, generate results for base models
+#'   base_model_results <- models_pro(data = train_pro, model = c("lasso_pro", "rsf_pro"))
+#'
+#'   # Then, create the stacking ensemble
+#'   stacking_lasso_results <- stacking_pro(
+#'     results_all_models = base_model_results,
+#'     data = train_pro,
+#'     meta_model_name = "lasso_pro",
+#'     top = 3,
+#'     years_to_evaluate = c(1, 3)
+#'   )
+#'   print_model_summary_pro("Stacking (Lasso)", stacking_lasso_results)
+#' }
 #' }
 #' @importFrom dplyr select left_join
 #' @importFrom magrittr %>%
@@ -1060,6 +1142,10 @@ stacking_pro <- function(results_all_models,
                          time_unit = "day",
                          years_to_evaluate = c(1, 3, 5),
                          seed = 789) {
+
+  if (!is.null(results_all_models$`%||%`)) { # Helper for R < 4.0.0
+    `%||%` <- function(a, b) if (is.null(a)) b else a
+  }
 
   if (!.model_registry_env_pro$is_initialized) {
     stop("Prognosis modeling system not initialized. Please call 'initialize_modeling_system_pro()' first.")
@@ -1079,7 +1165,7 @@ stacking_pro <- function(results_all_models,
   sample_ids <- data_prepared$sample_ids
 
   model_c_indices <- sapply(results_all_models, function(res) {
-    res$evaluation_metrics$C_index %||% NA
+    if(is.null(res$evaluation_metrics$C_index)) NA else res$evaluation_metrics$C_index
   })
   model_c_indices <- model_c_indices[!is.na(model_c_indices)]
 
@@ -1129,6 +1215,9 @@ stacking_pro <- function(results_all_models,
     years_to_evaluate = years_to_evaluate
   )
 
+  # The X_train_cols for the final model object should be the original feature names
+  original_X_cols <- colnames(data_prepared$X)
+
   list(
     model_object = list(
       model_type = "stacking_pro",
@@ -1137,7 +1226,8 @@ stacking_pro <- function(results_all_models,
       base_models_used = selected_base_models_names,
       base_model_objects = selected_base_model_objects,
       trained_meta_model = meta_mdl,
-      meta_normalize_params = meta_normalize_params
+      meta_normalize_params = meta_normalize_params,
+      X_train_cols = original_X_cols
     ),
     sample_score = eval_results$sample_score,
     evaluation_metrics = eval_results$evaluation_metrics
@@ -1160,21 +1250,27 @@ stacking_pro <- function(results_all_models,
 #'
 #' @return A data frame with `ID`, `outcome`, `time`, and predicted `score` for the new data.
 #' @examples
-#' \dontrun{
-#' # Assume 'train_pro', 'test_pro' are loaded and 'trained_lasso_model' exists
-#' # data(train_pro)
-#' # data(test_pro)
-#' # initialize_modeling_system_pro()
-#' # train_results <- models_pro(data = train_pro, model = "lasso_pro")
-#' # trained_lasso_model <- train_results$lasso_pro$model_object
+#' \donttest{
+#' # NOTE: This example requires 'train_pro' and 'test_pro' datasets.
+#' if (requireNamespace("E2E", quietly = TRUE) &&
+#'     "train_pro" %in% utils::data(package = "E2E")$results[,3] &&
+#'     "test_pro" %in% utils::data(package = "E2E")$results[,3]) {
 #'
-#' # Apply the trained model to new data
-#' new_data_predictions <- apply_pro(
-#'   trained_model_object = trained_lasso_model,
-#'   new_data = test_pro,
-#'   time_unit = "day" # Specify time unit of test_pro
-#' )
-#' utils::head(new_data_predictions)
+#'   data(train_pro, package = "E2E")
+#'   data(test_pro, package = "E2E")
+#'   initialize_modeling_system_pro()
+#'
+#'   train_results <- models_pro(data = train_pro, model = "lasso_pro")
+#'   trained_lasso_model <- train_results$lasso_pro$model_object
+#'
+#'   # Apply the trained model to new data
+#'   new_data_predictions <- apply_pro(
+#'     trained_model_object = trained_lasso_model,
+#'     new_data = test_pro,
+#'     time_unit = "day" # Specify time unit of test_pro
+#'   )
+#'   utils::head(new_data_predictions)
+#' }
 #' }
 #' @importFrom dplyr select
 #' @seealso \code{\link{evaluate_model_pro}}
@@ -1188,6 +1284,10 @@ apply_pro <- function(trained_model_object,
   }
   if (!is.data.frame(new_data)) {
     stop("'new_data' must be a data.frame.")
+  }
+
+  if (is.null(new_data$`%||%`)) { # Helper for R < 4.0.0
+    `%||%` <- function(a, b) if (is.null(a)) b else a
   }
 
   message("Applying model on new data...")
@@ -1231,7 +1331,7 @@ apply_pro <- function(trained_model_object,
 #' initialize_modeling_system_pro()
 #'
 #' # Check if models are now registered
-#' # get_registered_models_pro()
+#' print(names(get_registered_models_pro()))
 #' @export
 initialize_modeling_system_pro <- function() {
   if (.model_registry_env_pro$is_initialized) {
@@ -1278,15 +1378,20 @@ initialize_modeling_system_pro <- function() {
 #'
 #' @return NULL. Prints the summary to the console.
 #' @examples
-#' \dontrun{
-#' # Assuming `results` from run_models_pro example
-#' # for (model_name in names(results)) {
-#' #   print_model_summary_pro(model_name, results[[model_name]], on_new_data = FALSE)
-#' # }
+#' \donttest{
+#' if (requireNamespace("E2E", quietly = TRUE) &&
+#'  "train_pro" %in% utils::data(package = "E2E")$results[,3]) {
+#'   data(train_pro, package = "E2E")
+#'   initialize_modeling_system_pro()
+#'   results <- models_pro(data = train_pro, model = "lasso_pro")
 #'
-#' # Example for a failed model
-#' # failed_results <- list(evaluation_metrics = list(error = "Training failed due to invalid input"))
-#' # print_model_summary_pro("MyFailedModel", failed_results)
+#'   # Print summary for the trained model
+#'   print_model_summary_pro("lasso_pro", results$lasso_pro, on_new_data = FALSE)
+#'
+#'   # Example for a failed model
+#'   failed_results <- list(evaluation_metrics = list(error = "Training failed"))
+#'   print_model_summary_pro("MyFailedModel", failed_results)
+#' }
 #' }
 #' @export
 print_model_summary_pro <- function(model_name, results_list, on_new_data = FALSE) {
@@ -1330,3 +1435,57 @@ print_model_summary_pro <- function(model_name, results_list, on_new_data = FALS
     message("--------------------------------------------------")
   }
 }
+
+#' @title Evaluate Prognostic Predictions
+#' @description A convenience wrapper to evaluate a data frame of prognostic predictions.
+#'   This function is ideal for evaluating the output of `apply_pro`.
+#'
+#' @param prediction_df A data frame containing predictions. Must include columns
+#'   named `ID`, `outcome`, `time`, and `score`. This format matches the output
+#'   of `apply_pro`.
+#' @param years_to_evaluate A numeric vector of specific years at which to
+#'   calculate time-dependent AUROC.
+#'
+#' @return A list of evaluation metrics, including C-index, time-dependent AUROC,
+#'   and Kaplan-Meier analysis results.
+#' @examples
+#' \donttest{
+#' # Assume 'trained_model' and 'test_pro' data are available
+#' if (requireNamespace("E2E", quietly = TRUE) &&
+#'     "train_pro" %in% utils::data(package = "E2E")$results[,3] &&
+#'     "test_pro" %in% utils::data(package = "E2E")$results[,3]) {
+#'
+#'   data(train_pro, package = "E2E")
+#'   data(test_pro, package = "E2E")
+#'   initialize_modeling_system_pro()
+#'   model_results <- models_pro(data = train_pro, model = "lasso_pro")
+#'
+#'   # 1. Get predictions on new data
+#'   predictions <- apply_pro(model_results$lasso_pro$model_object, test_pro)
+#'
+#'   # 2. Evaluate these predictions using the simplified function
+#'   evaluation_metrics <- evaluate_predictions_pro(predictions, years_to_evaluate = c(1, 3))
+#'   print(evaluation_metrics)
+#' }
+#' }
+#' @seealso \code{\link{apply_pro}}, \code{\link{evaluate_model_pro}}
+#' @export
+evaluate_predictions_pro <- function(prediction_df, years_to_evaluate = c(1, 3, 5)) {
+  required_cols <- c("ID", "outcome", "time", "score")
+  if (!all(required_cols %in% names(prediction_df))) {
+    stop(paste("Input data frame must contain columns:", paste(required_cols, collapse = ", ")))
+  }
+
+  y_surv_obj <- survival::Surv(time = prediction_df$time, event = prediction_df$outcome)
+
+
+  results <- evaluate_model_pro(
+    Y_surv_obj = y_surv_obj,
+    sample_ids = prediction_df$ID,
+    years_to_evaluate = years_to_evaluate,
+    precomputed_score = prediction_df$score
+  )
+
+  return(results$evaluation_metrics)
+}
+

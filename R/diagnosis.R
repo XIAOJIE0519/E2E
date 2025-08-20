@@ -2,7 +2,7 @@
 #' @importFrom utils globalVariables
 utils::globalVariables(c("x", "y", "recall", "Actual", "Predicted", "Freq", "Percentage",
                          "time", "AUROC", "feature", "value", "ID", "e",
-                         "score_col", "label", "sample", "score", "."))
+                         "score_col", "label", "sample", "score", ".", "precision", "Label"))
 
 # Internal package environment for model registry.
 # This environment holds functions for various diagnostic models, allowing them
@@ -97,29 +97,24 @@ required_packages_dia <- c(
 #'   as its first two arguments and return a `caret::train` object.
 #' @return NULL. The function registers the model function invisibly.
 #' @examples
+#' \donttest{
 #' # Example of a dummy model function for registration
 #' my_dummy_rf_model <- function(X, y, tune = FALSE, cv_folds = 5) {
 #'   message("Training dummy RF model...")
-#'   # In a real scenario, this would train a random forest model
-#'   # For example purposes, it just returns a dummy object
-#'   list(finalModel = "dummy_rf_fit", method = "rf", tuneValue = list(mtry=1),
-#'        trainingData = cbind(X, .outcome = y), class = "train",
-#'        predict = function(newdata, type) {
-#'            if (type == "prob") {
-#'                probs <- matrix(runif(nrow(newdata)*2), ncol=2, byrow=TRUE)
-#'                probs <- t(apply(probs, 1, function(x) x/sum(x)))
-#'                colnames(probs) <- levels(y)
-#'                return(probs)
-#'            } else {
-#'                return(factor(sample(levels(y), nrow(newdata), replace = TRUE), levels = levels(y)))
-#'            }
-#'        })
+#'   # This is a placeholder and doesn't train a real model.
+#'   # It returns a list with a structure similar to a caret train object.
+#'   list(method = "dummy_rf")
 #' }
 #'
-#' # Register the dummy model (ensure initialize_modeling_system_dia() has run first)
-#' # initialize_modeling_system_dia() # Uncomment if running in a fresh session
-#' # register_model_dia("dummy_rf", my_dummy_rf_model)
-#' # get_registered_models_dia() # Check if registered
+#' # Initialize the system before registering
+#' initialize_modeling_system_dia()
+#'
+#' # Register the new model
+#' register_model_dia("dummy_rf", my_dummy_rf_model)
+#'
+#' # Verify that the model is now in the list of registered models
+#' "dummy_rf" %in% names(get_registered_models_dia())
+#' }
 #' @seealso \code{\link{get_registered_models_dia}}, \code{\link{initialize_modeling_system_dia}}
 #' @export
 register_model_dia <- function(name, func) {
@@ -139,10 +134,13 @@ register_model_dia <- function(name, func) {
 #' @return A named list where names are the registered model names and values
 #'   are the corresponding model functions.
 #' @examples
-#' # Get all currently registered models
-#' # initialize_modeling_system_dia() # Ensure system is initialized
-#' # models <- get_registered_models_dia()
-#' # names(models) # See available model names
+#' \donttest{
+#' # Ensure system is initialized to see the default models
+#' initialize_modeling_system_dia()
+#' models <- get_registered_models_dia()
+#' # See available model names
+#' print(names(models))
+#' }
 #' @seealso \code{\link{register_model_dia}}, \code{\link{initialize_modeling_system_dia}}
 #' @export
 get_registered_models_dia <- function() {
@@ -313,20 +311,21 @@ find_optimal_threshold_dia <- function(prob_positive, y_true, type = c("f1", "yo
 #'     \item `y_original_numeric`: The original numeric/character vector of labels.
 #'   }
 #' @examples
-#' \dontrun{
-#' # Create a dummy CSV file for demonstration
+#' \donttest{
+#' # Create a dummy CSV file in a temporary directory for demonstration
+#' temp_csv_path <- tempfile(fileext = ".csv")
 #' dummy_data <- data.frame(
 #'   ID = paste0("Patient", 1:50),
+#'   Disease_Status = sample(c(0, 1), 50, replace = TRUE),
 #'   FeatureA = rnorm(50),
 #'   FeatureB = runif(50, 0, 100),
-#'   CategoricalFeature = sample(c("X", "Y", "Z"), 50, replace = TRUE),
-#'   Disease_Status = sample(c(0, 1), 50, replace = TRUE)
+#'   CategoricalFeature = sample(c("X", "Y", "Z"), 50, replace = TRUE)
 #' )
-#' write.csv(dummy_data, "dummy_diagnosis_data.csv", row.names = FALSE)
+#' write.csv(dummy_data, temp_csv_path, row.names = FALSE)
 #'
-#' # Load and prepare data
+#' # Load and prepare data from the temporary file
 #' prepared_data <- load_and_prepare_data_dia(
-#'   data_path = "dummy_diagnosis_data.csv",
+#'   data_path = temp_csv_path,
 #'   label_col_name = "Disease_Status",
 #'   positive_label_value = 1,
 #'   negative_label_value = 0,
@@ -338,8 +337,8 @@ find_optimal_threshold_dia <- function(prob_positive, y_true, type = c("f1", "yo
 #' str(prepared_data$X)
 #' table(prepared_data$y)
 #'
-#' # Clean up dummy file
-#' unlink("dummy_diagnosis_data.csv")
+#' # Clean up the dummy file
+#' unlink(temp_csv_path)
 #' }
 #' @importFrom readr read_csv
 #' @export
@@ -363,8 +362,8 @@ load_and_prepare_data_dia <- function(data_path, label_col_name,
   y_original_numeric <- df_features_and_label[[label_col_name]]
 
   y <- base::factor(y_original_numeric,
-                     levels = c(negative_label_value, positive_label_value),
-                     labels = c(new_negative_label, new_positive_label))
+                    levels = c(negative_label_value, positive_label_value),
+                    labels = c(new_negative_label, new_positive_label))
   X <- df_features_and_label[, setdiff(names(df_features_and_label), label_col_name), drop = FALSE]
 
   for (col_name in names(X)) {
@@ -403,10 +402,19 @@ load_and_prepare_data_dia <- function(data_path, label_col_name,
 #' @param cv_folds An integer, the number of cross-validation folds for `caret`.
 #' @return A `caret::train` object representing the trained Random Forest model.
 #' @examples
-#' \dontrun{
-#' # Assuming `prepared_data` from load_and_prepare_data_dia example
-#' # rf_model <- rf_dia(prepared_data$X, prepared_data$y)
-#' # print(rf_model)
+#' \donttest{
+#' set.seed(42)
+#' n_obs <- 50
+#' X_toy <- data.frame(
+#'   FeatureA = rnorm(n_obs),
+#'   FeatureB = runif(n_obs, 0, 100)
+#' )
+#' y_toy <- factor(sample(c("Control", "Case"), n_obs, replace = TRUE),
+#'                 levels = c("Control", "Case"))
+#'
+#' # Train the model
+#' rf_model <- rf_dia(X_toy, y_toy)
+#' print(rf_model)
 #' }
 #' @importFrom caret train trainControl twoClassSummary
 #' @export
@@ -430,10 +438,19 @@ rf_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
 #' @param cv_folds An integer, the number of cross-validation folds for `caret`.
 #' @return A `caret::train` object representing the trained XGBoost model.
 #' @examples
-#' \dontrun{
-#' # Assuming `prepared_data` from load_and_prepare_data_dia example
-#' # xb_model <- xb_dia(prepared_data$X, prepared_data$y)
-#' # print(xb_model)
+#' \donttest{
+#' set.seed(42)
+#' n_obs <- 50
+#' X_toy <- data.frame(
+#'   FeatureA = rnorm(n_obs),
+#'   FeatureB = runif(n_obs, 0, 100)
+#' )
+#' y_toy <- factor(sample(c("Control", "Case"), n_obs, replace = TRUE),
+#'                 levels = c("Control", "Case"))
+#'
+#' # Train the model
+#' xb_model <- xb_dia(X_toy, y_toy)
+#' print(xb_model)
 #' }
 #' @importFrom caret train trainControl twoClassSummary
 #' @export
@@ -458,10 +475,19 @@ xb_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
 #' @param cv_folds An integer, the number of cross-validation folds for `caret`.
 #' @return A `caret::train` object representing the trained SVM model.
 #' @examples
-#' \dontrun{
-#' # Assuming `prepared_data` from load_and_prepare_data_dia example
-#' # svm_model <- svm_dia(prepared_data$X, prepared_data$y)
-#' # print(svm_model)
+#' \donttest{
+#' set.seed(42)
+#' n_obs <- 50
+#' X_toy <- data.frame(
+#'   FeatureA = rnorm(n_obs),
+#'   FeatureB = runif(n_obs, 0, 100)
+#' )
+#' y_toy <- factor(sample(c("Control", "Case"), n_obs, replace = TRUE),
+#'                 levels = c("Control", "Case"))
+#'
+#' # Train the model
+#' svm_model <- svm_dia(X_toy, y_toy)
+#' print(svm_model)
 #' }
 #' @importFrom caret train trainControl twoClassSummary
 #' @export
@@ -471,6 +497,7 @@ svm_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
   caret::train(x=X, y=y, method="svmLinear", metric="ROC", trControl=ctrl,
                tuneLength=if (tune) 3 else 1)
 }
+
 
 #' @title Train a Multi-Layer Perceptron (Neural Network) Model for Classification
 #' @description Trains a Multi-Layer Perceptron (MLP) neural network model
@@ -483,12 +510,22 @@ svm_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
 #' @param cv_folds An integer, the number of cross-validation folds for `caret`.
 #' @return A `caret::train` object representing the trained MLP model.
 #' @examples
-#' \dontrun{
-#' # Assuming `prepared_data` from load_and_prepare_data_dia example
-#' # mlp_model <- mlp_dia(prepared_data$X, prepared_data$y)
-#' # print(mlp_model)
+#' \donttest{
+#' set.seed(42)
+#' n_obs <- 50
+#' X_toy <- data.frame(
+#'   FeatureA = rnorm(n_obs),
+#'   FeatureB = runif(n_obs, 0, 100)
+#' )
+#' y_toy <- factor(sample(c("Control", "Case"), n_obs, replace = TRUE),
+#'                 levels = c("Control", "Case"))
+#'
+#' # Train the model
+#' mlp_model <- mlp_dia(X_toy, y_toy)
+#' print(mlp_model)
 #' }
 #' @importFrom caret train trainControl twoClassSummary
+#' @importFrom RSNNS mlp
 #' @export
 mlp_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
   ctrl <- caret::trainControl(method="cv", number=cv_folds,
@@ -508,10 +545,19 @@ mlp_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
 #' @param cv_folds An integer, the number of cross-validation folds for `caret`.
 #' @return A `caret::train` object representing the trained Lasso model.
 #' @examples
-#' \dontrun{
-#' # Assuming `prepared_data` from load_and_prepare_data_dia example
-#' # lasso_model <- lasso_dia(prepared_data$X, prepared_data$y)
-#' # print(lasso_model)
+#' \donttest{
+#' set.seed(42)
+#' n_obs <- 50
+#' X_toy <- data.frame(
+#'   FeatureA = rnorm(n_obs),
+#'   FeatureB = runif(n_obs, 0, 100)
+#' )
+#' y_toy <- factor(sample(c("Control", "Case"), n_obs, replace = TRUE),
+#'                 levels = c("Control", "Case"))
+#'
+#' # Train the model
+#' lasso_model <- lasso_dia(X_toy, y_toy)
+#' print(lasso_model)
 #' }
 #' @importFrom caret train trainControl twoClassSummary
 #' @export
@@ -533,10 +579,19 @@ lasso_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
 #' @param cv_folds An integer, the number of cross-validation folds for `caret`.
 #' @return A `caret::train` object representing the trained Elastic Net model.
 #' @examples
-#' \dontrun{
-#' # Assuming `prepared_data` from load_and_prepare_data_dia example
-#' # en_model <- en_dia(prepared_data$X, prepared_data$y)
-#' # print(en_model)
+#' \donttest{
+#' set.seed(42)
+#' n_obs <- 50
+#' X_toy <- data.frame(
+#'   FeatureA = rnorm(n_obs),
+#'   FeatureB = runif(n_obs, 0, 100)
+#' )
+#' y_toy <- factor(sample(c("Control", "Case"), n_obs, replace = TRUE),
+#'                 levels = c("Control", "Case"))
+#'
+#' # Train the model
+#' en_model <- en_dia(X_toy, y_toy)
+#' print(en_model)
 #' }
 #' @importFrom caret train trainControl twoClassSummary
 #' @export
@@ -558,10 +613,19 @@ en_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
 #' @param cv_folds An integer, the number of cross-validation folds for `caret`.
 #' @return A `caret::train` object representing the trained Ridge model.
 #' @examples
-#' \dontrun{
-#' # Assuming `prepared_data` from load_and_prepare_data_dia example
-#' # ridge_model <- ridge_dia(prepared_data$X, prepared_data$y)
-#' # print(ridge_model)
+#' \donttest{
+#' set.seed(42)
+#' n_obs <- 50
+#' X_toy <- data.frame(
+#'   FeatureA = rnorm(n_obs),
+#'   FeatureB = runif(n_obs, 0, 100)
+#' )
+#' y_toy <- factor(sample(c("Control", "Case"), n_obs, replace = TRUE),
+#'                 levels = c("Control", "Case"))
+#'
+#' # Train the model
+#' ridge_model <- ridge_dia(X_toy, y_toy)
+#' print(ridge_model)
 #' }
 #' @importFrom caret train trainControl twoClassSummary
 #' @export
@@ -582,10 +646,19 @@ ridge_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
 #' @param cv_folds An integer, the number of cross-validation folds for `caret`.
 #' @return A `caret::train` object representing the trained LDA model.
 #' @examples
-#' \dontrun{
-#' # Assuming `prepared_data` from load_and_prepare_data_dia example
-#' # lda_model <- lda_dia(prepared_data$X, prepared_data$y)
-#' # print(lda_model)
+#' \donttest{
+#' set.seed(42)
+#' n_obs <- 50
+#' X_toy <- data.frame(
+#'   FeatureA = rnorm(n_obs),
+#'   FeatureB = runif(n_obs, 0, 100)
+#' )
+#' y_toy <- factor(sample(c("Control", "Case"), n_obs, replace = TRUE),
+#'                 levels = c("Control", "Case"))
+#'
+#' # Train the model
+#' lda_model <- lda_dia(X_toy, y_toy)
+#' print(lda_model)
 #' }
 #' @importFrom caret train trainControl twoClassSummary
 #' @export
@@ -605,10 +678,19 @@ lda_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
 #' @param cv_folds An integer, the number of cross-validation folds for `caret`.
 #' @return A `caret::train` object representing the trained QDA model.
 #' @examples
-#' \dontrun{
-#' # Assuming `prepared_data` from load_and_prepare_data_dia example
-#' # qda_model <- qda_dia(prepared_data$X, prepared_data$y)
-#' # print(qda_model)
+#' \donttest{
+#' set.seed(42)
+#' n_obs <- 50
+#' X_toy <- data.frame(
+#'   FeatureA = rnorm(n_obs),
+#'   FeatureB = runif(n_obs, 0, 100)
+#' )
+#' y_toy <- factor(sample(c("Control", "Case"), n_obs, replace = TRUE),
+#'                 levels = c("Control", "Case"))
+#'
+#' # Train the model
+#' qda_model <- qda_dia(X_toy, y_toy)
+#' print(qda_model)
 #' }
 #' @importFrom caret train trainControl twoClassSummary
 #' @export
@@ -628,10 +710,19 @@ qda_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
 #' @param cv_folds An integer, the number of cross-validation folds for `caret`.
 #' @return A `caret::train` object representing the trained Naive Bayes model.
 #' @examples
-#' \dontrun{
-#' # Assuming `prepared_data` from load_and_prepare_data_dia example
-#' # nb_model <- nb_dia(prepared_data$X, prepared_data$y)
-#' # print(nb_model)
+#' \donttest{
+#' set.seed(42)
+#' n_obs <- 50
+#' X_toy <- data.frame(
+#'   FeatureA = rnorm(n_obs),
+#'   FeatureB = runif(n_obs, 0, 100)
+#' )
+#' y_toy <- factor(sample(c("Control", "Case"), n_obs, replace = TRUE),
+#'                 levels = c("Control", "Case"))
+#'
+#' # Train the model
+#' nb_model <- nb_dia(X_toy, y_toy)
+#' print(nb_model)
 #' }
 #' @importFrom caret train trainControl twoClassSummary
 #' @export
@@ -653,10 +744,19 @@ nb_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
 #' @param cv_folds An integer, the number of cross-validation folds for `caret`.
 #' @return A `caret::train` object representing the trained Decision Tree model.
 #' @examples
-#' \dontrun{
-#' # Assuming `prepared_data` from load_and_prepare_data_dia example
-#' # dt_model <- dt_dia(prepared_data$X, prepared_data$y)
-#' # print(dt_model)
+#' \donttest{
+#' set.seed(42)
+#' n_obs <- 50
+#' X_toy <- data.frame(
+#'   FeatureA = rnorm(n_obs),
+#'   FeatureB = runif(n_obs, 0, 100)
+#' )
+#' y_toy <- factor(sample(c("Control", "Case"), n_obs, replace = TRUE),
+#'                 levels = c("Control", "Case"))
+#'
+#' # Train the model
+#' dt_model <- dt_dia(X_toy, y_toy)
+#' print(dt_model)
 #' }
 #' @importFrom caret train trainControl twoClassSummary
 #' @export
@@ -678,10 +778,19 @@ dt_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
 #' @param cv_folds An integer, the number of cross-validation folds for `caret`.
 #' @return A `caret::train` object representing the trained GBM model.
 #' @examples
-#' \dontrun{
-#' # Assuming `prepared_data` from load_and_prepare_data_dia example
-#' # gbm_model <- gbm_dia(prepared_data$X, prepared_data$y)
-#' # print(gbm_model)
+#' \donttest{
+#' set.seed(42)
+#' n_obs <- 200
+#' X_toy <- data.frame(
+#'   FeatureA = rnorm(n_obs),
+#'   FeatureB = runif(n_obs, 0, 100)
+#' )
+#' y_toy <- factor(sample(c("Control", "Case"), n_obs, replace = TRUE),
+#'                 levels = c("Control", "Case"))
+#'
+#' # Train the model
+#' gbm_model <- gbm_dia(X_toy, y_toy)
+#' print(gbm_model)
 #' }
 #' @importFrom caret train trainControl twoClassSummary
 #' @export
@@ -729,30 +838,40 @@ gbm_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
 #'     \item `evaluation_metrics`: A list of performance metrics:
 #'       \itemize{
 #'         \item `Threshold_Strategy`: The strategy used for threshold selection.
-#'         \item `Final_Threshold`: The chosen probability threshold.
+#'         \item `_Threshold`: The chosen probability threshold.
 #'         \item `Accuracy`, `Precision`, `Recall`, `F1`, `Specificity`: Metrics
-#'           calculated at `Final_Threshold`.
+#'           calculated at `_Threshold`.
 #'         \item `AUROC`: Area Under the Receiver Operating Characteristic curve.
 #'         \item `AUROC_95CI_Lower`, `AUROC_95CI_Upper`: 95% confidence interval for AUROC.
 #'         \item `AUPRC`: Area Under the Precision-Recall curve.
 #'       }
 #'   }
 #' @examples
-#' \dontrun{
-#' # Assuming `prepared_data` from load_and_prepare_data_dia example
-#' # And a trained model, e.g., rf_model <- rf_dia(prepared_data$X, prepared_data$y)
-#' #
-#' # Evaluate the model using F1-score optimal threshold
-#' # eval_results <- evaluate_model_dia(
-#' #   model_obj = rf_model,
-#' #   X_data = prepared_data$X,
-#' #   y_data = prepared_data$y,
-#' #   sample_ids = prepared_data$sample_ids,
-#' #   threshold_strategy = "f1",
-#' #   pos_class = "Case",
-#' #   neg_class = "Control"
-#' # )
-#' # str(eval_results)
+#' \donttest{
+#' set.seed(42)
+#' n_obs <- 50
+#' X_toy <- data.frame(
+#'   FeatureA = rnorm(n_obs),
+#'   FeatureB = runif(n_obs, 0, 100)
+#' )
+#' y_toy <- factor(sample(c("Control", "Case"), n_obs, replace = TRUE),
+#'                 levels = c("Control", "Case"))
+#' ids_toy <- paste0("Sample", 1:n_obs)
+#'
+#' # 2. Train a model
+#' rf_model <- rf_dia(X_toy, y_toy)
+#'
+#' # 3. Evaluate the model using F1-score optimal threshold
+#' eval_results <- evaluate_model_dia(
+#'   model_obj = rf_model,
+#'   X_data = X_toy,
+#'   y_data = y_toy,
+#'   sample_ids = ids_toy,
+#'   threshold_strategy = "f1",
+#'   pos_class = "Case",
+#'   neg_class = "Control"
+#' )
+#' str(eval_results)
 #' }
 #' @importFrom caret predict.train
 #' @importFrom pROC roc auc ci.auc
@@ -918,35 +1037,42 @@ evaluate_model_dia <- function(model_obj = NULL, X_data = NULL, y_data, sample_i
 #'   contains its trained `model_object`, `sample_score` data frame, and
 #'   `evaluation_metrics`.
 #' @examples
-#' \dontrun{
-#' # 1. Assume 'train_dia' is a data frame loaded from your package
+#' \donttest{
+#' # This example assumes your package includes a dataset named 'train_dia'.
+#' # If not, you should create a toy data frame similar to the one below.
+#' #
+#' # train_dia <- data.frame(
+#' #   ID = paste0("Patient", 1:100),
+#' #   Disease_Status = sample(c(0, 1), 100, replace = TRUE),
+#' #   FeatureA = rnorm(100),
+#' #   FeatureB = runif(100)
+#' # )
+#'
+#' # Ensure the 'train_dia' dataset is available in the environment
+#' # For example, if it is exported by your package:
 #' # data(train_dia)
-#' # str(train_dia)
-#' # > 'data.frame': 100 obs. of 5 variables:
-#' # > $ ID            : chr "Patient1" "Patient2" ...
-#' # > $ Disease_Status: int 0 1 1 0 1 ...
-#' # > $ FeatureA      : num -0.56 0.82 ...
-#' # > $ FeatureB      : num 89.2 26.6 ...
-#' # > $ FeatureC      : Factor w/ 3 levels "X","Y","Z": 2 3 1 2 3 ...
 #'
-#' # 2. Initialize the modeling system
-#' initialize_modeling_system_dia()
+#' # Check if 'train_dia' exists, otherwise skip the example
+#' if (exists("train_dia")) {
+#'   # 1. Initialize the modeling system
+#'   initialize_modeling_system_dia()
 #'
-#' # 3. Run selected models
-#' results <- models_dia(
-#'   data = train_dia,
-#'   model = c("rf", "lasso"), # Run only Random Forest and Lasso
-#'   threshold_choices = list(rf = "f1", lasso = 0.6), # Different thresholds
-#'   positive_label_value = 1,
-#'   negative_label_value = 0,
-#'   new_positive_label = "Case",
-#'   new_negative_label = "Control",
-#'   seed = 42
-#' )
+#'   # 2. Run selected models
+#'   results <- models_dia(
+#'     data = train_dia,
+#'     model = c("rf", "lasso"), # Run only Random Forest and Lasso
+#'     threshold_choices = list(rf = "f1", lasso = 0.6), # Different thresholds
+#'     positive_label_value = 1,
+#'     negative_label_value = 0,
+#'     new_positive_label = "Case",
+#'     new_negative_label = "Control",
+#'     seed = 42
+#'   )
 #'
-#' # 4. Print summaries
-#' for (model_name in names(results)) {
-#'   print_model_summary_dia(model_name, results[[model_name]])
+#'   # 3. Print summaries
+#'   for (model_name in names(results)) {
+#'     print_model_summary_dia(model_name, results[[model_name]])
+#'   }
 #' }
 #' }
 #' @seealso \code{\link{initialize_modeling_system_dia}}, \code{\link{evaluate_model_dia}}
@@ -1098,22 +1224,24 @@ models_dia <- function(data,
 #'
 #' @return A list containing the `model_object`, `sample_score`, and `evaluation_metrics`.
 #' @examples
-#' \dontrun{
-#' # Assume 'train_dia' is a data frame loaded from your package
-#' # data(train_dia)
-#' initialize_modeling_system_dia()
+#' \donttest{
+#' # This example assumes your package includes a dataset named 'train_dia'.
+#' # If not, create a toy data frame first.
+#' if (exists("train_dia")) {
+#'   initialize_modeling_system_dia()
 #'
-#' bagging_rf_results <- bagging_dia(
-#'   data = train_dia,
-#'   base_model_name = "rf",
-#'   n_estimators = 5,
-#'   threshold_strategy = "youden",
-#'   positive_label_value = 1,
-#'   negative_label_value = 0,
-#'   new_positive_label = "Case",
-#'   new_negative_label = "Control"
-#' )
-#' print_model_summary_dia("Bagging (RF)", bagging_rf_results)
+#'   bagging_rf_results <- bagging_dia(
+#'     data = train_dia,
+#'     base_model_name = "rf",
+#'     n_estimators = 5, # Reduced for a quick example
+#'     threshold_strategy = "youden",
+#'     positive_label_value = 1,
+#'     negative_label_value = 0,
+#'     new_positive_label = "Case",
+#'     new_negative_label = "Control"
+#'   )
+#'   print_model_summary_dia("Bagging (RF)", bagging_rf_results)
+#' }
 #' }
 #' @seealso \code{\link{initialize_modeling_system_dia}}, \code{\link{evaluate_model_dia}}
 #' @export
@@ -1256,19 +1384,34 @@ bagging_dia <- function(data,
 #'
 #' @return A list containing the `model_object`, `sample_score`, and `evaluation_metrics`.
 #' @examples
-#' \dontrun{
-#' # Assume 'train_dia' and 'base_model_results' from previous examples exist
-#' # data(train_dia)
-#' # base_model_results <- models_dia(data = train_dia, model = c("rf", "lasso", "gbm"))
+#' \donttest{
+#' # 1. Initialize the modeling system
+#' initialize_modeling_system_dia()
 #'
+#' # 2. Create a toy dataset for demonstration
+#' set.seed(42)
+#' data_toy <- data.frame(
+#'   ID = paste0("Sample", 1:60),
+#'   Status = sample(c(0, 1), 60, replace = TRUE),
+#'   Feat1 = rnorm(60),
+#'   Feat2 = runif(60)
+#' )
+#'
+#' # 3. Generate mock base model results (as if from models_dia)
+#' # In a real scenario, you would run models_dia() on your full dataset
+#' base_model_results <- models_dia(
+#'   data = data_toy,
+#'   model = c("rf", "lasso"),
+#'   seed = 123
+#' )
+#'
+#' # 4. Run the stacking ensemble
 #' stacking_results <- stacking_dia(
 #'   results_all_models = base_model_results,
-#'   data = train_dia,
+#'   data = data_toy,
 #'   meta_model_name = "gbm",
-#'   top = 3,
-#'   threshold_choices = "f1",
-#'   positive_label_value = 1,
-#'   negative_label_value = 0
+#'   top = 2,
+#'   threshold_choices = "f1"
 #' )
 #' print_model_summary_dia("Stacking (GBM)", stacking_results)
 #' }
@@ -1391,20 +1534,34 @@ stacking_dia <- function(results_all_models, data,
 #'
 #' @return A list containing the `model_object`, `sample_score`, and `evaluation_metrics`.
 #' @examples
-#' \dontrun{
-#' # Assume 'train_dia' and 'base_model_results' from previous examples exist
-#' # data(train_dia)
-#' # base_model_results <- models_dia(data = train_dia, model = c("rf", "lasso", "gbm"))
+#' \donttest{
+#' # 1. Initialize the modeling system
+#' initialize_modeling_system_dia()
 #'
+#' # 2. Create a toy dataset for demonstration
+#' set.seed(42)
+#' data_toy <- data.frame(
+#'   ID = paste0("Sample", 1:60),
+#'   Status = sample(c(0, 1), 60, replace = TRUE),
+#'   Feat1 = rnorm(60),
+#'   Feat2 = runif(60)
+#' )
+#'
+#' # 3. Generate mock base model results (as if from models_dia)
+#' base_model_results <- models_dia(
+#'   data = data_toy,
+#'   model = c("rf", "lasso"),
+#'   seed = 123
+#' )
+#'
+#' # 4. Run the soft voting ensemble
 #' soft_voting_results <- voting_dia(
 #'   results_all_models = base_model_results,
-#'   data = train_dia,
+#'   data = data_toy,
 #'   type = "soft",
 #'   weight_metric = "AUROC",
-#'   top = 3,
-#'   threshold_choices = "f1",
-#'   positive_label_value = 1,
-#'   negative_label_value = 0
+#'   top = 2,
+#'   threshold_choices = "f1"
 #' )
 #' print_model_summary_dia("Soft Voting", soft_voting_results)
 #' }
@@ -1458,7 +1615,7 @@ voting_dia <- function(results_all_models, data,
   base_model_thresholds <- list()
   for (model_name in selected_base_models_names) {
     selected_base_model_objects[[model_name]] <- results_all_models[[model_name]]$model_object
-    base_model_thresholds[[model_name]] <- results_all_models[[model_name]]$evaluation_metrics$Final_Threshold
+    base_model_thresholds[[model_name]] <- results_all_models[[model_name]]$evaluation_metrics$`_Threshold`
   }
 
   final_prob_predictions <- NULL
@@ -1534,18 +1691,28 @@ voting_dia <- function(results_all_models, data,
 #'
 #' @return A list containing the `model_object`, `sample_score`, and `evaluation_metrics`.
 #' @examples
-#' \dontrun{
-#' # Assume 'train_dia_imbalanced' is a data frame loaded from your package
-#' # data(train_dia_imbalanced)
+#' \donttest{
+#' # 1. Initialize the modeling system
 #' initialize_modeling_system_dia()
 #'
+#' # 2. Create an imbalanced toy dataset
+#' set.seed(42)
+#' n_obs <- 100
+#' n_minority <- 10
+#' data_imbalanced_toy <- data.frame(
+#'   ID = paste0("Sample", 1:n_obs),
+#'   Status = c(rep(1, n_minority), rep(0, n_obs - n_minority)),
+#'   Feat1 = rnorm(n_obs),
+#'   Feat2 = runif(n_obs)
+#' )
+#'
+#' # 3. Run the EasyEnsemble algorithm
+#' # n_estimators is reduced for a quick example
 #' easyensemble_results <- imbalance_dia(
-#'   data = train_dia_imbalanced,
+#'   data = data_imbalanced_toy,
 #'   base_model_name = "xb",
-#'   n_estimators = 5,
-#'   threshold_choices = "f1",
-#'   positive_label_value = 1,
-#'   negative_label_value = 0
+#'   n_estimators = 3,
+#'   threshold_choices = "f1"
 #' )
 #' print_model_summary_dia("EasyEnsemble (XGBoost)", easyensemble_results)
 #' }
@@ -1688,7 +1855,7 @@ imbalance_dia <- function(data,
 #' @return A data frame with `sample` (ID), `label` (original numeric label from
 #'   new data, or NA if not provided), and `score` (predicted probability for the positive class).
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' # 1. Assume 'train_dia' and 'test_dia' are loaded from your package
 #' # data(train_dia)
 #' # data(test_dia) # test_dia has same structure, maybe without the label column
@@ -1812,15 +1979,17 @@ apply_dia <- function(trained_model_object, new_data, label_col_name = NULL,
 #' @description Initializes the diagnostic modeling system by loading required
 #'   packages and registering default diagnostic models (Random Forest, XGBoost,
 #'   SVM, MLP, Lasso, Elastic Net, Ridge, LDA, QDA, Naive Bayes, Decision Tree, GBM).
-#'   This function should be called once before using `run_models_dia()` or ensemble methods.
+#'   This function should be called once before using `models_dia()` or ensemble methods.
 #'
 #' @return Invisible NULL. Initializes the internal model registry.
 #' @examples
+#' \donttest{
 #' # Initialize the system (typically run once at the start of a session or script)
 #' initialize_modeling_system_dia()
 #'
-#' # Check if models are now registered
-#' # get_registered_models_dia()
+#' # Check if a default model like Random Forest is now registered
+#' "rf" %in% names(get_registered_models_dia())
+#' }
 #' @export
 initialize_modeling_system_dia <- function() {
   if (.model_registry_env_dia$is_initialized) {
@@ -1860,7 +2029,7 @@ initialize_modeling_system_dia <- function() {
 #'
 #' @param model_name A character string, the name of the model (e.g., "rf", "Bagging (RF)").
 #' @param results_list A list containing model evaluation results, typically
-#'   an element from the output of `run_models_dia()` or the result of `bagging_dia()`,
+#'   an element from the output of `models_dia()` or the result of `bagging_dia()`,
 #'   `stacking_dia()`, `voting_dia()`, or `imbalance_dia()`. It must contain
 #'   `evaluation_metrics` and `model_object` (if applicable).
 #' @param on_new_data Logical, indicating whether the results are from applying
@@ -1869,16 +2038,21 @@ initialize_modeling_system_dia <- function() {
 #'
 #' @return NULL. Prints the summary to the console.
 #' @examples
-#' \dontrun{
-#' # Assuming `results` from run_models_dia example
-#' # for (model_name in names(results)) {
-#' #   print_model_summary_dia(model_name, results[[model_name]], on_new_data = FALSE)
-#' # }
+#' # Example for a successfully evaluated model
+#' successful_results <- list(
+#'   evaluation_metrics = list(
+#'     Threshold_Strategy = "f1",
+#'     `_Threshold` = 0.45,
+#'     AUROC = 0.85, AUROC_95CI_Lower = 0.75, AUROC_95CI_Upper = 0.95,
+#'     AUPRC = 0.80, Accuracy = 0.82, F1 = 0.78,
+#'     Precision = 0.79, Recall = 0.77, Specificity = 0.85
+#'   )
+#' )
+#' print_model_summary_dia("MyAwesomeModel", successful_results)
 #'
 #' # Example for a failed model
-#' # failed_results <- list(evaluation_metrics = list(error = "Training failed due to invalid input"))
-#' # print_model_summary_dia("MyFailedModel", failed_results)
-#' }
+#' failed_results <- list(evaluation_metrics = list(error = "Training failed"))
+#' print_model_summary_dia("MyFailedModel", failed_results)
 #' @export
 print_model_summary_dia <- function(model_name, results_list, on_new_data = FALSE) {
   metrics <- results_list$evaluation_metrics
@@ -1908,7 +2082,7 @@ print_model_summary_dia <- function(model_name, results_list, on_new_data = FALS
       }
     }
 
-    message(sprintf("Threshold Strategy: %s (%.4f)", metrics$Threshold_Strategy, metrics$Final_Threshold))
+    message(sprintf("Threshold Strategy: %s (%.4f)", metrics$Threshold_Strategy, metrics$`_Threshold`))
     message(sprintf("AUROC: %.4f (95%% CI: %.4f - %.4f)",
                     metrics$AUROC, metrics$AUROC_95CI_Lower, metrics$AUROC_95CI_Upper))
     message(sprintf("AUPRC: %.4f", metrics$AUPRC))

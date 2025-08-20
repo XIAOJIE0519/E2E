@@ -38,7 +38,7 @@ Applies a previously trained model (or ensemble) to a new, unseen
 dataset to generate predicted probabilities.
 }
 \examples{
-\dontrun{
+\donttest{
 # 1. Assume 'train_dia' and 'test_dia' are loaded from your package
 # data(train_dia)
 # data(test_dia) # test_dia has same structure, maybe without the label column

@@ -1,6 +1,7 @@
 url: https://XIAOJIE0519.github.io/E2E
 template:
   bootstrap: 5
+  bootswatch: cosmo
 
 navbar:
   left:
@@ -19,8 +20,7 @@ navbar:
           href: articles/prognostic-workflow.html
         - text: "4. Advanced Features & Customization"
           href: articles/advanced-features.html
-    - text: "Changelog"
-      href: news/index.html
+
 
 reference:
 - title: "Core Modeling Functions"
@@ -63,3 +63,4 @@ reference:
     - "load_and_prepare_data_dia"
     - "load_and_prepare_data_pro"
     - "min_max_normalize"
+    - "Surv"

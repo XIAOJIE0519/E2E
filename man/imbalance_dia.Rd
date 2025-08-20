@@ -54,18 +54,28 @@ models on balanced subsets of the data (by undersampling the majority class)
 and aggregates their predictions.
 }
 \examples{
-\dontrun{
-# Assume 'train_dia_imbalanced' is a data frame loaded from your package
-# data(train_dia_imbalanced)
+\donttest{
+# 1. Initialize the modeling system
 initialize_modeling_system_dia()
 
+# 2. Create an imbalanced toy dataset
+set.seed(42)
+n_obs <- 100
+n_minority <- 10
+data_imbalanced_toy <- data.frame(
+  ID = paste0("Sample", 1:n_obs),
+  Status = c(rep(1, n_minority), rep(0, n_obs - n_minority)),
+  Feat1 = rnorm(n_obs),
+  Feat2 = runif(n_obs)
+)
+
+# 3. Run the EasyEnsemble algorithm
+# n_estimators is reduced for a quick example
 easyensemble_results <- imbalance_dia(
-  data = train_dia_imbalanced,
+  data = data_imbalanced_toy,
   base_model_name = "xb",
-  n_estimators = 5,
-  threshold_choices = "f1",
-  positive_label_value = 1,
-  negative_label_value = 0
+  n_estimators = 3,
+  threshold_choices = "f1"
 )
 print_model_summary_dia("EasyEnsemble (XGBoost)", easyensemble_results)
 }

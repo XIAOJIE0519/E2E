@@ -27,15 +27,7 @@ knitr::opts_chunk$set(
 
 ## Installation
 
-The development version of E2E can be installed directly from GitHub using `devtools` or `remotes`.
-
-```{r, eval=FALSE}
-# If you don't have devtools, install it first:
-# install.packages("devtools")
-devtools::install_github("XIAOJIE0519/E2E")
-```
-
-or
+The development version of E2E can be installed directly from GitHub using `remotes`.
 
 ```{r, eval=FALSE}
 # If you don't have remotes, install it first:

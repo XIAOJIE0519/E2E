@@ -41,8 +41,7 @@ survival analysis models. Handles basic data cleaning like NA removal
 and column type conversion.
 }
 \examples{
-\dontrun{
-# Create a dummy CSV file for demonstration
+temp_csv_path <- tempfile(fileext = ".csv")
 dummy_data <- data.frame(
   ID = paste0("Patient", 1:50),
   FeatureA = rnorm(50),
@@ -51,11 +50,11 @@ dummy_data <- data.frame(
   Outcome_Status = sample(c(0, 1), 50, replace = TRUE),
   Followup_Time_Months = runif(50, 10, 60)
 )
-write.csv(dummy_data, "dummy_prognosis_data.csv", row.names = FALSE)
+write.csv(dummy_data, temp_csv_path, row.names = FALSE)
 
 # Load and prepare data
 prepared_data <- load_and_prepare_data_pro(
-  data_path = "dummy_prognosis_data.csv",
+  data_path = temp_csv_path,
   outcome_col_name = "Outcome_Status",
   time_col_name = "Followup_Time_Months",
   time_unit = "month"
@@ -63,9 +62,8 @@ prepared_data <- load_and_prepare_data_pro(
 
 # Check prepared data structure
 str(prepared_data$X)
-print(prepared_data$Y_surv)
+print(prepared_data$Y_surv[1:5])
 
 # Clean up dummy file
-unlink("dummy_prognosis_data.csv")
-}
+unlink(temp_csv_path)
 }

@@ -58,19 +58,34 @@ Implements a Stacking ensemble. It trains multiple base models,
 then uses their predictions as features to train a meta-model.
 }
 \examples{
-\dontrun{
-# Assume 'train_dia' and 'base_model_results' from previous examples exist
-# data(train_dia)
-# base_model_results <- models_dia(data = train_dia, model = c("rf", "lasso", "gbm"))
+\donttest{
+# 1. Initialize the modeling system
+initialize_modeling_system_dia()
 
+# 2. Create a toy dataset for demonstration
+set.seed(42)
+data_toy <- data.frame(
+  ID = paste0("Sample", 1:60),
+  Status = sample(c(0, 1), 60, replace = TRUE),
+  Feat1 = rnorm(60),
+  Feat2 = runif(60)
+)
+
+# 3. Generate mock base model results (as if from models_dia)
+# In a real scenario, you would run models_dia() on your full dataset
+base_model_results <- models_dia(
+  data = data_toy,
+  model = c("rf", "lasso"),
+  seed = 123
+)
+
+# 4. Run the stacking ensemble
 stacking_results <- stacking_dia(
   results_all_models = base_model_results,
-  data = train_dia,
+  data = data_toy,
   meta_model_name = "gbm",
-  top = 3,
-  threshold_choices = "f1",
-  positive_label_value = 1,
-  negative_label_value = 0
+  top = 2,
+  threshold_choices = "f1"
 )
 print_model_summary_dia("Stacking (GBM)", stacking_results)
 }

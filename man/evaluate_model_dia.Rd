@@ -54,9 +54,9 @@ and \code{score} (predicted probability for positive class).
 \item \code{evaluation_metrics}: A list of performance metrics:
 \itemize{
 \item \code{Threshold_Strategy}: The strategy used for threshold selection.
-\item \code{Final_Threshold}: The chosen probability threshold.
+\item \verb{_Threshold}: The chosen probability threshold.
 \item \code{Accuracy}, \code{Precision}, \code{Recall}, \code{F1}, \code{Specificity}: Metrics
-calculated at \code{Final_Threshold}.
+calculated at \verb{_Threshold}.
 \item \code{AUROC}: Area Under the Receiver Operating Characteristic curve.
 \item \code{AUROC_95CI_Lower}, \code{AUROC_95CI_Upper}: 95\% confidence interval for AUROC.
 \item \code{AUPRC}: Area Under the Precision-Recall curve.
@@ -69,20 +69,30 @@ various metrics relevant to binary classification, including AUROC, AUPRC,
 and metrics at an optimal or specified probability threshold.
 }
 \examples{
-\dontrun{
-# Assuming `prepared_data` from load_and_prepare_data_dia example
-# And a trained model, e.g., rf_model <- rf_dia(prepared_data$X, prepared_data$y)
-#
-# Evaluate the model using F1-score optimal threshold
-# eval_results <- evaluate_model_dia(
-#   model_obj = rf_model,
-#   X_data = prepared_data$X,
-#   y_data = prepared_data$y,
-#   sample_ids = prepared_data$sample_ids,
-#   threshold_strategy = "f1",
-#   pos_class = "Case",
-#   neg_class = "Control"
-# )
-# str(eval_results)
+\donttest{
+set.seed(42)
+n_obs <- 50
+X_toy <- data.frame(
+  FeatureA = rnorm(n_obs),
+  FeatureB = runif(n_obs, 0, 100)
+)
+y_toy <- factor(sample(c("Control", "Case"), n_obs, replace = TRUE),
+                levels = c("Control", "Case"))
+ids_toy <- paste0("Sample", 1:n_obs)
+
+# 2. Train a model
+rf_model <- rf_dia(X_toy, y_toy)
+
+# 3. Evaluate the model using F1-score optimal threshold
+eval_results <- evaluate_model_dia(
+  model_obj = rf_model,
+  X_data = X_toy,
+  y_data = y_toy,
+  sample_ids = ids_toy,
+  threshold_strategy = "f1",
+  pos_class = "Case",
+  neg_class = "Control"
+)
+str(eval_results)
 }
 }
