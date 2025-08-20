@@ -1,18 +1,16 @@
+name: R-CMD-check
+
 on:
   push:
     branches: [main, master]
   pull_request:
-
-name: R-CMD-check.yaml
 
 permissions: read-all
 
 jobs:
   R-CMD-check:
     runs-on: ${{ matrix.config.os }}
-
     name: ${{ matrix.config.os }} (${{ matrix.config.r }})
-
     strategy:
       fail-fast: false
       matrix:
@@ -29,36 +27,54 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
       - uses: r-lib/actions/setup-pandoc@v2
-
       - uses: r-lib/actions/setup-r@v2
         with:
           r-version: ${{ matrix.config.r }}
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
 
-      - name: Install system dependencies
+      - name: Install system dependencies (Linux)
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libcairo2-dev libcurl4-openssl-dev libssl-dev libxml2-dev
+          sudo apt-get install -y \
+            libcairo2-dev \
+            libcurl4-openssl-dev \
+            libssl-dev \
+            libxml2-dev \
+            liblapack-dev \
+            libopenblas-dev
 
       - name: Install system dependencies (macOS)
         if: runner.os == 'macOS'
-        run: brew install cairo pkg-config xquartz
+        run: |
+          brew install cairo pkg-config xquartz
 
       - name: Install system dependencies (Windows)
         if: runner.os == 'Windows'
-        run: pacman -Syu --noconfirm mingw-w64-x86_64-cairo mingw-w64-x86_64-libxml2
+        run: |
+          pacman -Syu --noconfirm \
+            mingw-w64-x86_64-cairo \
+            mingw-w64-x86_64-libxml2 \
+            mingw-w64-x86_64-openblas
+
+      - name: Install tricky R dependencies explicitly
+        run: |
+          R -e "install.packages('kernlab', type = 'source')"
+        shell: bash
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::rcmdcheck
+          dependencies: |
+          Depends
+          Imports
+          LinkingTo
+          Suggests
           needs: check
 
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true
           build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'
-

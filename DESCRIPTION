@@ -42,6 +42,7 @@ Suggests:
     ada,
     doParallel,
     e1071,
+    kernlab,
     klaR,
     knitr,
     nnet,
