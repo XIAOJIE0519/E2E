@@ -16,11 +16,11 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top bg-primary" data-bs-theme="dark" aria-label="Site navigation"><div class="container">
 
     <a class="navbar-brand me-2" href="../index.html">E2E</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,7 +40,6 @@
     <li><a class="dropdown-item" href="../articles/advanced-features.html">4. Advanced Features &amp; Customization</a></li>
   </ul>
 </li>
-<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -92,18 +91,13 @@ revisions. If you have any questions, please contact <a href="mailto:Luan2005051
 <h3 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h3>
 <p>The development version of E2E can be installed directly from GitHub
-using <code>devtools</code> or <code>remotes</code>.</p>
+using <code>remotes</code>.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># If you don't have devtools, install it first:</span></span>
-<span><span class="co"># install.packages("devtools")</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"XIAOJIE0519/E2E"</span><span class="op">)</span></span></code></pre></div>
-<p>or</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># If you don't have remotes, install it first:</span></span>
 <span><span class="co"># install.packages("remotes")</span></span>
 <span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"XIAOJIE0519/E2E"</span><span class="op">)</span></span></code></pre></div>
 <p>After installation, load the package into your R session:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://XIAOJIE0519.github.io/E2E">E2E</a></span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -123,7 +117,7 @@ data frames included in the package for you to try:
 <code>test_pro</code>.</p>
 <p><code>train_dia</code> and <code>test_dia</code> are for diagnosis,
 with column names sample, outcome, variable 1, 2, 3.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">train_dia</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                         sample outcome AC009242.1 AC004637.1 AC246817.1</span></span>
 <span><span class="co">#&gt; 1 TCGA-BH-A201-01A-11R-A14M-07       1     0.3988     1.3971     0.6180</span></span>
@@ -155,7 +149,7 @@ with column names sample, outcome, variable 1, 2, 3.</p>
 <span><span class="co">#&gt; 6    0.1493     9.6523    0.1571</span></span></code></pre></div>
 <p><code>train_pro</code> and <code>test_pro</code> are for prognosis,
 with column names sample, outcome, time, variable 1, 2, 3.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">train_pro</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                         sample outcome time LINC01497 LINC01028 AC084212.1</span></span>
 <span><span class="co">#&gt; 1 TCGA-AC-A7VC-01A-11R-A352-07       0    1    0.0000         0     0.0000</span></span>

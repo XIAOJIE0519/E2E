@@ -16,11 +16,11 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top bg-primary" data-bs-theme="dark" aria-label="Site navigation"><div class="container">
 
     <a class="navbar-brand me-2" href="../index.html">E2E</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,7 +40,6 @@
     <li><a class="dropdown-item" href="../articles/advanced-features.html">4. Advanced Features &amp; Customization</a></li>
   </ul>
 </li>
-<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -98,10 +97,10 @@ survival models. For this demonstration, we’ll run a subset.</p>
 <span><span class="fu"><a href="../reference/print_model_summary_pro.html">print_model_summary_pro</a></span><span class="op">(</span><span class="st">"rsf_pro"</span>, <span class="va">results_all_pro</span><span class="op">$</span><span class="va">rsf_pro</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; --- rsf_pro Prognosis Model (on Training Data) Metrics ---</span></span>
-<span><span class="co">#&gt; C-index: 0.1028</span></span>
-<span><span class="co">#&gt; Time-dependent AUROC (years 1, 3, 5): 0.3511, 0.2744, 0.3083</span></span>
-<span><span class="co">#&gt; Average Time-dependent AUROC: 0.3113</span></span>
-<span><span class="co">#&gt; KM Group HR (High vs Low): 0.0749 (p-value: 3.894e-15, Cutoff: 1120.1938)</span></span>
+<span><span class="co">#&gt; C-index: 0.8702</span></span>
+<span><span class="co">#&gt; Time-dependent AUROC (years 1, 3, 5): 0.8041, 0.8170, 0.7559</span></span>
+<span><span class="co">#&gt; Average Time-dependent AUROC: 0.7923</span></span>
+<span><span class="co">#&gt; KM Group HR (High vs Low): 15.1349 (p-value: 1.509e-16, Cutoff: -1132.7747)</span></span>
 <span><span class="co">#&gt; --------------------------------------------------</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -141,11 +140,11 @@ survival models. For this demonstration, we’ll run a subset.</p>
 <span><span class="fu"><a href="../reference/print_model_summary_pro.html">print_model_summary_pro</a></span><span class="op">(</span><span class="st">"Stacking (LASSO)"</span>, <span class="va">stacking_lasso_pro_results</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; --- Stacking (LASSO) Prognosis Model (on Training Data) Metrics ---</span></span>
-<span><span class="co">#&gt; Ensemble Type: Stacking (Meta: lasso_pro, Base models used: lasso_pro, rsf_pro)</span></span>
-<span><span class="co">#&gt; C-index: 0.9016</span></span>
-<span><span class="co">#&gt; Time-dependent AUROC (years 1, 3, 5): 0.8114, 0.8389, 0.8498</span></span>
-<span><span class="co">#&gt; Average Time-dependent AUROC: 0.8334</span></span>
-<span><span class="co">#&gt; KM Group HR (High vs Low): 16.5634 (p-value: 3.489e-17, Cutoff: -1.6645)</span></span>
+<span><span class="co">#&gt; Ensemble Type: Stacking (Meta: lasso_pro, Base models used: rsf_pro, lasso_pro)</span></span>
+<span><span class="co">#&gt; C-index: 0.8814</span></span>
+<span><span class="co">#&gt; Time-dependent AUROC (years 1, 3, 5): 0.7389, 0.8173, 0.8510</span></span>
+<span><span class="co">#&gt; Average Time-dependent AUROC: 0.8024</span></span>
+<span><span class="co">#&gt; KM Group HR (High vs Low): 19.5197 (p-value: 3.159e-18, Cutoff: 18.0175)</span></span>
 <span><span class="co">#&gt; --------------------------------------------------</span></span></code></pre></div>
 </div>
 </div>
@@ -161,57 +160,49 @@ survival models. For this demonstration, we’ll run a subset.</p>
 <span>  time_unit <span class="op">=</span> <span class="st">"day"</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Applying model on new data...</span></span>
-<span><span class="co">#&gt; Warning in evaluate_model_pro(trained_model_obj = trained_model_object, :</span></span>
-<span><span class="co">#&gt; Trained model object does not contain 'X_train_cols'. Prediction might fail if</span></span>
-<span><span class="co">#&gt; feature order/set is different.</span></span>
 <span></span>
 <span><span class="co"># Evaluate the new prognostic scores</span></span>
-<span><span class="va">eval_pro_new</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/evaluate_model_pro.html">evaluate_model_pro</a></span><span class="op">(</span></span>
-<span>  precomputed_score <span class="op">=</span> <span class="va">pro_pred_new</span><span class="op">$</span><span class="va">score</span>,</span>
-<span>  Y_surv_obj <span class="op">=</span> <span class="fu">survival</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span>time <span class="op">=</span> <span class="va">test_pro</span><span class="op">$</span><span class="va">time</span>, event <span class="op">=</span> <span class="va">test_pro</span><span class="op">$</span><span class="va">outcome</span><span class="op">)</span>,</span>
-<span>  sample_ids <span class="op">=</span> <span class="va">test_pro</span><span class="op">$</span><span class="va">sample</span>,</span>
-<span>  years_to_evaluate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">3</span>, <span class="fl">5</span><span class="op">)</span></span>
+<span><span class="va">eval_pro_new</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/evaluate_predictions_pro.html">evaluate_predictions_pro</a></span><span class="op">(</span></span>
+<span>  prediction_df <span class="op">=</span> <span class="va">pro_pred_new</span>,</span>
+<span>  years_to_evaluate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">3</span>, <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">eval_pro_new</span><span class="op">$</span><span class="va">evaluation_metrics</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">eval_pro_new</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $C_index</span></span>
-<span><span class="co">#&gt; [1] 0.582789</span></span>
+<span><span class="co">#&gt; [1] 0.5778903</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $AUROC_Years</span></span>
 <span><span class="co">#&gt; $AUROC_Years$`1`</span></span>
-<span><span class="co">#&gt; [1] 0.4902709</span></span>
+<span><span class="co">#&gt; [1] 0.4968283</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $AUROC_Years$`3`</span></span>
-<span><span class="co">#&gt; [1] 0.5520019</span></span>
+<span><span class="co">#&gt; [1] 0.5527718</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $AUROC_Years$`5`</span></span>
-<span><span class="co">#&gt; [1] 0.5543455</span></span>
+<span><span class="co">#&gt; [1] 0.566955</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $AUROC_Average</span></span>
-<span><span class="co">#&gt; [1] 0.5322061</span></span>
+<span><span class="co">#&gt; [1] 0.5388517</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $KM_HR</span></span>
-<span><span class="co">#&gt; [1] 1.819616</span></span>
+<span><span class="co">#&gt; [1] 1.862771</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $KM_P_value</span></span>
-<span><span class="co">#&gt; [1] 0.05237347</span></span>
+<span><span class="co">#&gt; [1] 0.04657938</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $KM_Cutoff</span></span>
-<span><span class="co">#&gt; [1] -2.396008</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 17.41586</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="visualization-figure_pro">5. Visualization (<code>figure_pro</code>)<a class="anchor" aria-label="anchor" href="#visualization-figure_pro"></a>
 </h3>
 <p>Generate Kaplan-Meier (KM) and time-dependent ROC (tdROC) curves.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Kaplan-Meier Curve (don't save to file in vignette)</span></span>
-<span><span class="fu"><a href="../reference/figure_pro.html">figure_pro</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">"km"</span>, data <span class="op">=</span> <span class="va">stacking_lasso_pro_results</span>, time_unit<span class="op">=</span> <span class="st">"days"</span>, output_file <span class="op">=</span> <span class="st">"Prognostic_KM"</span>,</span>
-<span>           output_type <span class="op">=</span> <span class="st">"pdf"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; 'km' plot saved successfully to: Prognostic_KM.pdf</span></span>
+<code class="sourceCode R"><span><span class="co"># Kaplan-Meier Curve</span></span>
+<span><span class="fu"><a href="../reference/figure_pro.html">figure_pro</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">"km"</span>, data <span class="op">=</span> <span class="va">stacking_lasso_pro_results</span>, time_unit<span class="op">=</span> <span class="st">"days"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Time-Dependent ROC Curve</span></span>
-<span><span class="fu"><a href="../reference/figure_pro.html">figure_pro</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">"tdroc"</span>, data <span class="op">=</span> <span class="va">stacking_lasso_pro_results</span>, time_unit <span class="op">=</span> <span class="st">"days"</span>, output_file <span class="op">=</span> <span class="st">"Prognostic_TDROC"</span>, output_type <span class="op">=</span> <span class="st">"pdf"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; 'tdroc' plot saved successfully to: Prognostic_TDROC.pdf</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/figure_pro.html">figure_pro</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">"tdroc"</span>, data <span class="op">=</span> <span class="va">stacking_lasso_pro_results</span>, time_unit <span class="op">=</span> <span class="st">"days"</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

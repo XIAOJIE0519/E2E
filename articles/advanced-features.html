@@ -16,11 +16,11 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top bg-primary" data-bs-theme="dark" aria-label="Site navigation"><div class="container">
 
     <a class="navbar-brand me-2" href="../index.html">E2E</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,7 +40,6 @@
     <li><a class="dropdown-item" href="../articles/advanced-features.html">4. Advanced Features &amp; Customization</a></li>
   </ul>
 </li>
-<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -112,7 +111,7 @@ custom models. For example, to add Adaboost for diagnosis:</p>
 <span><span class="fu"><a href="../reference/print_model_summary_dia.html">print_model_summary_dia</a></span><span class="op">(</span><span class="st">"ab"</span>, <span class="va">results_ab</span><span class="op">$</span><span class="va">ab</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; --- ab Model (on Training Data) Metrics ---</span></span>
-<span><span class="co">#&gt; Threshold Strategy: default (0.5000)</span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; AUROC: 0.9994 (95% CI: 0.9987 - 1.0000)</span></span>
 <span><span class="co">#&gt; AUPRC: 0.9999</span></span>
 <span><span class="co">#&gt; Accuracy: 0.9919</span></span>
@@ -136,18 +135,13 @@ the most impact on the model’s output.</p>
 <span><span class="va">bagging_xb_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bagging_dia.html">bagging_dia</a></span><span class="op">(</span><span class="va">train_dia</span>, base_model_name <span class="op">=</span> <span class="st">"xb"</span>, n_estimators <span class="op">=</span> <span class="fl">10</span>, seed<span class="op">=</span><span class="fl">123</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Running Bagging model: Bagging_dia (base: xb)</span></span>
 <span></span>
-<span><span class="co"># Now, generate the SHAP explanation plot (don't save to file in vignette)</span></span>
+<span><span class="co"># Now, generate the SHAP explanation plot</span></span>
 <span><span class="fu"><a href="../reference/figure_shap.html">figure_shap</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="va">bagging_xb_results</span>,</span>
 <span>  raw_data <span class="op">=</span> <span class="va">train_dia</span>,</span>
-<span>  target_type <span class="op">=</span> <span class="st">"diagnosis"</span>,</span>
-<span>  output_file <span class="op">=</span> <span class="st">"Dia_SHAP_Example"</span></span>
+<span>  target_type <span class="op">=</span> <span class="st">"diagnosis"</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; Preparing data for SHAP analysis...</span></span>
-<span><span class="co">#&gt; Identified 20 features for SHAP analysis: AC009242.1, AC004637.1, AC246817.1, AL139241.1, PRDM16.DT</span></span>
-<span><span class="co">#&gt; Training 'xgboost' surrogate model and calculating SHAP values...</span></span>
-<span><span class="co">#&gt; Generating SHAP plots...</span></span>
-<span><span class="co">#&gt; SHAP plot successfully saved to: Dia_SHAP_Example.pdf</span></span></code></pre></div>
+<span><span class="co">#&gt; Training 'xgboost' surrogate model and calculating SHAP values...</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="explaining-a-prognostic-model">Explaining a Prognostic Model<a class="anchor" aria-label="anchor" href="#explaining-a-prognostic-model"></a>
@@ -159,23 +153,17 @@ the most impact on the model’s output.</p>
 <span>  data <span class="op">=</span> <span class="va">train_pro</span>,</span>
 <span>  meta_model_name <span class="op">=</span> <span class="st">"stepcox_pro"</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; Running Stacking model: Stacking_pro (meta: stepcox_pro)</span></span>
 <span><span class="co">#&gt; Running model: lasso_pro</span></span>
 <span><span class="co">#&gt; Running model: rsf_pro</span></span>
+<span><span class="co">#&gt; Running Stacking model: Stacking_pro (meta: stepcox_pro)</span></span>
 <span></span>
-<span><span class="co"># Generate the SHAP explanation plot (don't save to file in vignette)</span></span>
+<span><span class="co"># Generate the SHAP explanation plot</span></span>
 <span><span class="fu"><a href="../reference/figure_shap.html">figure_shap</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="va">stacking_stepcox_pro_results</span>,</span>
 <span>  raw_data <span class="op">=</span> <span class="va">train_pro</span>,</span>
-<span>  target_type <span class="op">=</span> <span class="st">"prognosis"</span>,</span>
-<span>  output_file <span class="op">=</span> <span class="st">"Pro_SHAP_Example"</span></span>
+<span>  target_type <span class="op">=</span> <span class="st">"prognosis"</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; Preparing data for SHAP analysis...</span></span>
-<span><span class="co">#&gt; Renaming score data frame ID column from 'ID' to 'sample' for merging.</span></span>
-<span><span class="co">#&gt; Identified 28 features for SHAP analysis: LINC01497, LINC01028, AC084212.1, AC104211.1, AL603840.1</span></span>
-<span><span class="co">#&gt; Training 'xgboost' surrogate model and calculating SHAP values...</span></span>
-<span><span class="co">#&gt; Generating SHAP plots...</span></span>
-<span><span class="co">#&gt; SHAP plot successfully saved to: Pro_SHAP_Example.pdf</span></span></code></pre></div>
+<span><span class="co">#&gt; Training 'xgboost' surrogate model and calculating SHAP values...</span></span></code></pre></div>
 </div>
 </div>
 </div>

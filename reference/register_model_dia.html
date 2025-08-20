@@ -7,11 +7,11 @@ later by its registered name, facilitating a modular model management system."><
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top bg-primary" data-bs-theme="dark" aria-label="Site navigation"><div class="container">
 
     <a class="navbar-brand me-2" href="../index.html">E2E</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -28,7 +28,6 @@ later by its registered name, facilitating a modular model management system."><
     <li><a class="dropdown-item" href="../articles/prognostic-workflow.html">3. Prognostic Workflow</a></li>
     <li><a class="dropdown-item" href="../articles/advanced-features.html">4. Advanced Features &amp; Customization</a></li>
   </ul></li>
-<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/XIAOJIE0519/E2E/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -81,29 +80,26 @@ as its first two arguments and return a <code><a href="https://rdrr.io/pkg/caret
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Example of a dummy model function for registration</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+<span class="r-in"><span><span class="co"># Example of a dummy model function for registration</span></span></span>
 <span class="r-in"><span><span class="va">my_dummy_rf_model</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">X</span>, <span class="va">y</span>, <span class="va">tune</span> <span class="op">=</span> <span class="cn">FALSE</span>, <span class="va">cv_folds</span> <span class="op">=</span> <span class="fl">5</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"Training dummy RF model..."</span><span class="op">)</span></span></span>
-<span class="r-in"><span>  <span class="co"># In a real scenario, this would train a random forest model</span></span></span>
-<span class="r-in"><span>  <span class="co"># For example purposes, it just returns a dummy object</span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>finalModel <span class="op">=</span> <span class="st">"dummy_rf_fit"</span>, method <span class="op">=</span> <span class="st">"rf"</span>, tuneValue <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mtry<span class="op">=</span><span class="fl">1</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>       trainingData <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">X</span>, .outcome <span class="op">=</span> <span class="va">y</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"train"</span>,</span></span>
-<span class="r-in"><span>       predict <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">newdata</span>, <span class="va">type</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span>           <span class="kw">if</span> <span class="op">(</span><span class="va">type</span> <span class="op">==</span> <span class="st">"prob"</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span>               <span class="va">probs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">newdata</span><span class="op">)</span><span class="op">*</span><span class="fl">2</span><span class="op">)</span>, ncol<span class="op">=</span><span class="fl">2</span>, byrow<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-in"><span>               <span class="va">probs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">probs</span>, <span class="fl">1</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span>               <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">probs</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/levels.html" class="external-link">levels</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span></span></span>
-<span class="r-in"><span>               <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">probs</span><span class="op">)</span></span></span>
-<span class="r-in"><span>           <span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span></span>
-<span class="r-in"><span>               <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/levels.html" class="external-link">levels</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">newdata</span><span class="op">)</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/levels.html" class="external-link">levels</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span>           <span class="op">}</span></span></span>
-<span class="r-in"><span>       <span class="op">}</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="co"># This is a placeholder and doesn't train a real model.</span></span></span>
+<span class="r-in"><span>  <span class="co"># It returns a list with a structure similar to a caret train object.</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>method <span class="op">=</span> <span class="st">"dummy_rf"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Register the dummy model (ensure initialize_modeling_system_dia() has run first)</span></span></span>
-<span class="r-in"><span><span class="co"># initialize_modeling_system_dia() # Uncomment if running in a fresh session</span></span></span>
-<span class="r-in"><span><span class="co"># register_model_dia("dummy_rf", my_dummy_rf_model)</span></span></span>
-<span class="r-in"><span><span class="co"># get_registered_models_dia() # Check if registered</span></span></span>
+<span class="r-in"><span><span class="co"># Initialize the system before registering</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="initialize_modeling_system_dia.html">initialize_modeling_system_dia</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Diagnostic modeling system already initialized.</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Register the new model</span></span></span>
+<span class="r-in"><span><span class="fu">register_model_dia</span><span class="op">(</span><span class="st">"dummy_rf"</span>, <span class="va">my_dummy_rf_model</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Verify that the model is now in the list of registered models</span></span></span>
+<span class="r-in"><span><span class="st">"dummy_rf"</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="fu"><a href="get_registered_models_dia.html">get_registered_models_dia</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

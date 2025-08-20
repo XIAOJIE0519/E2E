@@ -9,11 +9,11 @@ and column type conversion."></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top bg-primary" data-bs-theme="dark" aria-label="Site navigation"><div class="container">
 
     <a class="navbar-brand me-2" href="../index.html">E2E</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -30,7 +30,6 @@ and column type conversion."></head><body>
     <li><a class="dropdown-item" href="../articles/prognostic-workflow.html">3. Prognostic Workflow</a></li>
     <li><a class="dropdown-item" href="../articles/advanced-features.html">4. Advanced Features &amp; Customization</a></li>
   </ul></li>
-<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/XIAOJIE0519/E2E/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -99,8 +98,7 @@ Can be "day", "month", or "year". Times will be converted to days internally.</p
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
-<span class="r-in"><span><span class="co"># Create a dummy CSV file for demonstration</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">temp_csv_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span>fileext <span class="op">=</span> <span class="st">".csv"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">dummy_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  ID <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"Patient"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">50</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  FeatureA <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">50</span><span class="op">)</span>,</span></span>
@@ -109,11 +107,11 @@ Can be "day", "month", or "year". Times will be converted to days internally.</p
 <span class="r-in"><span>  Outcome_Status <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>, <span class="fl">50</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  Followup_Time_Months <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">50</span>, <span class="fl">10</span>, <span class="fl">60</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/write.table.html" class="external-link">write.csv</a></span><span class="op">(</span><span class="va">dummy_data</span>, <span class="st">"dummy_prognosis_data.csv"</span>, row.names <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/write.table.html" class="external-link">write.csv</a></span><span class="op">(</span><span class="va">dummy_data</span>, <span class="va">temp_csv_path</span>, row.names <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Load and prepare data</span></span></span>
 <span class="r-in"><span><span class="va">prepared_data</span> <span class="op">&lt;-</span> <span class="fu">load_and_prepare_data_pro</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  data_path <span class="op">=</span> <span class="st">"dummy_prognosis_data.csv"</span>,</span></span>
+<span class="r-in"><span>  data_path <span class="op">=</span> <span class="va">temp_csv_path</span>,</span></span>
 <span class="r-in"><span>  outcome_col_name <span class="op">=</span> <span class="st">"Outcome_Status"</span>,</span></span>
 <span class="r-in"><span>  time_col_name <span class="op">=</span> <span class="st">"Followup_Time_Months"</span>,</span></span>
 <span class="r-in"><span>  time_unit <span class="op">=</span> <span class="st">"month"</span></span></span>
@@ -121,11 +119,15 @@ Can be "day", "month", or "year". Times will be converted to days internally.</p
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Check prepared data structure</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">prepared_data</span><span class="op">$</span><span class="va">X</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">prepared_data</span><span class="op">$</span><span class="va">Y_surv</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 'data.frame':	50 obs. of  3 variables:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ FeatureA          : num  1.802 -0.946 -0.456 0.126 -2.691 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ FeatureB          : num  43.7 51.7 46.5 33.4 12.3 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ CategoricalFeature: Factor w/ 3 levels "A","B","C": 2 3 3 1 1 1 1 2 1 3 ...</span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">prepared_data</span><span class="op">$</span><span class="va">Y_surv</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1808.3198+ 1124.3409+  710.2230  1600.5451   352.0851+</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Clean up dummy file</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/unlink.html" class="external-link">unlink</a></span><span class="op">(</span><span class="st">"dummy_prognosis_data.csv"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/unlink.html" class="external-link">unlink</a></span><span class="op">(</span><span class="va">temp_csv_path</span><span class="op">)</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

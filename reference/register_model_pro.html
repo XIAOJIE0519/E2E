@@ -7,11 +7,11 @@ later by its registered name, facilitating a modular model management system."><
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top bg-primary" data-bs-theme="dark" aria-label="Site navigation"><div class="container">
 
     <a class="navbar-brand me-2" href="../index.html">E2E</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -28,7 +28,6 @@ later by its registered name, facilitating a modular model management system."><
     <li><a class="dropdown-item" href="../articles/prognostic-workflow.html">3. Prognostic Workflow</a></li>
     <li><a class="dropdown-item" href="../articles/advanced-features.html">4. Advanced Features &amp; Customization</a></li>
   </ul></li>
-<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/XIAOJIE0519/E2E/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -83,18 +82,18 @@ as its first two arguments.</p></dd>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Example of a dummy model function for registration</span></span></span>
 <span class="r-in"><span><span class="va">my_dummy_cox_model</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">X</span>, <span class="va">y_surv</span>, <span class="va">tune</span> <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span>  <span class="co"># In a real scenario, this would train a survival model</span></span></span>
-<span class="r-in"><span>  <span class="co"># For example purposes, it just returns a dummy object</span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"Training dummy Cox model..."</span><span class="op">)</span></span></span>
-<span class="r-in"><span>  <span class="va">dummy_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>fitted_scores <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">X</span><span class="op">)</span><span class="op">)</span>, y_surv <span class="op">=</span> <span class="va">y_surv</span><span class="op">)</span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/structure.html" class="external-link">structure</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>finalModel <span class="op">=</span> <span class="va">dummy_fit</span>, X_train_cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">X</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  <span class="co"># A minimal survival model for demonstration</span></span></span>
+<span class="r-in"><span>  <span class="va">model_fit</span> <span class="op">&lt;-</span> <span class="fu">survival</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">coxph</a></span><span class="op">(</span><span class="va">y_surv</span> <span class="op">~</span> <span class="va">.</span>, data <span class="op">=</span> <span class="va">X</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/structure.html" class="external-link">structure</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>finalModel <span class="op">=</span> <span class="va">model_fit</span>, X_train_cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">X</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>                 model_type <span class="op">=</span> <span class="st">"survival_dummy_cox"</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"train"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Register the dummy model (ensure initialize_modeling_system_pro() has run first)</span></span></span>
-<span class="r-in"><span><span class="co"># initialize_modeling_system_pro() # Uncomment if running in a fresh session</span></span></span>
-<span class="r-in"><span><span class="co"># register_model_pro("dummy_cox", my_dummy_cox_model)</span></span></span>
-<span class="r-in"><span><span class="co"># get_registered_models_pro() # Check if registered</span></span></span>
+<span class="r-in"><span><span class="co"># Register the dummy model</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="initialize_modeling_system_pro.html">initialize_modeling_system_pro</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># Ensure system is initialized</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Prognosis modeling system already initialized.</span>
+<span class="r-in"><span><span class="fu">register_model_pro</span><span class="op">(</span><span class="st">"dummy_cox"</span>, <span class="va">my_dummy_cox_model</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="st">"dummy_cox"</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="fu"><a href="get_registered_models_pro.html">get_registered_models_pro</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="co"># Check if registered</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
