@@ -7,14 +7,14 @@ Description: Provides a framework to build and evaluate diagnosis or
     techniques with various base learners. The package also includes
     tools for visualization and interpretation of models. The development
     version of the package is available on 'GitHub' at 
-    <https://github.com/XIAOJIE0519/E2E>. The methods 
+    <https://github.com/xiaojie0519/E2E>. The methods 
     are based on the foundational work of Breiman (1996) <doi:10.1007/BF00058655>
     on bagging and Wolpert (1992) <doi:10.1016/S0893-6080(05)80023-1> 
     on stacking.
 License: MIT + file LICENSE
 Encoding: UTF-8
-URL: https://XIAOJIE0519.github.io/E2E
-BugReports: https://github.com/XIAOJIE0519/E2E/issues
+URL: https://xiaojie0519.github.io/E2E/
+BugReports: https://github.com/xiaojie0519/E2E/issues
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Imports: 
@@ -54,3 +54,4 @@ Depends:
     R (>= 3.5)
 LazyData: true
 VignetteBuilder: knitr
+Language: en

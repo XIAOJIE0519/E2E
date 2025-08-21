@@ -160,13 +160,16 @@ Generate high-quality plots to evaluate model performance.
 
 ```{r, fig.width=5, fig.height=5, warning=FALSE}
 # ROC Curve
-figure_dia(type = "roc", data = results_imbalance_dia)
+p1 <- figure_dia(type = "roc", data = results_imbalance_dia)
+#plot(p1)
 
 # Precision-Recall Curve
-figure_dia(type = "prc", data = results_imbalance_dia)
+p2 <- figure_dia(type = "prc", data = results_imbalance_dia)
+#plot(p2)
 
 # Confusion Matrix
-figure_dia(type = "matrix", data = results_imbalance_dia)
+p3 <- figure_dia(type = "matrix", data = results_imbalance_dia)
+#plot(p3)
 ```
 
 

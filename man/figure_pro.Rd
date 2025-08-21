@@ -7,47 +7,23 @@
 figure_pro(type, data, file = NULL, time_unit = "days")
 }
 \arguments{
-\item{type}{String, specifies the type of plot. Options are "km" or "tdroc".}
+\item{type}{"km" or "tdroc"}
 
-\item{data}{A list object containing model evaluation results. It must include:
+\item{data}{list with:
 \itemize{
-\item \code{sample_score}: A data frame with "time", "outcome" (0/1), and "score".
-\item \code{evaluation_metrics}: Contains "KM_Cutoff" for "km" plots, and
-"AUROC_Years" (a numeric vector) for "tdroc" plots.
+\item sample_score: data.frame(time, outcome, score)
+\item evaluation_metrics: for "km" needs KM_Cutoff; for "tdroc" needs AUROC_Years
+(numeric years like c(1,3,5), OR a named vector/list like c('1'=0.74,'3'=0.82,'5'=0.85))
 }}
 
-\item{file}{Optional. A string specifying the path to save the plot. If \code{NULL}
-(default), the plot object is returned.}
+\item{file}{optional path to save}
 
-\item{time_unit}{String, the unit of time ("days", "months", "years"). Defaults to "days".}
+\item{time_unit}{"days" (default), "months", or "years" for df$time}
 }
 \value{
-A ggplot or ggsurvplot object. If \code{file} is provided, the plot is also saved.
+ggplot object
 }
 \description{
 Generates and returns a ggplot object for Kaplan-Meier (KM)
 survival curves or time-dependent ROC curves.
-}
-\examples{
-\donttest{
-# Example data for a prognostic model
-set.seed(42)
-external_eval_example_pro <- list(
-  sample_score = data.frame(
-    time = runif(200, 10, 1825), # time in days
-    outcome = sample(c(0, 1), 200, replace = TRUE, prob = c(0.7, 0.3)),
-    score = runif(200, 0, 1)
-  ),
-  evaluation_metrics = list(KM_Cutoff = 0.5, AUROC_Years = c(1, 3, 5))
-)
-
-# Generate a Kaplan-Meier plot object
-# Note: ggsurvplot returns a list, the plot is in the 'plot' element
-km_plot_list <- figure_pro(type = "km", data = external_eval_example_pro, time_unit = "days")
-# To display: print(km_plot_list)
-
-# Generate a Time-Dependent ROC curve plot object
-tdroc_plot <- figure_pro(type = "tdroc", data = external_eval_example_pro, time_unit = "days")
-# To display: print(tdroc_plot)
-}
 }

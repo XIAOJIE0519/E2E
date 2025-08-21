@@ -102,10 +102,12 @@ Generate Kaplan-Meier (KM) and time-dependent ROC (tdROC) curves.
 
 ```{r, fig.width=6, fig.height=5, warning=FALSE}
 # Kaplan-Meier Curve
-figure_pro(type = "km", data = stacking_lasso_pro_results, time_unit= "days")
+p4 <- figure_pro(type = "km", data = stacking_lasso_pro_results, time_unit= "days")
+#print(p4)
 
 # Time-Dependent ROC Curve
-figure_pro(type = "tdroc", data = stacking_lasso_pro_results, time_unit = "days")
+p5 <- figure_pro(type = "tdroc", data = stacking_lasso_pro_results, time_unit = "days")
+#print(p5)
 ```
 
 ```{r, include=FALSE}

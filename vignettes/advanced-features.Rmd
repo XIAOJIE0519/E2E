@@ -72,11 +72,12 @@ The `figure_shap` function provides model-agnostic explanations by calculating S
 bagging_xb_results <- bagging_dia(train_dia, base_model_name = "xb", n_estimators = 10, seed=123)
 
 # Now, generate the SHAP explanation plot
-figure_shap(
+p6 <- figure_shap(
   data = bagging_xb_results,
   raw_data = train_dia,
   target_type = "diagnosis"
 )
+#plot(p6)
 ```
 
 ### Explaining a Prognostic Model
@@ -90,11 +91,12 @@ stacking_stepcox_pro_results <- stacking_pro(
 )
 
 # Generate the SHAP explanation plot
-figure_shap(
+p7 <- figure_shap(
   data = stacking_stepcox_pro_results,
   raw_data = train_pro,
   target_type = "prognosis"
 )
+#plot(p7)
 ```
 
 ```{r, include=FALSE}

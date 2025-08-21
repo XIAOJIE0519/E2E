@@ -174,46 +174,15 @@ NULL
 #' @description Generates and returns a ggplot object for Kaplan-Meier (KM)
 #'   survival curves or time-dependent ROC curves.
 #'
-#' @param type String, specifies the type of plot. Options are "km" or "tdroc".
-#' @param data A list object containing model evaluation results. It must include:
-#'   \itemize{
-#'     \item `sample_score`: A data frame with "time", "outcome" (0/1), and "score".
-#'     \item `evaluation_metrics`: Contains "KM_Cutoff" for "km" plots, and
-#'       "AUROC_Years" (a numeric vector) for "tdroc" plots.
-#'   }
-#' @param file Optional. A string specifying the path to save the plot. If `NULL`
-#'   (default), the plot object is returned.
-#' @param time_unit String, the unit of time ("days", "months", "years"). Defaults to "days".
+#' @param type "km" or "tdroc"
+#' @param data list with:
+#'   - sample_score: data.frame(time, outcome, score)
+#'   - evaluation_metrics: for "km" needs KM_Cutoff; for "tdroc" needs AUROC_Years
+#'     (numeric years like c(1,3,5), OR a named vector/list like c('1'=0.74,'3'=0.82,'5'=0.85))
+#' @param file optional path to save
+#' @param time_unit "days" (default), "months", or "years" for df$time
 #'
-#' @return A ggplot or ggsurvplot object. If `file` is provided, the plot is also saved.
-#' @examples
-#' \donttest{
-#' # Example data for a prognostic model
-#' set.seed(42)
-#' external_eval_example_pro <- list(
-#'   sample_score = data.frame(
-#'     time = runif(200, 10, 1825), # time in days
-#'     outcome = sample(c(0, 1), 200, replace = TRUE, prob = c(0.7, 0.3)),
-#'     score = runif(200, 0, 1)
-#'   ),
-#'   evaluation_metrics = list(KM_Cutoff = 0.5, AUROC_Years = c(1, 3, 5))
-#' )
-#'
-#' # Generate a Kaplan-Meier plot object
-#' # Note: ggsurvplot returns a list, the plot is in the 'plot' element
-#' km_plot_list <- figure_pro(type = "km", data = external_eval_example_pro, time_unit = "days")
-#' # To display: print(km_plot_list)
-#'
-#' # Generate a Time-Dependent ROC curve plot object
-#' tdroc_plot <- figure_pro(type = "tdroc", data = external_eval_example_pro, time_unit = "days")
-#' # To display: print(tdroc_plot)
-#' }
-#' @importFrom survival survfit
-#' @importFrom survminer ggsurvplot
-#' @importFrom timeROC timeROC
-#' @importFrom grDevices dev.off
-#' @importFrom ggplot2 theme
-#' @importFrom survival Surv
+#' @return ggplot object
 #' @export
 figure_pro <- function(type, data, file = NULL, time_unit = "days") {
 
@@ -226,76 +195,162 @@ figure_pro <- function(type, data, file = NULL, time_unit = "days") {
   }
 
   df <- as.data.frame(data$sample_score)
-  df$time <- as.numeric(as.character(df$time))
-  df$outcome <- as.numeric(as.character(df$outcome))
-  df$score <- as.numeric(as.character(df$score))
-  df <- df[!is.na(df$time) & !is.na(df$outcome) & !is.na(df$score), ]
+  df$time    <- as.numeric(df$time)
+  df$outcome <- as.numeric(df$outcome)
+  df$score   <- as.numeric(df$score)
+  df <- df[stats::complete.cases(df[, c("time","outcome","score")]), ]
 
   if (nrow(df) == 0) stop("Data is empty after removing NAs.")
   if (length(unique(df$outcome)) < 2 || !all(unique(df$outcome) %in% c(0, 1))) {
     stop("'outcome' column must contain both 0 and 1.")
   }
 
-  plot_obj <- NULL
+  # ---------- helpers ----------
+  .time_factor <- function(unit) {
+    switch(tolower(unit),
+           "days"   = 365.25,   # years -> days
+           "months" = 12,       # years -> months
+           "years"  = 1,
+           1)
+  }
 
+  .normalize_years <- function(x) {
+    # numeric vector of years
+    if (is.numeric(x) && all(x >= 0)) return(sort(unique(as.numeric(x))))
+
+    # named vector/list where names are the years (values often AUCs)
+    nms <- names(x)
+    if (!is.null(nms)) {
+      yrs <- suppressWarnings(as.numeric(nms))
+      if (all(!is.na(yrs))) return(sort(unique(yrs)))
+    }
+
+    # vector/list of AUCs without names -> fallback
+    vals <- suppressWarnings(as.numeric(unlist(x, use.names = FALSE)))
+    if (all(!is.na(vals)) && all(vals > 0 & vals < 1)) {
+      warning("'AUROC_Years' looks like AUC values without year names. Falling back to c(1,3,5).")
+      return(c(1,3,5))
+    }
+
+    stop("`AUROC_Years` must be numeric years (e.g., c(1,3,5)) OR a named list/vector where names are the years.")
+  }
+
+  # ------------- plotting -------------
   if (type == "km") {
     cutoff <- data$evaluation_metrics$KM_Cutoff
     if (is.null(cutoff)) stop("'KM_Cutoff' is missing from data$evaluation_metrics.")
 
-    df$risk_group <- factor(ifelse(df$score > cutoff, "High Risk", "Low Risk"), levels = c("Low Risk", "High Risk"))
+    df$risk_group <- factor(ifelse(df$score > cutoff, "High Risk", "Low Risk"),
+                            levels = c("Low Risk", "High Risk"))
     if (length(unique(df$risk_group)) < 2) {
       warning("Only one risk group present after applying cutoff. KM plot may not be meaningful.")
     }
 
-    fit <- survival::survfit(Surv(time, outcome) ~ risk_group, data = df)
-    plot_obj <- survminer::ggsurvplot(
+    fit <- survival::survfit(survival::Surv(time, outcome) ~ risk_group, data = df)
+    km_list <- survminer::ggsurvplot(
       fit, data = df, pval = TRUE, conf.int = TRUE, risk.table = TRUE,
       xlab = paste0("Time (", time_unit, ")"), ylab = "Overall Survival Probability",
       title = "Kaplan-Meier Survival Curve", legend.title = "Risk Group",
-      palette = c("#2E86AB", "#A23B72"), ggtheme = theme_bw(base_size = 14)
+      palette = c("#2E86AB", "#A23B72"), ggtheme = ggplot2::theme_bw(base_size = 14)
     )
+    plot_obj <- km_list$plot
 
-  } else if (type == "tdroc") {
-    eval_years <- data$evaluation_metrics$AUROC_Years
-    if (is.null(eval_years)) stop("'AUROC_Years' is missing from data$evaluation_metrics.")
+  } else { # ---- tdroc ----
+    raw_eval <- data$evaluation_metrics$AUROC_Years
+    if (is.null(raw_eval)) stop("'AUROC_Years' is missing from data$evaluation_metrics.")
+    eval_years <- .normalize_years(raw_eval)
 
-    time_conversion <- c("days" = 365.25, "months" = 12, "years" = 1)
-    factor <- time_conversion[[time_unit]] %||% 1
-    eval_times_converted <- sort(unique(as.numeric(eval_years))) * factor
 
-    roc_res <- timeROC::timeROC(T = df$time, delta = df$outcome, marker = df$score,
-                                cause = 1, times = eval_times_converted, iid = FALSE)
+    pre_auc <- NULL
+    if (!is.null(names(raw_eval))) {
+      pre_auc <- as.numeric(unlist(raw_eval))
+      names(pre_auc) <- names(raw_eval)
+    }
 
-    roc_data_list <- lapply(seq_along(eval_years), function(i) {
-      if (is.na(roc_res$AUC[i])) return(NULL)
-      data.frame(FPR = roc_res$FP[, i], TPR = roc_res$TP[, i],
-                 TimePoint = as.factor(eval_years[i]),
-                 Label = sprintf("%s-Year (AUC=%.3f)", eval_years[i], roc_res$AUC[i]))
-    })
-    all_roc_data <- do.call(rbind, roc_data_list)
-    if (is.null(all_roc_data)) stop("Failed to compute any time-dependent ROC curves.")
+    factor <- .time_factor(time_unit)
+    eval_times <- eval_years * factor
 
-    plot_obj <- ggplot(all_roc_data, aes(x = FPR, y = TPR, color = Label)) +
-      geom_line(linewidth = 1.1) +
-      geom_abline(linetype = "dashed", color = "gray50") +
-      labs(title = "Time-Dependent ROC Curves", x = "1 - Specificity", y = "Sensitivity", color = "Time Point") +
-      theme_bw(base_size = 14) +
-      theme(plot.title = element_text(face = "bold", hjust = 0.5), legend.position = "bottom") +
-      coord_fixed()
+    # 1)
+    roc_res <- tryCatch({
+      timeROC::timeROC(T = df$time, delta = df$outcome, marker = df$score,
+                       cause = 1, times = eval_times, iid = FALSE)
+    }, error = function(e) NULL)
+
+    roc_df_list <- list()
+    for (i in seq_along(eval_years)) {
+      yr  <- eval_years[i]
+      tpt <- eval_times[i]
+
+
+      use_timeROC <- !is.null(roc_res) &&
+        i <= NCOL(roc_res$FP) &&
+        !all(is.na(roc_res$FP[, i])) &&
+        !is.na(roc_res$AUC[i])
+
+      if (use_timeROC) {
+        FPR <- roc_res$FP[, i]
+        TPR <- roc_res$TP[, i]
+        auc_calc <- roc_res$AUC[i]
+      } else {
+        # 2)
+        sroc <- tryCatch({
+          survivalROC::survivalROC(Stime = df$time, status = df$outcome,
+                                   marker = df$score, predict.time = tpt,
+                                   method = "NNE", span = 0.25)
+        }, error = function(e) NULL)
+
+        if (is.null(sroc) || all(is.na(sroc$FP)) || all(is.na(sroc$TP))) {
+          next
+        }
+        FPR <- sroc$FP
+        TPR <- sroc$TP
+        auc_calc <- if (!is.null(sroc$AUC)) sroc$AUC else NA_real_
+      }
+
+      auc_for_label <- if (!is.null(pre_auc) && as.character(yr) %in% names(pre_auc)) {
+        suppressWarnings(as.numeric(pre_auc[as.character(yr)]))
+      } else {
+        auc_calc
+      }
+
+      roc_df_list[[length(roc_df_list) + 1]] <- data.frame(
+        FPR   = FPR,
+        TPR   = TPR,
+        Label = sprintf("%d-Year (AUC=%.3f)", as.integer(yr), auc_for_label),
+        stringsAsFactors = FALSE
+      )
+    }
+
+    if (length(roc_df_list) == 0)
+      stop("Failed to compute any time-dependent ROC curves for the requested years.")
+
+    all_roc_data <- do.call(rbind, roc_df_list)
+
+    plot_obj <- ggplot2::ggplot(all_roc_data, ggplot2::aes(x = FPR, y = TPR, color = Label)) +
+      ggplot2::geom_line(linewidth = 1.1) +
+      ggplot2::geom_abline(linetype = "dashed", color = "gray50") +
+      ggplot2::labs(
+        title = "Time-Dependent ROC Curves",
+        x = "1 - Specificity",
+        y = "Sensitivity",
+        color = "Time Point"
+      ) +
+      ggplot2::theme_bw(base_size = 14) +
+      ggplot2::theme(plot.title = ggplot2::element_text(face = "bold", hjust = 0.5),
+                     legend.position = "bottom") +
+      ggplot2::coord_fixed()
   }
 
   if (!is.null(file) && !is.null(plot_obj)) {
-    # ggsurvplot returns a list, we need to save the plot element
-    plot_to_save <- if(inherits(plot_obj, "ggsurvplot")) plot_obj$plot else plot_obj
     tryCatch({
-      ggsave(filename = file, plot = plot_to_save, width = 8, height = 8, dpi = 300)
+      ggplot2::ggsave(filename = file, plot = plot_obj, width = 8, height = 8, dpi = 300)
       message(sprintf("Plot saved to: %s", file))
     }, error = function(e) {
       warning(sprintf("Failed to save plot to '%s'. Error: %s", file, e$message))
     })
   }
 
-  return(invisible(plot_obj))
+  invisible(plot_obj)
 }
 
 # ------------------------------------------------------------------------------
