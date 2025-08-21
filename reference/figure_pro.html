@@ -28,7 +28,7 @@ survival curves or time-dependent ROC curves."></head><body>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/XIAOJIE0519/E2E/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/xiaojie0519/E2E/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul></div>
 
 
@@ -38,7 +38,7 @@ survival curves or time-dependent ROC curves."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Plot Prognostic Model Evaluation Figures</h1>
-      <small class="dont-index">Source: <a href="https://github.com/XIAOJIE0519/E2E/blob/main/R/Figure.R" class="external-link"><code>R/Figure.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/xiaojie0519/E2E/blob/main/R/Figure.R" class="external-link"><code>R/Figure.R</code></a></small>
       <div class="d-none name"><code>figure_pro.Rd</code></div>
     </div>
 
@@ -57,55 +57,29 @@ survival curves or time-dependent ROC curves.</p>
 
 
 <dl><dt id="arg-type">type<a class="anchor" aria-label="anchor" href="#arg-type"></a></dt>
-<dd><p>String, specifies the type of plot. Options are "km" or "tdroc".</p></dd>
+<dd><p>"km" or "tdroc"</p></dd>
 
 
 <dt id="arg-data">data<a class="anchor" aria-label="anchor" href="#arg-data"></a></dt>
-<dd><p>A list object containing model evaluation results. It must include:</p><ul><li><p><code>sample_score</code>: A data frame with "time", "outcome" (0/1), and "score".</p></li>
-<li><p><code>evaluation_metrics</code>: Contains "KM_Cutoff" for "km" plots, and
-"AUROC_Years" (a numeric vector) for "tdroc" plots.</p></li>
+<dd><p>list with:</p><ul><li><p>sample_score: data.frame(time, outcome, score)</p></li>
+<li><p>evaluation_metrics: for "km" needs KM_Cutoff; for "tdroc" needs AUROC_Years
+(numeric years like c(1,3,5), OR a named vector/list like c('1'=0.74,'3'=0.82,'5'=0.85))</p></li>
 </ul></dd>
 
 
 <dt id="arg-file">file<a class="anchor" aria-label="anchor" href="#arg-file"></a></dt>
-<dd><p>Optional. A string specifying the path to save the plot. If <code>NULL</code>
-(default), the plot object is returned.</p></dd>
+<dd><p>optional path to save</p></dd>
 
 
 <dt id="arg-time-unit">time_unit<a class="anchor" aria-label="anchor" href="#arg-time-unit"></a></dt>
-<dd><p>String, the unit of time ("days", "months", "years"). Defaults to "days".</p></dd>
+<dd><p>"days" (default), "months", or "years" for df$time</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A ggplot or ggsurvplot object. If <code>file</code> is provided, the plot is also saved.</p>
+    <p>ggplot object</p>
     </div>
 
-    <div class="section level2">
-    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
-<span class="r-in"><span><span class="co"># Example data for a prognostic model</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">external_eval_example_pro</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  sample_score <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>    time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">200</span>, <span class="fl">10</span>, <span class="fl">1825</span><span class="op">)</span>, <span class="co"># time in days</span></span></span>
-<span class="r-in"><span>    outcome <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>, <span class="fl">200</span>, replace <span class="op">=</span> <span class="cn">TRUE</span>, prob <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.7</span>, <span class="fl">0.3</span><span class="op">)</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    score <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">200</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span></span></span>
-<span class="r-in"><span>  <span class="op">)</span>,</span></span>
-<span class="r-in"><span>  evaluation_metrics <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>KM_Cutoff <span class="op">=</span> <span class="fl">0.5</span>, AUROC_Years <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">3</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Generate a Kaplan-Meier plot object</span></span></span>
-<span class="r-in"><span><span class="co"># Note: ggsurvplot returns a list, the plot is in the 'plot' element</span></span></span>
-<span class="r-in"><span><span class="va">km_plot_list</span> <span class="op">&lt;-</span> <span class="fu">figure_pro</span><span class="op">(</span>type <span class="op">=</span> <span class="st">"km"</span>, data <span class="op">=</span> <span class="va">external_eval_example_pro</span>, time_unit <span class="op">=</span> <span class="st">"days"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="co"># To display: print(km_plot_list)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Generate a Time-Dependent ROC curve plot object</span></span></span>
-<span class="r-in"><span><span class="va">tdroc_plot</span> <span class="op">&lt;-</span> <span class="fu">figure_pro</span><span class="op">(</span>type <span class="op">=</span> <span class="st">"tdroc"</span>, data <span class="op">=</span> <span class="va">external_eval_example_pro</span>, time_unit <span class="op">=</span> <span class="st">"days"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="co"># To display: print(tdroc_plot)</span></span></span>
-<span class="r-in"><span><span class="co"># }</span></span></span>
-</code></pre></div>
-    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 
