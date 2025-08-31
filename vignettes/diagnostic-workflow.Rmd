@@ -136,20 +136,13 @@ Use a trained model object to make predictions on a new, unseen dataset.
 bagging_pred_new <- apply_dia(
   trained_model_object = bagging_xb_results$model_object,
   new_data = test_dia,
-  label_col_name = "outcome",
-  pos_class = "Positive",
-  neg_class = "Negative"
+  label_col_name = "outcome"
 )
 
 # Evaluate these new predictions
-eval_results_new <- evaluate_model_dia(
-  precomputed_prob = bagging_pred_new$score,
-  y_data = factor(test_dia$outcome, levels = c(0, 1), labels = c("Positive", "Negative")),
-  sample_ids = test_dia$sample,
-  threshold_strategy = "default",
-  pos_class = "Positive",
-  neg_class = "Negative"
-)
+eval_results_new <- evaluate_predictions_dia(
+  prediction_df = bagging_pred_new,
+  threshold_choices = "f1")
 print(eval_results_new$evaluation_metrics)
 ```
 

@@ -1,6 +1,6 @@
 Package: E2E
 Title: Ensemble Learning Framework for Diagnostic and Prognostic Modeling
-Version: 0.0.3
+Version: 0.1.0
 Authors@R: person("Shanjie", "Luan", email = "Luan20050519@163.com", role = c("aut", "cre"))
 Description: Provides a framework to build and evaluate diagnosis or 
     prognosis models using stacking, voting, and bagging ensemble

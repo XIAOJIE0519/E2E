@@ -2,63 +2,70 @@
 % Please edit documentation in R/diagnosis.R
 \name{apply_dia}
 \alias{apply_dia}
-\title{Apply a Trained Diagnostic Model to New Data}
+\title{Apply a Trained Model to New Data}
 \usage{
 apply_dia(
   trained_model_object,
   new_data,
   label_col_name = NULL,
-  pos_class,
-  neg_class
+  pos_class = "Positive",
+  neg_class = "Negative"
 )
 }
 \arguments{
-\item{trained_model_object}{A trained model object, as returned by \code{models_dia},
+\item{trained_model_object}{(必需) A trained model object from \code{models_dia},
 \code{bagging_dia}, \code{stacking_dia}, \code{voting_dia}, or \code{imbalance_dia}.}
 
-\item{new_data}{A data frame containing the new data for prediction. The first
-column must be the sample ID, subsequent columns are features.}
+\item{new_data}{(必需) A data frame containing the new samples for prediction.
+The first column must be the sample ID.}
 
-\item{label_col_name}{A character string, the name of the column containing
-the class labels in the new data. This is optional and only used
-to include true labels in the output; it is not used for prediction.}
+\item{label_col_name}{An optional character string specifying the name of the
+column in \code{new_data} that contains the true labels. \strong{If \code{NULL} (the default),
+the function will assume the second column is the label column.} To
+explicitly prevent label extraction (e.g., for data without labels), provide \code{NA}.}
 
-\item{pos_class}{A character string, the label for the positive class (must
-match the label used during training).}
+\item{pos_class}{A character string for the positive class label used in the
+model's probability predictions. \strong{Defaults to \code{"Positive"}.}}
 
-\item{neg_class}{A character string, the label for the negative class (must
-match the label used during training).}
+\item{neg_class}{A character string for the negative class label. This parameter
+is mainly for consistency, as prediction focuses on \code{pos_class} probability.
+\strong{Defaults to \code{"Negative"}.}}
 }
 \value{
-A data frame with \code{sample} (ID), \code{label} (original numeric label from
-new data, or NA if not provided), and \code{score} (predicted probability for the positive class).
+A data frame with three columns: \code{sample} (the sample IDs), \code{label}
+(the true labels from \code{new_data}, or \code{NA} if not available/specified), and \code{score}
+(the predicted probability for the positive class).
 }
 \description{
-Applies a previously trained model (or ensemble) to a new, unseen
-dataset to generate predicted probabilities.
+Applies a trained diagnostic model (single or ensemble) to a new
+dataset to generate predictions. It can handle various model objects created
+by the package, including single caret models, Bagging, Stacking, Voting,
+and EasyEnsemble objects.
 }
 \examples{
 \donttest{
-# 1. Assume 'train_dia' and 'test_dia' are loaded from your package
-# data(train_dia)
-# data(test_dia) # test_dia has same structure, maybe without the label column
-initialize_modeling_system_dia()
+# Assuming `bagging_results` and `test_dia` are available from previous steps
+# bagging_model <- bagging_results$model_object
 
-# 2. Train a model
-train_results <- models_dia(
-  data = train_dia, model = "lasso",
-  new_positive_label = "Case", new_negative_label = "Control"
-)
-trained_lasso_model <- train_results$lasso$model_object
+# Example 1: Default behavior - use the second column of test_dia as label
+# predictions <- apply_dia(
+#   trained_model_object = bagging_model,
+#   new_data = test_dia
+# )
 
-# 3. Apply the trained model to new data
-new_predictions <- apply_dia(
-  trained_model_object = trained_lasso_model,
-  new_data = test_dia,
-  label_col_name = "Disease_Status", # Optional
-  pos_class = "Case",
-  neg_class = "Control"
-)
-utils::head(new_predictions)
+# Example 2: Explicitly specify the label column by name
+# predictions_explicit <- apply_dia(
+#   trained_model_object = bagging_model,
+#   new_data = test_dia,
+#   label_col_name = "outcome"
+# )
+
+# Example 3: Predict on data without labels
+# test_data_no_labels <- test_dia[, -2] # Remove outcome column
+# predictions_no_label <- apply_dia(
+#   trained_model_object = bagging_model,
+#   new_data = test_data_no_labels,
+#   label_col_name = NA # Explicitly disable label extraction
+# )
 }
 }

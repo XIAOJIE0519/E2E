@@ -10,8 +10,7 @@ bagging_dia(
   n_estimators = 50,
   subset_fraction = 0.632,
   tune_base_model = FALSE,
-  threshold_strategy = "default",
-  specific_threshold_value = 0.5,
+  threshold_choices = "default",
   positive_label_value = 1,
   negative_label_value = 0,
   new_positive_label = "Positive",
@@ -33,11 +32,8 @@ samples to bootstrap for each base model.}
 
 \item{tune_base_model}{Logical, whether to enable tuning for each base model.}
 
-\item{threshold_strategy}{A character string (e.g., "f1", "youden", "default")
+\item{threshold_choices}{A character string (e.g., "f1", "youden", "default")
 or a numeric value (0-1) for determining the evaluation threshold for the ensemble.}
-
-\item{specific_threshold_value}{A numeric value between 0 and 1. Only used
-if \code{threshold_strategy} is "numeric".}
 
 \item{positive_label_value}{A numeric or character value in the raw data
 representing the positive class.}
@@ -72,7 +68,7 @@ if (exists("train_dia")) {
     data = train_dia,
     base_model_name = "rf",
     n_estimators = 5, # Reduced for a quick example
-    threshold_strategy = "youden",
+    threshold_choices = "youden",
     positive_label_value = 1,
     negative_label_value = 0,
     new_positive_label = "Case",

@@ -806,7 +806,6 @@ gbm_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
 # ------------------------------------------------------------------------------
 # Evaluation, Running, and Ensemble Functions
 # ------------------------------------------------------------------------------
-
 #' @title Evaluate Diagnostic Model Performance
 #' @description Evaluates the performance of a trained diagnostic model using
 #'   various metrics relevant to binary classification, including AUROC, AUPRC,
@@ -818,11 +817,8 @@ gbm_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
 #'   Required if `model_obj` is provided and `precomputed_prob` is `NULL`.
 #' @param y_data A factor vector of true class labels for the evaluation data.
 #' @param sample_ids A vector of sample IDs for the evaluation data.
-#' @param threshold_strategy A character string, defining how to determine the
-#'   threshold for class-specific metrics: "default" (0.5), "f1" (maximizes F1-score),
-#'   "youden" (maximizes Youden's J statistic), or "numeric" (uses `specific_threshold_value`).
-#' @param specific_threshold_value A numeric value between 0 and 1. Only used
-#'   if `threshold_strategy` is "numeric".
+#' @param threshold_choices A character string specifying the thresholding strategy
+#'   ("default", "f1", "youden") or a numeric probability threshold value (0-1).
 #' @param pos_class A character string, the label for the positive class.
 #' @param neg_class A character string, the label for the negative class.
 #' @param precomputed_prob Optional. A numeric vector of precomputed probabilities
@@ -867,7 +863,7 @@ gbm_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
 #'   X_data = X_toy,
 #'   y_data = y_toy,
 #'   sample_ids = ids_toy,
-#'   threshold_strategy = "f1",
+#'   threshold_choices = "f1",
 #'   pos_class = "Case",
 #'   neg_class = "Control"
 #' )
@@ -878,8 +874,7 @@ gbm_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
 #' @importFrom PRROC pr.curve
 #' @export
 evaluate_model_dia <- function(model_obj = NULL, X_data = NULL, y_data, sample_ids,
-                               threshold_strategy = c("default", "f1", "youden", "numeric"),
-                               specific_threshold_value = 0.5, pos_class, neg_class,
+                               threshold_choices = "default", pos_class, neg_class,
                                precomputed_prob = NULL, y_original_numeric = NULL) {
 
   y_data <- base::factor(y_data, levels = c(neg_class, pos_class))
@@ -961,22 +956,28 @@ evaluate_model_dia <- function(model_obj = NULL, X_data = NULL, y_data, sample_i
     score = prob
   )
 
-  final_threshold <- NA
-  threshold_strategy <- match.arg(threshold_strategy)
+  final_threshold <- 0.5 # Default value
+  strategy_used <- "default" # Default strategy
 
-  if (threshold_strategy == "f1") {
-    final_threshold <- find_optimal_threshold_dia(prob, y_data, type = "f1", pos_class = pos_class, neg_class = neg_class)
-  } else if (threshold_strategy == "youden") {
-    final_threshold <- find_optimal_threshold_dia(prob, y_data, type = "youden", pos_class = pos_class, neg_class = neg_class)
-  } else if (threshold_strategy == "default") {
-    final_threshold <- 0.5
-  } else if (threshold_strategy == "numeric") {
-    if (is.numeric(specific_threshold_value) && specific_threshold_value >= 0 && specific_threshold_value <= 1) {
-      final_threshold <- specific_threshold_value
-    } else {
-      warning("Invalid specific_threshold_value. Falling back to default (0.5).")
+  if (is.character(threshold_choices) && length(threshold_choices) == 1) {
+    strategy <- tolower(threshold_choices)
+    if (strategy == "f1") {
+      final_threshold <- find_optimal_threshold_dia(prob, y_data, type = "f1", pos_class = pos_class, neg_class = neg_class)
+      strategy_used <- "f1"
+    } else if (strategy == "youden") {
+      final_threshold <- find_optimal_threshold_dia(prob, y_data, type = "youden", pos_class = pos_class, neg_class = neg_class)
+      strategy_used <- "youden"
+    } else if (strategy == "default") {
       final_threshold <- 0.5
+      strategy_used <- "default"
+    } else {
+      warning(sprintf("Invalid string for threshold_choices: '%s'. Falling back to default (0.5).", threshold_choices))
     }
+  } else if (is.numeric(threshold_choices) && length(threshold_choices) == 1 && threshold_choices >= 0 && threshold_choices <= 1) {
+    final_threshold <- threshold_choices
+    strategy_used <- "numeric"
+  } else {
+    warning("Invalid threshold_choices value. It must be 'f1', 'youden', 'default', or a numeric value between 0 and 1. Falling back to default (0.5).")
   }
 
   metrics_at_threshold <- calculate_metrics_at_threshold_dia(prob, y_data, final_threshold, pos_class = pos_class, neg_class = neg_class)
@@ -996,7 +997,7 @@ evaluate_model_dia <- function(model_obj = NULL, X_data = NULL, y_data, sample_i
   pr_auc <- pr_curve_obj$auc.integral
 
   evaluation_metrics <- list(
-    Threshold_Strategy = threshold_strategy,
+    Threshold_Strategy = strategy_used,
     Final_Threshold = final_threshold,
     Accuracy = metrics_at_threshold$Accuracy,
     Precision = metrics_at_threshold$Precision,
@@ -1118,28 +1119,20 @@ models_dia <- function(data,
   y_original_numeric <- data_prepared$y_original_numeric
 
   # Determine threshold settings for each model
-  model_threshold_settings <- list()
-  for (m_name in models_to_run_names) {
-    if (is.character(threshold_choices) && length(threshold_choices) == 1 && threshold_choices %in% c("default", "f1", "youden")) {
-      model_threshold_settings[[m_name]] <- list(strategy = threshold_choices, value = NULL)
-    } else if (is.numeric(threshold_choices) && length(threshold_choices) == 1 && threshold_choices >= 0 && threshold_choices <= 1) {
-      model_threshold_settings[[m_name]] <- list(strategy = "numeric", value = threshold_choices)
-    } else if (is.list(threshold_choices) || (is.vector(threshold_choices) && !is.null(names(threshold_choices)))) {
+  model_thresholds <- list()
+  if (is.list(threshold_choices) || (is.vector(threshold_choices) && !is.null(names(threshold_choices)))) {
+    # A named list/vector is provided for model-specific thresholds
+    for (m_name in models_to_run_names) {
       if (m_name %in% names(threshold_choices)) {
-        model_setting <- threshold_choices[[m_name]]
-        if (is.character(model_setting) && length(model_setting) == 1 && model_setting %in% c("default", "f1", "youden")) {
-          model_threshold_settings[[m_name]] <- list(strategy = model_setting, value = NULL)
-        } else if (is.numeric(model_setting) && length(model_setting) == 1 && model_setting >= 0 && model_setting <= 1) {
-          model_threshold_settings[[m_name]] <- list(strategy = "numeric", value = model_setting)
-        } else {
-          warning(sprintf("Invalid threshold setting for model '%s'. Using 'default' (0.5).", m_name))
-          model_threshold_settings[[m_name]] <- list(strategy = "default", value = NULL)
-        }
+        model_thresholds[[m_name]] <- threshold_choices[[m_name]]
       } else {
-        model_threshold_settings[[m_name]] <- list(strategy = "default", value = NULL)
+        model_thresholds[[m_name]] <- "default" # Fallback for models not in the list
       }
-    } else {
-      stop("Invalid 'threshold_choices' argument. Must be a single string ('f1', 'youden', 'default'), a single numeric (0-1), or a named list/vector of settings for models.")
+    }
+  } else {
+    # A single global threshold choice is provided for all models
+    for (m_name in models_to_run_names) {
+      model_thresholds[[m_name]] <- threshold_choices
     }
   }
 
@@ -1147,7 +1140,7 @@ models_dia <- function(data,
 
   for (model_name in models_to_run_names) {
     current_model_func <- get_registered_models_dia()[[model_name]]
-    current_settings <- model_threshold_settings[[model_name]]
+    current_threshold <- model_thresholds[[model_name]]
 
     message(sprintf("Running model: %s", model_name))
 
@@ -1162,8 +1155,7 @@ models_dia <- function(data,
     if (!is.null(mdl)) {
       eval_results <- tryCatch({
         evaluate_model_dia(model_obj = mdl, X_data = X_data, y_data = y_data, sample_ids = sample_ids,
-                           threshold_strategy = current_settings$strategy,
-                           specific_threshold_value = current_settings$value,
+                           threshold_choices = current_threshold,
                            pos_class = pos_label_used,
                            neg_class = neg_label_used,
                            y_original_numeric = y_original_numeric)
@@ -1195,6 +1187,7 @@ models_dia <- function(data,
   return(all_model_results)
 }
 
+
 #' @title Train a Bagging Diagnostic Model
 #' @description Implements a Bagging (Bootstrap Aggregating) ensemble for
 #'   diagnostic models. It trains multiple base models on bootstrapped samples
@@ -1208,10 +1201,8 @@ models_dia <- function(data,
 #' @param subset_fraction A numeric value between 0 and 1, the fraction of
 #'   samples to bootstrap for each base model.
 #' @param tune_base_model Logical, whether to enable tuning for each base model.
-#' @param threshold_strategy A character string (e.g., "f1", "youden", "default")
+#' @param threshold_choices A character string (e.g., "f1", "youden", "default")
 #'   or a numeric value (0-1) for determining the evaluation threshold for the ensemble.
-#' @param specific_threshold_value A numeric value between 0 and 1. Only used
-#'   if `threshold_strategy` is "numeric".
 #' @param positive_label_value A numeric or character value in the raw data
 #'   representing the positive class.
 #' @param negative_label_value A numeric or character value in the raw data
@@ -1234,7 +1225,7 @@ models_dia <- function(data,
 #'     data = train_dia,
 #'     base_model_name = "rf",
 #'     n_estimators = 5, # Reduced for a quick example
-#'     threshold_strategy = "youden",
+#'     threshold_choices = "youden",
 #'     positive_label_value = 1,
 #'     negative_label_value = 0,
 #'     new_positive_label = "Case",
@@ -1250,8 +1241,7 @@ bagging_dia <- function(data,
                         n_estimators = 50,
                         subset_fraction = 0.632,
                         tune_base_model = FALSE,
-                        threshold_strategy = "default",
-                        specific_threshold_value = 0.5,
+                        threshold_choices = "default",
                         positive_label_value = 1,
                         negative_label_value = 0,
                         new_positive_label = "Positive",
@@ -1343,8 +1333,7 @@ bagging_dia <- function(data,
     model_obj = bagging_model_obj_for_eval,
     X_data = X_data,
     y_data = y_data, sample_ids = sample_ids,
-    threshold_strategy = threshold_strategy,
-    specific_threshold_value = specific_threshold_value,
+    threshold_choices = threshold_choices,
     pos_class = pos_label_used, neg_class = neg_label_used,
     precomputed_prob = aggregated_prob,
     y_original_numeric = y_original_numeric
@@ -1356,6 +1345,7 @@ bagging_dia <- function(data,
     evaluation_metrics = eval_results$evaluation_metrics
   )
 }
+
 
 #' @title Train a Stacking Diagnostic Model
 #' @description Implements a Stacking ensemble. It trains multiple base models,
@@ -1437,14 +1427,6 @@ stacking_dia <- function(results_all_models, data,
 
   message(sprintf("Running Stacking model: %s (meta: %s)", "Stacking_dia", meta_model_name))
 
-  if (is.character(threshold_choices) && length(threshold_choices) == 1 && threshold_choices %in% c("default", "f1", "youden")) {
-    threshold_strategy <- threshold_choices; specific_threshold_value <- NULL
-  } else if (is.numeric(threshold_choices) && length(threshold_choices) == 1 && threshold_choices >= 0 && threshold_choices <= 1) {
-    threshold_strategy <- "numeric"; specific_threshold_value <- threshold_choices
-  } else {
-    warning("Invalid threshold_choices. Using 'f1'."); threshold_strategy <- "f1"; specific_threshold_value <- NULL
-  }
-
   set.seed(seed)
   data_prepared <- .prepare_data_dia(data,
                                      positive_label_value, negative_label_value,
@@ -1487,8 +1469,7 @@ stacking_dia <- function(results_all_models, data,
   })
 
   eval_results <- evaluate_model_dia(model_obj = meta_mdl, X_data = X_meta_features, y_data = y_true, sample_ids = sample_ids,
-                                     threshold_strategy = threshold_strategy,
-                                     specific_threshold_value = specific_threshold_value,
+                                     threshold_choices = threshold_choices,
                                      pos_class = pos_class, neg_class = neg_class,
                                      y_original_numeric = y_original_numeric)
 
@@ -1505,6 +1486,7 @@ stacking_dia <- function(results_all_models, data,
     evaluation_metrics = eval_results$evaluation_metrics
   )
 }
+
 
 #' @title Train a Voting Ensemble Diagnostic Model
 #' @description Implements a Voting ensemble, combining predictions from multiple
@@ -1580,14 +1562,6 @@ voting_dia <- function(results_all_models, data,
 
   message(sprintf("Running Voting model: %s (type: %s)", "Voting_dia", type))
 
-  if (is.character(threshold_choices) && length(threshold_choices) == 1 && threshold_choices %in% c("default", "f1", "youden")) {
-    threshold_strategy <- threshold_choices; specific_threshold_value <- NULL
-  } else if (is.numeric(threshold_choices) && length(threshold_choices) == 1 && threshold_choices >= 0 && threshold_choices <= 1) {
-    threshold_strategy <- "numeric"; specific_threshold_value <- threshold_choices
-  } else {
-    warning("Invalid threshold_choices. Using 'f1'."); threshold_strategy <- "f1"; specific_threshold_value <- NULL
-  }
-
   data_prepared <- .prepare_data_dia(data,
                                      positive_label_value, negative_label_value,
                                      new_positive_label, new_negative_label)
@@ -1644,8 +1618,7 @@ voting_dia <- function(results_all_models, data,
   final_prob_predictions[is.na(final_prob_predictions)] <- 0.5
 
   eval_results <- evaluate_model_dia(y_data = y_true, sample_ids = sample_ids,
-                                     threshold_strategy = threshold_strategy,
-                                     specific_threshold_value = specific_threshold_value,
+                                     threshold_choices = threshold_choices,
                                      pos_class = pos_class, neg_class = neg_class,
                                      precomputed_prob = final_prob_predictions,
                                      y_original_numeric = y_original_numeric)
@@ -1665,6 +1638,7 @@ voting_dia <- function(results_all_models, data,
     evaluation_metrics = eval_results$evaluation_metrics
   )
 }
+
 
 #' @title Train an EasyEnsemble Model for Imbalanced Classification
 #' @description Implements the EasyEnsemble algorithm. It trains multiple base
@@ -1742,14 +1716,6 @@ imbalance_dia <- function(data,
 
   message(sprintf("Running Imbalance model: %s (base: %s)", "EasyEnsemble_dia", base_model_name))
 
-  if (is.character(threshold_choices) && length(threshold_choices) == 1 && threshold_choices %in% c("default", "f1", "youden")) {
-    threshold_strategy <- threshold_choices; specific_threshold_value <- NULL
-  } else if (is.numeric(threshold_choices) && length(threshold_choices) == 1 && threshold_choices >= 0 && threshold_choices <= 1) {
-    threshold_strategy <- "numeric"; specific_threshold_value <- threshold_choices
-  } else {
-    warning("Invalid threshold_choices. Using 'default'."); threshold_strategy <- "default"; specific_threshold_value <- NULL
-  }
-
   set.seed(seed)
   data_prepared <- .prepare_data_dia(data,
                                      positive_label_value, negative_label_value,
@@ -1822,8 +1788,7 @@ imbalance_dia <- function(data,
     model_obj = easyensemble_model_obj,
     X_data = X_data,
     y_data = y_data, sample_ids = sample_ids,
-    threshold_strategy = threshold_strategy,
-    specific_threshold_value = specific_threshold_value,
+    threshold_choices = threshold_choices,
     pos_class = pos_label_used, neg_class = neg_label_used,
     precomputed_prob = aggregated_prob,
     y_original_numeric = y_original_numeric
@@ -1836,141 +1801,305 @@ imbalance_dia <- function(data,
   )
 }
 
-#' @title Apply a Trained Diagnostic Model to New Data
-#' @description Applies a previously trained model (or ensemble) to a new, unseen
-#'   dataset to generate predicted probabilities.
+
+#' @title Apply a Trained Model to New Data
+#' @description Applies a trained diagnostic model (single or ensemble) to a new
+#'   dataset to generate predictions. It can handle various model objects created
+#'   by the package, including single caret models, Bagging, Stacking, Voting,
+#'   and EasyEnsemble objects.
 #'
-#' @param trained_model_object A trained model object, as returned by `models_dia`,
+#' @param trained_model_object (必需) A trained model object from `models_dia`,
 #'   `bagging_dia`, `stacking_dia`, `voting_dia`, or `imbalance_dia`.
-#' @param new_data A data frame containing the new data for prediction. The first
-#'   column must be the sample ID, subsequent columns are features.
-#' @param label_col_name A character string, the name of the column containing
-#'   the class labels in the new data. This is optional and only used
-#'   to include true labels in the output; it is not used for prediction.
-#' @param pos_class A character string, the label for the positive class (must
-#'   match the label used during training).
-#' @param neg_class A character string, the label for the negative class (must
-#'   match the label used during training).
+#' @param new_data (必需) A data frame containing the new samples for prediction.
+#'   The first column must be the sample ID.
+#' @param label_col_name An optional character string specifying the name of the
+#'   column in `new_data` that contains the true labels. **If `NULL` (the default),
+#'   the function will assume the second column is the label column.** To
+#'   explicitly prevent label extraction (e.g., for data without labels), provide `NA`.
+#' @param pos_class A character string for the positive class label used in the
+#'   model's probability predictions. **Defaults to `"Positive"`.**
+#' @param neg_class A character string for the negative class label. This parameter
+#'   is mainly for consistency, as prediction focuses on `pos_class` probability.
+#'   **Defaults to `"Negative"`.**
 #'
-#' @return A data frame with `sample` (ID), `label` (original numeric label from
-#'   new data, or NA if not provided), and `score` (predicted probability for the positive class).
+#' @return A data frame with three columns: `sample` (the sample IDs), `label`
+#'   (the true labels from `new_data`, or `NA` if not available/specified), and `score`
+#'   (the predicted probability for the positive class).
 #' @examples
 #' \donttest{
-#' # 1. Assume 'train_dia' and 'test_dia' are loaded from your package
-#' # data(train_dia)
-#' # data(test_dia) # test_dia has same structure, maybe without the label column
-#' initialize_modeling_system_dia()
+#' # Assuming `bagging_results` and `test_dia` are available from previous steps
+#' # bagging_model <- bagging_results$model_object
 #'
-#' # 2. Train a model
-#' train_results <- models_dia(
-#'   data = train_dia, model = "lasso",
-#'   new_positive_label = "Case", new_negative_label = "Control"
-#' )
-#' trained_lasso_model <- train_results$lasso$model_object
+#' # Example 1: Default behavior - use the second column of test_dia as label
+#' # predictions <- apply_dia(
+#' #   trained_model_object = bagging_model,
+#' #   new_data = test_dia
+#' # )
 #'
-#' # 3. Apply the trained model to new data
-#' new_predictions <- apply_dia(
-#'   trained_model_object = trained_lasso_model,
-#'   new_data = test_dia,
-#'   label_col_name = "Disease_Status", # Optional
-#'   pos_class = "Case",
-#'   neg_class = "Control"
-#' )
-#' utils::head(new_predictions)
+#' # Example 2: Explicitly specify the label column by name
+#' # predictions_explicit <- apply_dia(
+#' #   trained_model_object = bagging_model,
+#' #   new_data = test_dia,
+#' #   label_col_name = "outcome"
+#' # )
+#'
+#' # Example 3: Predict on data without labels
+#' # test_data_no_labels <- test_dia[, -2] # Remove outcome column
+#' # predictions_no_label <- apply_dia(
+#' #   trained_model_object = bagging_model,
+#' #   new_data = test_data_no_labels,
+#' #   label_col_name = NA # Explicitly disable label extraction
+#' # )
 #' }
-#' @importFrom dplyr select
-#' @importFrom caret predict.train
+#' @importFrom stats median weighted.mean
+#' @importFrom utils head
 #' @export
-apply_dia <- function(trained_model_object, new_data, label_col_name = NULL,
-                      pos_class, neg_class) {
-
+apply_dia <- function(trained_model_object, new_data,
+                      label_col_name = NULL,
+                      pos_class = "Positive",
+                      neg_class = "Negative") {
+  # --- Input Validation ---
+  if (!is.data.frame(new_data) || ncol(new_data) < 1) {
+    stop("'new_data' must be a data frame with at least one column for sample IDs.")
+  }
   if (is.null(trained_model_object)) {
-    stop("Trained model object is NULL. Cannot apply to new data.")
-  }
-  if (!is.data.frame(new_data)) {
-    stop("'new_data' must be a data frame.")
+    stop("'trained_model_object' cannot be NULL.")
   }
 
-  message("Applying model to new data...")
+  sample_ids <- new_data[[1]]
+  true_labels <- NA
+  feature_col_names <- names(new_data)[-1] # Start with all columns except ID
 
-  new_df_original <- new_data
-  names(new_df_original) <- trimws(names(new_df_original))
-
-  new_sample_ids <- new_df_original[[1]]
-  y_new_true_numeric <- rep(NA, nrow(new_df_original))
-
-  feature_cols <- setdiff(names(new_df_original), names(new_df_original)[1])
-  if (!is.null(label_col_name) && label_col_name %in% names(new_df_original)) {
-    y_new_true_numeric <- new_df_original[[label_col_name]]
-    feature_cols <- setdiff(feature_cols, label_col_name)
-  } else if (!is.null(label_col_name)) {
-    warning("Label column '", label_col_name, "' not found in new data. 'label' column in results will be NA.")
-  }
-
-  X_new <- new_df_original[, feature_cols, drop = FALSE]
-
-  # Ensure feature columns are of appropriate types
-  for (col_name in names(X_new)) {
-    if (is.character(X_new[[col_name]])) {
-      X_new[[col_name]] <- base::as.factor(X_new[[col_name]])
-    }
-  }
-  X_new <- as.data.frame(X_new)
-
-  prob_new <- NULL
-
-  if ("train" %in% class(trained_model_object)) {
-    prob_new <- caret::predict.train(trained_model_object, X_new, type = "prob")[, pos_class]
-  } else if (is.list(trained_model_object) && !is.null(trained_model_object$model_type)) {
-    # This logic is complex and relies on the structure of the ensemble object.
-    # It's simplified here for brevity but the full logic from your original function
-    # `apply_model_to_new_data_dia` should be used.
-    # The key is to get the base models and predict, then combine.
-
-    # A simplified prediction logic for ensembles:
-    # 1. Extract base models
-    base_models <- trained_model_object$base_model_objects
-    if (is.null(base_models)) stop("Could not find base models in the ensemble object.")
-
-    # 2. Get predictions from each base model
-    all_base_probs <- sapply(base_models, function(bm) {
-      if (!is.null(bm) && "train" %in% class(bm)) {
-        tryCatch(
-          caret::predict.train(bm, X_new, type = "prob")[, pos_class],
-          error = function(e) rep(NA, nrow(X_new))
-        )
-      } else {
-        rep(NA, nrow(X_new))
-      }
-    })
-
-    # 3. Aggregate based on ensemble type
-    model_type <- trained_model_object$model_type
-    if (model_type %in% c("bagging", "easyensemble")) {
-      prob_new <- rowMeans(all_base_probs, na.rm = TRUE)
-    } else if (model_type == "stacking") {
-      meta_model <- trained_model_object$trained_meta_model
-      X_meta_new <- as.data.frame(all_base_probs)
-      names(X_meta_new) <- paste0("pred_", trained_model_object$base_models_used)
-      prob_new <- caret::predict.train(meta_model, X_meta_new, type = "prob")[, pos_class]
-    } else if (model_type == "voting") {
-      # Simplified logic for soft voting; hard voting is more complex
-      weights <- trained_model_object$base_model_weights %||% rep(1, ncol(all_base_probs))
-      prob_new <- apply(all_base_probs, 1, function(row) stats::weighted.mean(row, w = weights, na.rm = TRUE))
+  # --- Determine Label Column ---
+  if (is.null(label_col_name)) {
+    if (ncol(new_data) >= 2) {
+      label_col_name <- names(new_data)[2]
+      message(sprintf("`label_col_name` not provided, defaulting to the second column: '%s'. To disable, set label_col_name = NA.", label_col_name))
     } else {
-      stop("Unsupported ensemble model type for prediction.")
+      label_col_name <- NA
     }
-
-  } else {
-    stop("Unsupported trained model object type for prediction.")
   }
 
-  prob_new[is.na(prob_new)] <- stats::median(prob_new, na.rm = TRUE)
+  if (!is.na(label_col_name)) {
+    if (label_col_name %in% names(new_data)) {
+      true_labels <- new_data[[label_col_name]]
+      feature_col_names <- setdiff(feature_col_names, label_col_name)
+    } else {
+      warning(sprintf("Specified label column '%s' not found in 'new_data'. No labels will be extracted.", label_col_name))
+    }
+  }
 
-  data.frame(
-    sample = new_sample_ids,
-    label = y_new_true_numeric,
-    score = prob_new
+  X_new <- new_data[, feature_col_names, drop = FALSE]
+
+  # --- Predict Probabilities based on Model Type ---
+  prob <- NULL
+  model_type <- if ("train" %in% class(trained_model_object)) "caret" else trained_model_object$model_type
+
+  if (is.null(model_type)) {
+    stop("Unsupported model type. Please provide a caret 'train' object or a supported ensemble object.")
+  }
+
+  # Helper to get consistently ordered feature set
+  get_ordered_features <- function(model_obj, new_data) {
+    train_features <- names(model_obj$trainingData)[-ncol(model_obj$trainingData)]
+    missing_features <- setdiff(train_features, names(new_data))
+    if (length(missing_features) > 0) {
+      stop(paste("New data is missing required features:", paste(missing_features, collapse = ", ")))
+    }
+    return(new_data[, train_features, drop = FALSE])
+  }
+
+  if (model_type == "caret") {
+    X_new_ordered <- get_ordered_features(trained_model_object, X_new)
+    prob <- caret::predict.train(trained_model_object, X_new_ordered, type = "prob")[, pos_class]
+  } else if (model_type %in% c("bagging", "easyensemble")) {
+    first_base_model <- trained_model_object$base_model_objects[[1]]
+    if(is.null(first_base_model)) stop("No valid base models found in the ensemble.")
+    X_new_ordered <- get_ordered_features(first_base_model, X_new)
+
+    all_probs <- lapply(trained_model_object$base_model_objects, function(m) {
+      if (!is.null(m)) caret::predict.train(m, X_new_ordered, type = "prob")[, pos_class] else NA
+    })
+    prob <- rowMeans(do.call(cbind, all_probs), na.rm = TRUE)
+  } else if (model_type == "stacking") {
+    X_meta_list <- lapply(trained_model_object$base_models_used, function(name) {
+      base_model_obj <- trained_model_object$base_model_objects[[name]]
+      X_new_ordered_base <- get_ordered_features(base_model_obj, X_new)
+      caret::predict.train(base_model_obj, X_new_ordered_base, type = "prob")[, pos_class]
+    })
+    X_meta_features <- as.data.frame(do.call(cbind, X_meta_list))
+    names(X_meta_features) <- paste0("pred_", trained_model_object$base_models_used)
+    prob <- caret::predict.train(trained_model_object$trained_meta_model, X_meta_features, type = "prob")[, pos_class]
+  } else if (model_type == "voting") {
+    prob_matrix <- do.call(cbind, lapply(trained_model_object$base_models_used, function(name) {
+      model_obj <- trained_model_object$base_model_objects[[name]]
+      X_new_ordered_base <- get_ordered_features(model_obj, X_new)
+      caret::predict.train(model_obj, X_new_ordered_base, type = "prob")[, pos_class]
+    }))
+
+    if (trained_model_object$voting_type == "soft") {
+      prob <- apply(prob_matrix, 1, function(p) stats::weighted.mean(p, trained_model_object$base_model_weights, na.rm = TRUE))
+    } else { # Hard voting
+      class_matrix <- sapply(seq_along(trained_model_object$base_models_used), function(i) {
+        threshold <- trained_model_object$base_model_thresholds[[i]] %||% 0.5
+        ifelse(prob_matrix[, i] >= threshold, 1, 0)
+      })
+      prob <- rowMeans(class_matrix, na.rm = TRUE) # Returns proportion of positive votes
+    }
+  }
+
+  if (is.null(prob)) stop("Failed to generate predictions.")
+  prob[is.na(prob)] <- stats::median(prob, na.rm = TRUE)
+
+  return(data.frame(sample = sample_ids, label = true_labels, score = prob))
+}
+
+
+#' @title Evaluate Predictions from a Data Frame
+#' @description Evaluates model performance from a data frame of predictions,
+#'   calculating metrics like AUROC, AUPRC, F1 score, etc. This function is designed
+#'   for use with prediction results, such as the output from `apply_dia`.
+#'
+#' @param prediction_df (必需) A data frame containing predictions. Must contain
+#'   the columns `sample`, `label` (true labels), and `score` (predicted probabilities).
+#' @param threshold_choices A character string specifying the thresholding strategy
+#'   ("default", "f1", "youden") or a numeric probability threshold value (0-1).
+#' @param pos_class A character string for the positive class label used in reporting.
+#'   **Defaults to `"Positive"`.**
+#' @param neg_class A character string for the negative class label used in reporting.
+#'   **Defaults to `"Negative"`.**
+#'
+#' @details
+#' This function strictly requires the `label` column in `prediction_df` to adhere
+#' to the following format:
+#' \itemize{
+#'   \item **`1`**: Represents the positive class.
+#'   \item **`0`**: Represents the negative class.
+#'   \item **`NA`**: Will be ignored during calculation.
+#' }
+#' The function will stop with an error if any other values are found in the `label` column.
+#'
+#' @return A named list containing all calculated performance metrics.
+#' @examples
+#' \donttest{
+#' # # Create a sample prediction data frame
+#' # predictions_df <- data.frame(
+#' #   sample = 1:10,
+#' #   label = c(1, 0, 1, 1, 0, 0, 1, 0, 1, 0),
+#' #   score = c(0.9, 0.2, 0.8, 0.6, 0.3, 0.4, 0.95, 0.1, 0.7, 0.5)
+#' # )
+#' #
+#' # # Evaluate the predictions using the 'f1' threshold strategy
+#' # evaluation_results <- evaluate_predictions_dia(
+#' #   prediction_df = predictions_df,
+#' #   threshold_choices = "f1"
+#' # )
+#' #
+#' # print(evaluation_results)
+#' }
+#' @importFrom pROC roc auc ci.auc
+#' @importFrom PRROC pr.curve
+#' @export
+evaluate_predictions_dia <- function(prediction_df,
+                                     threshold_choices = "default",
+                                     pos_class = "Positive",
+                                     neg_class = "Negative") {
+  # --- Input Validation ---
+  required_cols <- c("sample", "label", "score")
+  if (!all(required_cols %in% names(prediction_df))) {
+    stop(sprintf("`prediction_df` must contain the columns: %s", paste(required_cols, collapse = ", ")))
+  }
+  if (all(is.na(prediction_df$label))) {
+    stop("Cannot evaluate predictions: the 'label' column contains no true labels (all are NA).")
+  }
+
+  # --- Prepare and Validate Data for Evaluation ---
+  prob <- prediction_df$score
+  raw_labels <- prediction_df$label
+
+  # Remove samples with missing labels or scores for calculation
+  valid_indices <- !is.na(raw_labels) & !is.na(prob)
+  if(sum(!valid_indices) > 0) {
+    message(sprintf("%d rows with NA labels or scores were removed before evaluation.", sum(!valid_indices)))
+  }
+  raw_labels <- raw_labels[valid_indices]
+  prob <- prob[valid_indices]
+
+  if(length(raw_labels) == 0) stop("No valid pairs of labels and scores to evaluate.")
+
+  # **NEW LOGIC: Strictly enforce that labels must be 0 or 1**
+  unique_labels <- unique(raw_labels)
+  if (!all(unique_labels %in% c(0, 1))) {
+    invalid_labels <- unique_labels[!unique_labels %in% c(0, 1)]
+    stop(sprintf("Invalid values found in the 'label' column: %s. This function requires labels to be strictly 0 (negative) or 1 (positive).",
+                 paste(invalid_labels, collapse = ", ")))
+  }
+  if (length(unique_labels) < 2) {
+    stop(paste("The 'label' column has fewer than two unique non-NA values (needs both 0 and 1):", paste(unique_labels, collapse=", ")))
+  }
+
+  # Create factor based on the 0/1 rule
+  y_data <- factor(
+    raw_labels,
+    levels = c(0, 1),
+    labels = c(neg_class, pos_class)
+  )
+
+  # --- Find Optimal Threshold ---
+  final_threshold <- 0.5
+  strategy_used <- "default"
+
+  if (is.character(threshold_choices) && length(threshold_choices) == 1) {
+    strategy <- tolower(threshold_choices)
+    if (strategy == "f1") {
+      final_threshold <- find_optimal_threshold_dia(prob, y_data, type = "f1", pos_class = pos_class, neg_class = neg_class)
+      strategy_used <- "f1"
+    } else if (strategy == "youden") {
+      final_threshold <- find_optimal_threshold_dia(prob, y_data, type = "youden", pos_class = pos_class, neg_class = neg_class)
+      strategy_used <- "youden"
+    } else if (strategy != "default") {
+      warning(sprintf("Invalid string for threshold_choices: '%s'. Falling back to default (0.5).", threshold_choices))
+    }
+  } else if (is.numeric(threshold_choices) && length(threshold_choices) == 1 && threshold_choices >= 0 && threshold_choices <= 1) {
+    final_threshold <- threshold_choices
+    strategy_used <- "numeric"
+  } else if(!is.character(threshold_choices) || threshold_choices != "default"){
+    warning("Invalid threshold_choices value. Falling back to default (0.5).")
+  }
+
+  # --- Calculate All Metrics ---
+  metrics_at_threshold <- calculate_metrics_at_threshold_dia(prob, y_data, final_threshold, pos_class = pos_class, neg_class = neg_class)
+
+  roc_obj <- pROC::roc(y_data, prob, quiet = TRUE, levels = c(neg_class, pos_class))
+  roc_auc <- as.numeric(pROC::auc(roc_obj))
+  roc_ci_lower <- NA ; roc_ci_upper <- NA
+  tryCatch({
+    roc_ci <- pROC::ci.auc(roc_obj, conf.level = 0.95)
+    roc_ci_lower <- roc_ci[1]
+    roc_ci_upper <- roc_ci[3]
+  }, error = function(e) {
+    warning(paste("Could not calculate ROC CI:", e$message))
+  })
+
+  pr_auc <- tryCatch({
+    pr_curve_obj <- PRROC::pr.curve(scores.class0 = prob[y_data == pos_class], scores.class1 = prob[y_data == neg_class])
+    pr_curve_obj$auc.integral
+  }, error = function(e) {
+    warning(paste("Could not calculate AUPRC:", e$message)); NA
+  })
+
+  list(
+    Threshold_Strategy = strategy_used,
+    Threshold = final_threshold,
+    Accuracy = metrics_at_threshold$Accuracy,
+    Precision = metrics_at_threshold$Precision,
+    Recall = metrics_at_threshold$Recall,
+    F1 = metrics_at_threshold$F1,
+    Specificity = metrics_at_threshold$Specificity,
+    AUROC = roc_auc,
+    AUROC_95CI_Lower = roc_ci_lower,
+    AUROC_95CI_Upper = roc_ci_upper,
+    AUPRC = pr_auc
   )
 }
 

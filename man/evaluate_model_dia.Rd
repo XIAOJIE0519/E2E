@@ -9,8 +9,7 @@ evaluate_model_dia(
   X_data = NULL,
   y_data,
   sample_ids,
-  threshold_strategy = c("default", "f1", "youden", "numeric"),
-  specific_threshold_value = 0.5,
+  threshold_choices = "default",
   pos_class,
   neg_class,
   precomputed_prob = NULL,
@@ -28,12 +27,8 @@ Required if \code{model_obj} is provided and \code{precomputed_prob} is \code{NU
 
 \item{sample_ids}{A vector of sample IDs for the evaluation data.}
 
-\item{threshold_strategy}{A character string, defining how to determine the
-threshold for class-specific metrics: "default" (0.5), "f1" (maximizes F1-score),
-"youden" (maximizes Youden's J statistic), or "numeric" (uses \code{specific_threshold_value}).}
-
-\item{specific_threshold_value}{A numeric value between 0 and 1. Only used
-if \code{threshold_strategy} is "numeric".}
+\item{threshold_choices}{A character string specifying the thresholding strategy
+("default", "f1", "youden") or a numeric probability threshold value (0-1).}
 
 \item{pos_class}{A character string, the label for the positive class.}
 
@@ -89,7 +84,7 @@ eval_results <- evaluate_model_dia(
   X_data = X_toy,
   y_data = y_toy,
   sample_ids = ids_toy,
-  threshold_strategy = "f1",
+  threshold_choices = "f1",
   pos_class = "Case",
   neg_class = "Control"
 )

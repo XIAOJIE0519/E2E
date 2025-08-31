@@ -18,12 +18,12 @@ knitr::opts_chunk$set(
 
 **E2E** is a comprehensive R package designed to streamline the development, evaluation, and interpretation of machine learning models for both **diagnostic (classification)** and **prognostic (survival analysis)** tasks. It provides a robust, extensible framework for training individual models and building powerful ensembles—including Bagging, Voting, and Stacking—with minimal code. The package also includes integrated tools for visualization and model explanation via SHAP values.
 
-**Author:** Shanjie Luan (ORCID: 0009-0002-8569-8526)
+**Author:** Shanjie Luan (ORCID: 0009-0002-8569-8526), Ximing Wang
 
 **Citation:** If you use E2E in your research, please cite it as:
-"Shanjie Luan (2025). E2E: An R Package for Easy-to-Build Ensemble Models. [https://github.com/XIAOJIE0519/E2E](https://github.com/XIAOJIE0519/E2E)"
+"Shanjie Luan, Ximing Wang (2025). E2E: An R Package for Easy-to-Build Ensemble Models. [https://github.com/XIAOJIE0519/E2E](https://github.com/XIAOJIE0519/E2E)"
 
-**Note:** The article is in the process of being written/submitted and is undergoing review by CRAN and further revisions. If you have any questions, please contact [Luan20050519@163.com](mailto:Luan20050519@163.com).
+**Note:** The article is open source on CRAN and Github and is free to use, but you have to cite our article if you use E2E in your research. If you have any questions, please contact [Luan20050519@163.com](mailto:Luan20050519@163.com).
 
 ## Installation
 

@@ -255,11 +255,10 @@ figure_pro <- function(type, data, file = NULL, time_unit = "days") {
     )
     plot_obj <- km_list$plot
 
-  } else { # ---- tdroc ----
+  } else { # type == "tdroc"
     raw_eval <- data$evaluation_metrics$AUROC_Years
     if (is.null(raw_eval)) stop("'AUROC_Years' is missing from data$evaluation_metrics.")
     eval_years <- .normalize_years(raw_eval)
-
 
     pre_auc <- NULL
     if (!is.null(names(raw_eval))) {
@@ -270,7 +269,7 @@ figure_pro <- function(type, data, file = NULL, time_unit = "days") {
     factor <- .time_factor(time_unit)
     eval_times <- eval_years * factor
 
-    # 1)
+    # Attempt using the more robust timeROC package first
     roc_res <- tryCatch({
       timeROC::timeROC(T = df$time, delta = df$outcome, marker = df$score,
                        cause = 1, times = eval_times, iid = FALSE)
@@ -281,50 +280,58 @@ figure_pro <- function(type, data, file = NULL, time_unit = "days") {
       yr  <- eval_years[i]
       tpt <- eval_times[i]
 
+      FPR <- NULL; TPR <- NULL; auc_calc <- NA_real_
 
-      use_timeROC <- !is.null(roc_res) &&
-        i <= NCOL(roc_res$FP) &&
-        !all(is.na(roc_res$FP[, i])) &&
-        !is.na(roc_res$AUC[i])
-
+      # Primary method: Extract results from timeROC
+      use_timeROC <- !is.null(roc_res) && i <= NCOL(roc_res$FP) && !all(is.na(roc_res$FP[, i]))
       if (use_timeROC) {
         FPR <- roc_res$FP[, i]
         TPR <- roc_res$TP[, i]
         auc_calc <- roc_res$AUC[i]
       } else {
-        # 2)
+        # Fallback method: Use survivalROC for individual time points
         sroc <- tryCatch({
           survivalROC::survivalROC(Stime = df$time, status = df$outcome,
                                    marker = df$score, predict.time = tpt,
                                    method = "NNE", span = 0.25)
         }, error = function(e) NULL)
 
-        if (is.null(sroc) || all(is.na(sroc$FP)) || all(is.na(sroc$TP))) {
-          next
+        if (!is.null(sroc) && !all(is.na(sroc$FP)) && !all(is.na(sroc$TP))) {
+          FPR <- sroc$FP
+          TPR <- sroc$TP
+          auc_calc <- sroc$AUC
         }
-        FPR <- sroc$FP
-        TPR <- sroc$TP
-        auc_calc <- if (!is.null(sroc$AUC)) sroc$AUC else NA_real_
       }
 
+      # ***MODIFICATION***: Check if calculation was successful, otherwise warn and skip.
+      if (is.null(FPR) || is.null(TPR)) {
+        warning(sprintf("Could not compute ROC curve for %d-Year time point. Skipping. (This may be due to insufficient events before this time).", yr))
+        next
+      }
+
+      # Prioritize pre-calculated AUC for the label, otherwise use the calculated one
       auc_for_label <- if (!is.null(pre_auc) && as.character(yr) %in% names(pre_auc)) {
         suppressWarnings(as.numeric(pre_auc[as.character(yr)]))
       } else {
         auc_calc
       }
 
-      roc_df_list[[length(roc_df_list) + 1]] <- data.frame(
-        FPR   = FPR,
-        TPR   = TPR,
-        Label = sprintf("%d-Year (AUC=%.3f)", as.integer(yr), auc_for_label),
-        stringsAsFactors = FALSE
-      )
+      # ***MODIFICATION***: Create a more robust label
+      auc_text <- ifelse(is.na(auc_for_label), "N/A", sprintf("%.3f", auc_for_label))
+      label_text <- sprintf("%d-Year (AUC=%s)", as.integer(yr), auc_text)
+
+      roc_df_list[[as.character(yr)]] <- data.frame(FPR = FPR, TPR = TPR, Label = label_text, stringsAsFactors = FALSE)
     }
 
     if (length(roc_df_list) == 0)
       stop("Failed to compute any time-dependent ROC curves for the requested years.")
 
     all_roc_data <- do.call(rbind, roc_df_list)
+
+    # ***MODIFICATION***: Create ordered factor for the legend to ensure correct order
+    year_order <- sort(as.numeric(names(roc_df_list)))
+    ordered_labels <- sapply(year_order, function(y) roc_df_list[[as.character(y)]]$Label[1])
+    all_roc_data$Label <- factor(all_roc_data$Label, levels = ordered_labels)
 
     plot_obj <- ggplot2::ggplot(all_roc_data, ggplot2::aes(x = FPR, y = TPR, color = Label)) +
       ggplot2::geom_line(linewidth = 1.1) +
