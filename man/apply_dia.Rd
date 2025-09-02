@@ -13,10 +13,10 @@ apply_dia(
 )
 }
 \arguments{
-\item{trained_model_object}{(必需) A trained model object from \code{models_dia},
+\item{trained_model_object}{A trained model object from \code{models_dia},
 \code{bagging_dia}, \code{stacking_dia}, \code{voting_dia}, or \code{imbalance_dia}.}
 
-\item{new_data}{(必需) A data frame containing the new samples for prediction.
+\item{new_data}{A data frame containing the new samples for prediction.
 The first column must be the sample ID.}
 
 \item{label_col_name}{An optional character string specifying the name of the

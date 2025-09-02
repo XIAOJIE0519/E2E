@@ -20,7 +20,8 @@ navbar:
           href: articles/prognostic-workflow.html
         - text: "4. Advanced Features & Customization"
           href: articles/advanced-features.html
-
+        - text: "5. Parameter Reference Guide"
+          href: articles/parameter-reference.html
 
 reference:
 - title: "Core Modeling Functions"

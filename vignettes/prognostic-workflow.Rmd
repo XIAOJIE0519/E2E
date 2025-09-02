@@ -42,7 +42,7 @@ initialize_modeling_system_pro()
 The `models_pro` function trains one or more standard survival models. For this demonstration, we'll run a subset.
 
 ```{r}
-# Run a subset of available prognostic models
+# Run a subset of available prognostic models. If all, use model = "all_pro".
 results_all_pro <- models_pro(train_pro, model = c("lasso_pro", "rsf_pro"))
 
 # Print summary for Random Survival Forest

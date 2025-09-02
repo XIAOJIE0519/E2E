@@ -46,7 +46,7 @@ The `models_dia` function is the gateway to training one or more standard classi
 By default, `models_dia` runs all registered models. For this demonstration, we'll run a subset to save time.
 
 ```{r}
-# To run all, use model = "all_dia" or omit the parameter.
+# To run all, use model = "all_dia".
 results_all_dia <- models_dia(train_dia, model = c("rf", "lasso", "xb"))
 
 # Print a summary for a specific model (e.g., Random Forest)
@@ -64,11 +64,7 @@ results_dia_custom <- models_dia(
   model = c("rf", "lasso", "xb"),
   tune = TRUE,
   seed = 123,
-  threshold_choices = list(rf = "f1", lasso = 0.6, xb = "youden"),
-  positive_label_value = 1,
-  negative_label_value = 0,
-  new_positive_label = "Case",
-  new_negative_label = "Control"
+  threshold_choices = list(rf = "f1", lasso = 0.6, xb = "youden")
 )
 
 # View the custom results

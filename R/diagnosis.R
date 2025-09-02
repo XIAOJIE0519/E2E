@@ -1808,9 +1808,9 @@ imbalance_dia <- function(data,
 #'   by the package, including single caret models, Bagging, Stacking, Voting,
 #'   and EasyEnsemble objects.
 #'
-#' @param trained_model_object (必需) A trained model object from `models_dia`,
+#' @param trained_model_object A trained model object from `models_dia`,
 #'   `bagging_dia`, `stacking_dia`, `voting_dia`, or `imbalance_dia`.
-#' @param new_data (必需) A data frame containing the new samples for prediction.
+#' @param new_data A data frame containing the new samples for prediction.
 #'   The first column must be the sample ID.
 #' @param label_col_name An optional character string specifying the name of the
 #'   column in `new_data` that contains the true labels. **If `NULL` (the default),
@@ -1960,7 +1960,7 @@ apply_dia <- function(trained_model_object, new_data,
 #'   calculating metrics like AUROC, AUPRC, F1 score, etc. This function is designed
 #'   for use with prediction results, such as the output from `apply_dia`.
 #'
-#' @param prediction_df (必需) A data frame containing predictions. Must contain
+#' @param prediction_df  A data frame containing predictions. Must contain
 #'   the columns `sample`, `label` (true labels), and `score` (predicted probabilities).
 #' @param threshold_choices A character string specifying the thresholding strategy
 #'   ("default", "f1", "youden") or a numeric probability threshold value (0-1).

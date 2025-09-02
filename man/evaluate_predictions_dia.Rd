@@ -12,7 +12,7 @@ evaluate_predictions_dia(
 )
 }
 \arguments{
-\item{prediction_df}{(必需) A data frame containing predictions. Must contain
+\item{prediction_df}{A data frame containing predictions. Must contain
 the columns \code{sample}, \code{label} (true labels), and \code{score} (predicted probabilities).}
 
 \item{threshold_choices}{A character string specifying the thresholding strategy
