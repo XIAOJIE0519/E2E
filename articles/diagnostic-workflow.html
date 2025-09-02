@@ -38,6 +38,7 @@
     <li><a class="dropdown-item" href="../articles/diagnostic-workflow.html">2. Diagnostic Workflow</a></li>
     <li><a class="dropdown-item" href="../articles/prognostic-workflow.html">3. Prognostic Workflow</a></li>
     <li><a class="dropdown-item" href="../articles/advanced-features.html">4. Advanced Features &amp; Customization</a></li>
+    <li><a class="dropdown-item" href="../articles/parameter-reference.html">5. Parameter Reference Guide</a></li>
   </ul>
 </li>
       </ul>
@@ -62,7 +63,7 @@
       <h1>2. Diagnostic Workflow</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/xiaojie0519/E2E/blob/v0.1.0/vignettes/diagnostic-workflow.Rmd" class="external-link"><code>vignettes/diagnostic-workflow.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/xiaojie0519/E2E/blob/main/vignettes/diagnostic-workflow.Rmd" class="external-link"><code>vignettes/diagnostic-workflow.Rmd</code></a></small>
       <div class="d-none name"><code>diagnostic-workflow.Rmd</code></div>
     </div>
 
@@ -94,7 +95,7 @@ or more standard classification models.</p>
 <p>By default, <code>models_dia</code> runs all registered models. For
 this demonstration, we’ll run a subset to save time.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># To run all, use model = "all_dia" or omit the parameter.</span></span>
+<code class="sourceCode R"><span><span class="co"># To run all, use model = "all_dia".</span></span>
 <span><span class="va">results_all_dia</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/models_dia.html">models_dia</a></span><span class="op">(</span><span class="va">train_dia</span>, model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"rf"</span>, <span class="st">"lasso"</span>, <span class="st">"xb"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Running model: rf</span></span>
 <span><span class="co">#&gt; Warning in ci.auc.roc(roc_obj, conf.level = 0.95): ci.auc() of a ROC curve with</span></span>
@@ -130,11 +131,7 @@ parameters.</p>
 <span>  model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"rf"</span>, <span class="st">"lasso"</span>, <span class="st">"xb"</span><span class="op">)</span>,</span>
 <span>  tune <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">123</span>,</span>
-<span>  threshold_choices <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>rf <span class="op">=</span> <span class="st">"f1"</span>, lasso <span class="op">=</span> <span class="fl">0.6</span>, xb <span class="op">=</span> <span class="st">"youden"</span><span class="op">)</span>,</span>
-<span>  positive_label_value <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  negative_label_value <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  new_positive_label <span class="op">=</span> <span class="st">"Case"</span>,</span>
-<span>  new_negative_label <span class="op">=</span> <span class="st">"Control"</span></span>
+<span>  threshold_choices <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>rf <span class="op">=</span> <span class="st">"f1"</span>, lasso <span class="op">=</span> <span class="fl">0.6</span>, xb <span class="op">=</span> <span class="st">"youden"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Running model: rf</span></span>
 <span><span class="co">#&gt; Warning in ci.auc.roc(roc_obj, conf.level = 0.95): ci.auc() of a ROC curve with</span></span>

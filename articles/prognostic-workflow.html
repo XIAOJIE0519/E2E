@@ -38,6 +38,7 @@
     <li><a class="dropdown-item" href="../articles/diagnostic-workflow.html">2. Diagnostic Workflow</a></li>
     <li><a class="dropdown-item" href="../articles/prognostic-workflow.html">3. Prognostic Workflow</a></li>
     <li><a class="dropdown-item" href="../articles/advanced-features.html">4. Advanced Features &amp; Customization</a></li>
+    <li><a class="dropdown-item" href="../articles/parameter-reference.html">5. Parameter Reference Guide</a></li>
   </ul>
 </li>
       </ul>
@@ -62,7 +63,7 @@
       <h1>3. Prognostic Workflow</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/xiaojie0519/E2E/blob/v0.1.0/vignettes/prognostic-workflow.Rmd" class="external-link"><code>vignettes/prognostic-workflow.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/xiaojie0519/E2E/blob/main/vignettes/prognostic-workflow.Rmd" class="external-link"><code>vignettes/prognostic-workflow.Rmd</code></a></small>
       <div class="d-none name"><code>prognostic-workflow.Rmd</code></div>
     </div>
 
@@ -88,7 +89,7 @@
 <p>The <code>models_pro</code> function trains one or more standard
 survival models. For this demonstration, we’ll run a subset.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Run a subset of available prognostic models</span></span>
+<code class="sourceCode R"><span><span class="co"># Run a subset of available prognostic models. If all, use model = "all_pro".</span></span>
 <span><span class="va">results_all_pro</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/models_pro.html">models_pro</a></span><span class="op">(</span><span class="va">train_pro</span>, model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lasso_pro"</span>, <span class="st">"rsf_pro"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Running model: lasso_pro</span></span>
 <span><span class="co">#&gt; Running model: rsf_pro</span></span>

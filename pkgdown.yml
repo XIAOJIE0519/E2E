@@ -5,8 +5,9 @@ articles:
   advanced-features: advanced-features.html
   diagnostic-workflow: diagnostic-workflow.html
   getting-started: getting-started.html
+  parameter-reference: parameter-reference.html
   prognostic-workflow: prognostic-workflow.html
-last_built: 2025-08-31T01:16Z
+last_built: 2025-09-02T07:18Z
 urls:
   reference: https://xiaojie0519.github.io/E2E/reference
   article: https://xiaojie0519.github.io/E2E/articles
