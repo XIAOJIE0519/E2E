@@ -2122,15 +2122,21 @@ evaluate_predictions_dia <- function(prediction_df,
 #' @export
 initialize_modeling_system_dia <- function() {
   if (.model_registry_env_dia$is_initialized) {
-    message("Diagnostic modeling system already initialized.")
+    message("Diagnostic modeling system already initialized")
     return(invisible(NULL))
   }
 
-  # Check if required packages are installed
-  for (pkg in required_packages_dia) {
-    if (!base::requireNamespace(pkg, quietly = TRUE)) {
-      stop(paste("Package '", pkg, "' is required but not installed. Please install it using install.packages('", pkg, "').", sep=""))
-    }
+  # Check core packages
+  required_packages_dia <- c("caret", "pROC", "PRROC", "glmnet", "MASS", "gbm", "xgboost")
+
+  missing <- required_packages_dia[!sapply(required_packages_dia, requireNamespace, quietly = TRUE)]
+
+  if (length(missing) > 0) {
+    stop(sprintf(
+      "Missing required packages: %s\nPlease run: install.packages(c('%s'))",
+      paste(missing, collapse = ", "),
+      paste(missing, collapse = "', '")
+    ))
   }
 
   # Register default models

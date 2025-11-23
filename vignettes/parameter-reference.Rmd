@@ -38,13 +38,62 @@ E2E includes example datasets for both diagnostic and prognostic modeling:
 - **dt**: Decision Tree
 - **gbm**: Gradient Boosting Machine
 
-### Prognostic Models (6 algorithms)
+### Prognostic Models (9 algorithms)
 - **lasso_pro**: Lasso Cox Regression
 - **en_pro**: Elastic Net Cox Regression  
 - **ridge_pro**: Ridge Cox Regression
 - **stepcox_pro**: Stepwise Cox Regression
-- **gbm_pro**: Gradient Boosting Machine
+- **gbm_pro**: Gradient Boosting Machine for Cox
 - **rsf_pro**: Random Survival Forest
+- **cb_pro**: CoxBoost
+- **pc_pro**: Supervised Principal Components (SuperPC)
+- **pls_pro**: Partial Least Squares Cox Regression
+
+# Integrated Pipeline Functions
+
+## int_dia()
+Comprehensive diagnostic modeling pipeline executing single models, bagging, stacking, and voting ensembles.
+
+**Parameters:**
+
+- `...` (required): Data frames for analysis. First = training dataset; subsequent = test datasets. Structure: column 1 = sample ID, column 2 = outcome (0/1), columns 3+ = features
+
+- `tune`: Logical (default TRUE). Enable hyperparameter tuning for base models
+
+- `n_estimators`: Integer (default 10). Number of bootstrap samples for bagging
+
+- `seed`: Integer (default 123). Random seed for reproducibility
+
+## int_pro()
+
+Comprehensive prognostic modeling pipeline for survival analysis.
+
+**Parameters:**
+
+* `...` (required): Data frames. First = training; others = test sets. Structure: column 1 = ID, column 2 = survival status (0/1), column 3 = survival time, columns 4+ = features
+
+* `tune`: Logical (default TRUE). Enable tuning
+
+* `n_estimators`: Integer (default 10). Bagging iterations
+
+* `seed`: Integer (default 123). Random seed
+
+* `time_unit`: String (default "day"). Time unit: "day", "month", or "year"
+
+* `years_to_evaluate`: Numeric vector (default c(1,3,5)). Years for time-dependent AUROC
+
+## plot_integrated_results()
+
+Visualizes integrated modeling results with heatmap and summary plots.
+
+**Parameters:**
+
+* `results_obj` (required): Output from `int_dia()`, `int_imbalance()`, or `int_pro()`
+
+* `metric_name`: Character string (default "AUROC"). Metric name for plot labels (e.g., "AUROC", "C-index")
+
+**Returns:** ggplot object (invisibly)
+
 
 # Diagnostic Modeling Functions
 

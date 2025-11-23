@@ -12,6 +12,8 @@ navbar:
       href: reference/index.html
     - text: "Articles"
       menu:
+        - text: "0. One-click run all models"
+          href: articles/integrated-pipeline.html
         - text: "1. Getting Started"
           href: articles/getting-started.html
         - text: "2. Diagnostic Workflow"
@@ -24,6 +26,12 @@ navbar:
           href: articles/parameter-reference.html
 
 reference:
+- title: "Integrated Pipelines"
+  desc: >
+    One-click functions for comprehensive model comparison across multiple algorithms and ensemble methods.
+  contents:
+    - starts_with("int_")
+    - "plot_integrated_results"
 - title: "Core Modeling Functions"
   desc: >
     Main functions for building and evaluating models.

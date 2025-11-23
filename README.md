@@ -13,7 +13,7 @@
 **Author:** Shanjie Luan (ORCID: 0009-0002-8569-8526, First and Corresponding Author), Ximing Wang
 
 **Citation:** If you use E2E in your research, please cite it as:
-"Shanjie Luan, Ximing Wang (2025). E2E: An R Package for Easy-to-Build Ensemble Models. [https://github.com/XIAOJIE0519/E2E](https://github.com/XIAOJIE0519/E2E)"
+"Luan, S. and Wang, X. (2025), E2E: An R Package for Easy-to-Build Ensemble Models. Med Research. [https://doi.org/10.1002/mdr2.70030](https://doi.org/10.1002/mdr2.70030)"
 
 **Note:** The article is open source on CRAN and Github and is free to use, but you have to cite our article if you use E2E in your research. If you have any questions, please contact [Luan20050519@163.com](mailto:Luan20050519@163.com).
 
@@ -22,6 +22,10 @@
 **For complete documentation, tutorials, and function references, please visit our pkgdown website:**
 
 **[https://XIAOJIE0519.github.io/E2E/](https://XIAOJIE0519.github.io/E2E/)**
+
+**back to our github website:**
+
+**[https://github.com/XIAOJIE0519/E2E](https://github.com/XIAOJIE0519/E2E)**
 
 ---
 

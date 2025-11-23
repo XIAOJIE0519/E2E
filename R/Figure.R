@@ -412,6 +412,14 @@ figure_pro <- function(type, data, file = NULL, time_unit = "days") {
 #' @importFrom ggplot2 theme
 #' @export
 figure_shap <- function(data, raw_data, target_type, file = NULL, model_type = "xgboost") {
+  if (!requireNamespace("shapviz", quietly = TRUE)) {
+    stop("figure_shap() requires the 'shapviz' package.\n",
+         "Please run: install.packages('shapviz')")
+  }
+  if (!requireNamespace("patchwork", quietly = TRUE)) {
+    stop("figure_shap() requires the 'patchwork' package.\n",
+         "Please run: install.packages('patchwork')")
+  }
 
   target_type <- match.arg(target_type, c("diagnosis", "prognosis"))
 

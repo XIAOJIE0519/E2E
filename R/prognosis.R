@@ -497,7 +497,7 @@ stepcox_pro <- function(X, y_surv, tune = FALSE) {
 #' @importFrom survival Surv
 #' @importFrom stats predict
 #' @export
-gbm_pro <- function(X, y_surv, tune = FALSE, cv.folds = 3) { # <--- 新增参数
+gbm_pro <- function(X, y_surv, tune = FALSE, cv.folds = 3) {
   data_for_gbm <- cbind(y_surv_time = y_surv[,1], y_surv_event = y_surv[,2], X)
 
   if (tune) {
@@ -525,8 +525,8 @@ gbm_pro <- function(X, y_surv, tune = FALSE, cv.folds = 3) { # <--- 新增参数
   if (cv.folds > 1) {
     best_iter <- gbm::gbm.perf(fit, method = "cv", plot.it = FALSE)
   } else {
-    # If no CV, use the total number of trees as best_iter
     best_iter <- n_trees_val
+    message("Cross-validation not used, using all ", n_trees_val, " trees")
   }
 
   fit$fitted_scores <- stats::predict(fit, newdata = X, n.trees = best_iter, type = "link")
@@ -542,6 +542,175 @@ gbm_pro <- function(X, y_surv, tune = FALSE, cv.folds = 3) { # <--- 新增参数
     class = "train"
   )
 }
+
+#' @title Train a CoxBoost Model
+#' @description Trains a CoxBoost model for survival analysis using gradient boosting.
+#'
+#' @param X A data frame of features.
+#' @param y_surv A `survival::Surv` object representing the survival outcome.
+#' @param tune Logical, whether to perform hyperparameter tuning.
+#' @return A list of class "train" containing the trained model object.
+#' @examples
+#' \donttest{
+#' set.seed(42)
+#' n_samples <- 100
+#' n_features <- 10
+#' X_data <- as.data.frame(matrix(rnorm(n_samples * n_features), ncol = n_features))
+#' Y_surv_obj <- survival::Surv(
+#'   time = runif(n_samples, 100, 1000),
+#'   event = sample(0:1, n_samples, replace = TRUE)
+#' )
+#' cb_model <- cb_pro(X_data, Y_surv_obj)
+#' }
+#' @importFrom CoxBoost CoxBoost
+#' @export
+cb_pro <- function(X, y_surv, tune = FALSE) {
+  X_matrix <- stats::model.matrix(~ . - 1, data = X)
+
+  if (tune) {
+    message("CoxBoost: Simplified tuning; consider cv.CoxBoost for comprehensive tuning.")
+    stepno_val <- 200
+    penalty_val <- 100
+  } else {
+    stepno_val <- 100
+    penalty_val <- 100
+  }
+
+  fit <- CoxBoost::CoxBoost(
+    time = y_surv[,1],
+    status = y_surv[,2],
+    x = X_matrix,
+    stepno = stepno_val,
+    penalty = penalty_val,
+    criterion = "pscore"
+  )
+
+  fit$fitted_scores <- stats::predict(fit, newdata = X_matrix, type = "lp")
+  fit$y_surv <- y_surv
+
+  structure(
+    list(
+      finalModel = fit,
+      X_train_cols = colnames(X),
+      model_type = "survival_coxboost"
+    ),
+    class = "train"
+  )
+}
+
+#' @title Train a Supervised Principal Components (SuperPC) Model
+#' @description Trains a SuperPC model for survival analysis.
+#'
+#' @param X A data frame of features.
+#' @param y_surv A `survival::Surv` object representing the survival outcome.
+#' @param tune Logical, whether to perform hyperparameter tuning.
+#' @return A list of class "train" containing the trained model object.
+#' @examples
+#' \donttest{
+#' set.seed(42)
+#' n_samples <- 100
+#' n_features <- 50
+#' X_data <- as.data.frame(matrix(rnorm(n_samples * n_features), ncol = n_features))
+#' Y_surv_obj <- survival::Surv(
+#'   time = runif(n_samples, 100, 1000),
+#'   event = sample(0:1, n_samples, replace = TRUE)
+#' )
+#' pc_model <- pc_pro(X_data, Y_surv_obj)
+#' }
+#' @importFrom superpc superpc.train superpc.predict
+#' @export
+pc_pro <- function(X, y_surv, tune = FALSE) {
+  X_matrix <- as.matrix(X)
+
+  data_for_superpc <- list(
+    x = t(X_matrix),  # SuperPC expects features in rows
+    y = y_surv[,1],
+    censoring.status = y_surv[,2],
+    featurenames = colnames(X)
+  )
+
+  if (tune) {
+    message("SuperPC: Simplified training; consider superpc.cv for threshold tuning.")
+  }
+
+  fit <- superpc::superpc.train(
+    data = data_for_superpc,
+    type = "survival"
+  )
+
+  # Use a default threshold (can be tuned with superpc.cv)
+  fit$fitted_scores <- superpc::superpc.predict(
+    fit,
+    data = data_for_superpc,
+    newdata = data_for_superpc,
+    threshold = 1.0,
+    n.components = 1
+  )$v.pred
+
+  fit$y_surv <- y_surv
+  fit$threshold <- 1.0
+
+  structure(
+    list(
+      finalModel = fit,
+      X_train_cols = colnames(X),
+      model_type = "survival_superpc"
+    ),
+    class = "train"
+  )
+}
+
+#' @title Train a PLS-Cox Model
+#' @description Trains a Partial Least Squares Cox model using plsRcox.
+#'
+#' @param X A data frame of features.
+#' @param y_surv A `survival::Surv` object representing the survival outcome.
+#' @param tune Logical, whether to perform hyperparameter tuning.
+#' @return A list of class "train" containing the trained model object.
+#' @examples
+#' \donttest{
+#' set.seed(42)
+#' n_samples <- 100
+#' n_features <- 20
+#' X_data <- as.data.frame(matrix(rnorm(n_samples * n_features), ncol = n_features))
+#' Y_surv_obj <- survival::Surv(
+#'   time = runif(n_samples, 100, 1000),
+#'   event = sample(0:1, n_samples, replace = TRUE)
+#' )
+#' pls_model <- pls_pro(X_data, Y_surv_obj)
+#' }
+#' @importFrom plsRcox plsRcox
+#' @export
+pls_pro <- function(X, y_surv, tune = FALSE) {
+  X_matrix <- as.matrix(X)
+
+  if (tune) {
+    message("plsRcox: Simplified tuning; consider cv.plsRcox for component selection.")
+    nt_val <- min(5, ncol(X_matrix) - 1)
+  } else {
+    nt_val <- min(3, ncol(X_matrix) - 1)
+  }
+
+  fit <- plsRcox::plsRcox(
+    Xplan = X_matrix,
+    time = y_surv[,1],
+    event = y_surv[,2],
+    nt = nt_val
+  )
+
+  fit$fitted_scores <- stats::predict(fit, newdata = X_matrix, type = "lp")
+  fit$y_surv <- y_surv
+
+  structure(
+    list(
+      finalModel = fit,
+      X_train_cols = colnames(X),
+      model_type = "survival_plsRcox"
+    ),
+    class = "train"
+  )
+}
+
 
 #' @title Min-Max Normalization
 #' @description Normalizes a numeric vector to a range of 0 to 1 using min-max scaling.
@@ -676,6 +845,26 @@ evaluate_model_pro <- function(trained_model_obj = NULL, X_data = NULL, Y_surv_o
         score <- stats::predict(final_model, newdata = X_data, type = "lp")
       } else if (model_type == "survival_gbm") {
         score <- stats::predict(final_model, newdata = X_data, n.trees = trained_model_obj$finalModel$best_iter, type = "link")
+      } else if (model_type == "survival_coxboost") {
+        score <- stats::predict(final_model, newdata = stats::model.matrix(~ . - 1, data = X_data), type = "lp")
+      } else if (model_type == "survival_superpc") {
+        X_matrix_new <- as.matrix(X_data)
+        data_for_pred <- list(
+          x = t(X_matrix_new),
+          y = Y_surv_obj[,1],
+          censoring.status = Y_surv_obj[,2],
+          featurenames = colnames(X_data)
+        )
+        score <- superpc::superpc.predict(
+          final_model,
+          data = final_model$data,
+          newdata = data_for_pred,
+          threshold = final_model$threshold,
+          n.components = 1
+        )$v.pred
+      } else if (model_type == "survival_plsRcox") {
+        score <- stats::predict(final_model, newdata = as.matrix(X_data), type = "lp")
+
       } else if (model_type == "bagging_pro") {
         all_scores <- matrix(NA, nrow = nrow(X_data), ncol = length(trained_model_obj$base_model_objects))
         for (i in seq_along(trained_model_obj$base_model_objects)) {
@@ -1343,7 +1532,8 @@ initialize_modeling_system_pro <- function() {
 
   required_packages_pro <- c(
     "readr", "dplyr", "survival", "survcomp", "survivalROC",
-    "glmnet", "randomForestSRC", "MASS", "gbm"
+    "glmnet", "randomForestSRC", "MASS", "gbm",
+    "CoxBoost", "superpc", "plsRcox"
   )
 
   # Check if required packages are installed
@@ -1360,6 +1550,9 @@ initialize_modeling_system_pro <- function() {
   register_model_pro("rsf_pro", rsf_pro)
   register_model_pro("stepcox_pro", stepcox_pro)
   register_model_pro("gbm_pro", gbm_pro)
+  register_model_pro("cb_pro", cb_pro)
+  register_model_pro("pc_pro", pc_pro)
+  register_model_pro("pls_pro", pls_pro)
 
   .model_registry_env_pro$is_initialized <- TRUE
   message("Prognosis modeling system initialized and default models registered.")
