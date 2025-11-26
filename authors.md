@@ -7,7 +7,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/xiaojie0519/E2E/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/xiaojie0519/E2E/blob/v0.1.1/DESCRIPTION)
 
 Luan S (2025). *E2E: Ensemble Learning Framework for Diagnostic and
 Prognostic Modeling*. R package version 0.1.1,
