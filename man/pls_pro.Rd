@@ -2,33 +2,20 @@
 % Please edit documentation in R/prognosis.R
 \name{pls_pro}
 \alias{pls_pro}
-\title{Train a PLS-Cox Model}
+\title{Train Partial Least Squares Cox (PLS-Cox)}
 \usage{
 pls_pro(X, y_surv, tune = FALSE)
 }
 \arguments{
-\item{X}{A data frame of features.}
+\item{X}{A data frame of predictors.}
 
-\item{y_surv}{A \code{survival::Surv} object representing the survival outcome.}
+\item{y_surv}{A \code{Surv} object containing time and status.}
 
-\item{tune}{Logical, whether to perform hyperparameter tuning.}
+\item{tune}{Logical. If TRUE, performs internal tuning (currently handled by cv.glmnet automatically).}
 }
 \value{
-A list of class "train" containing the trained model object.
+An object of class \code{survival_plsRcox} and \code{pro_model}.
 }
 \description{
-Trains a Partial Least Squares Cox model using plsRcox.
-}
-\examples{
-\donttest{
-set.seed(42)
-n_samples <- 100
-n_features <- 20
-X_data <- as.data.frame(matrix(rnorm(n_samples * n_features), ncol = n_features))
-Y_surv_obj <- survival::Surv(
-  time = runif(n_samples, 100, 1000),
-  event = sample(0:1, n_samples, replace = TRUE)
-)
-pls_model <- pls_pro(X_data, Y_surv_obj)
-}
+Fits a Cox model using Partial Least Squares reduction for high-dimensional data.
 }

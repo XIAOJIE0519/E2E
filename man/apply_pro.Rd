@@ -2,54 +2,20 @@
 % Please edit documentation in R/prognosis.R
 \name{apply_pro}
 \alias{apply_pro}
-\title{Apply a Trained Prognostic Model to New Data}
+\title{Apply Prognostic Model to New Data}
 \usage{
 apply_pro(trained_model_object, new_data, time_unit = "day")
 }
 \arguments{
-\item{trained_model_object}{A trained model object, as returned by \code{models_pro},
-\code{bagging_pro}, or \code{stacking_pro}.}
+\item{trained_model_object}{A trained object (class \code{pro_model}).}
 
-\item{new_data}{A data frame containing the new data for prediction. It should
-follow the same structure as the training data: ID, Outcome, Time, Features.
-The outcome and time columns are used for data preparation and can be included
-in the output, but the model's prediction only uses the features. If outcome/time
-are unknown, they can be filled with NA.}
+\item{new_data}{Data frame of new patients.}
 
-\item{time_unit}{A character string, the unit of time in the third column of
-\code{new_data}.}
+\item{time_unit}{Time unit for data preparation.}
 }
 \value{
-A data frame with \code{ID}, \code{outcome}, \code{time}, and predicted \code{score} for the new data.
+Data frame with IDs, outcomes (if available), and risk scores.
 }
 \description{
-Applies a previously trained prognostic model (or ensemble) to a
-new, unseen dataset to generate prognostic scores.
-}
-\examples{
-\donttest{
-# NOTE: This example requires 'train_pro' and 'test_pro' datasets.
-if (requireNamespace("E2E", quietly = TRUE) &&
-    "train_pro" \%in\% utils::data(package = "E2E")$results[,3] &&
-    "test_pro" \%in\% utils::data(package = "E2E")$results[,3]) {
-
-  data(train_pro, package = "E2E")
-  data(test_pro, package = "E2E")
-  initialize_modeling_system_pro()
-
-  train_results <- models_pro(data = train_pro, model = "lasso_pro")
-  trained_lasso_model <- train_results$lasso_pro$model_object
-
-  # Apply the trained model to new data
-  new_data_predictions <- apply_pro(
-    trained_model_object = trained_lasso_model,
-    new_data = test_pro,
-    time_unit = "day" # Specify time unit of test_pro
-  )
-  utils::head(new_data_predictions)
-}
-}
-}
-\seealso{
-\code{\link{evaluate_model_pro}}
+Generates risk scores for new patients using a trained model.
 }

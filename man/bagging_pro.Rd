@@ -2,7 +2,7 @@
 % Please edit documentation in R/prognosis.R
 \name{bagging_pro}
 \alias{bagging_pro}
-\title{Train a Bagging Prognostic Model}
+\title{Train Bagging Ensemble for Prognosis}
 \usage{
 bagging_pro(
   data,
@@ -16,54 +16,27 @@ bagging_pro(
 )
 }
 \arguments{
-\item{data}{A data frame for training. The first column must be the sample ID,
-the second column the event status (0/1), the third column the time, and
-subsequent columns the features.}
+\item{data}{Input data frame (ID, Status, Time, Features).}
 
-\item{base_model_name}{A character string, the name of the base prognostic
-model to use (e.g., "lasso_pro", "rsf_pro"). This model must be registered.}
+\item{base_model_name}{Character string name of the base model (e.g., "rsf_pro").}
 
-\item{n_estimators}{An integer, the number of base models to train.}
+\item{n_estimators}{Integer. Number of bootstrap iterations.}
 
-\item{subset_fraction}{A numeric value between 0 and 1, the fraction of
-samples to bootstrap for each base model.}
+\item{subset_fraction}{Numeric (0-1). Fraction of data to sample in each iteration.}
 
-\item{tune_base_model}{Logical, whether to enable tuning for each base model.}
+\item{tune_base_model}{Logical. Whether to tune each base model (computationally expensive).}
 
-\item{time_unit}{A character string, the unit of time in the third column of \code{data}.}
+\item{time_unit}{Time unit of the input data.}
 
-\item{years_to_evaluate}{A numeric vector of specific years at which to
-calculate time-dependent AUROC for evaluation.}
+\item{years_to_evaluate}{Numeric vector of years for time-dependent AUC evaluation.}
 
-\item{seed}{An integer, for reproducibility.}
+\item{seed}{Integer seed for reproducibility.}
 }
 \value{
-A list containing the \code{model_object}, \code{sample_score}, and \code{evaluation_metrics}.
+A list containing the ensemble object, sample scores, and evaluation metrics.
 }
 \description{
-Implements a Bagging (Bootstrap Aggregating) ensemble for
-prognostic models. It trains multiple base models on bootstrapped samples
-of the training data and aggregates their predictions.
-}
-\examples{
-\donttest{
-# NOTE: This example requires the 'train_pro' dataset.
-if (requireNamespace("E2E", quietly = TRUE) &&
-"train_pro" \%in\% utils::data(package = "E2E")$results[,3]) {
-  data(train_pro, package = "E2E")
-  initialize_modeling_system_pro()
-
-  bagging_lasso_results <- bagging_pro(
-    data = train_pro,
-    base_model_name = "lasso_pro",
-    n_estimators = 3, # Small number for example speed
-    subset_fraction = 0.8,
-    years_to_evaluate = c(1, 3)
-  )
-  print_model_summary_pro("Bagging (Lasso)", bagging_lasso_results)
-}
-}
-}
-\seealso{
-\code{\link{initialize_modeling_system_pro}}, \code{\link{evaluate_model_pro}}
+Implements Bootstrap Aggregating (Bagging) for survival models.
+It trains multiple base models on bootstrapped subsets and averages the risk scores.
+This method reduces variance and improves stability.
 }

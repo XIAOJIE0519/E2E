@@ -2,7 +2,7 @@
 % Please edit documentation in R/prognosis.R
 \name{stacking_pro}
 \alias{stacking_pro}
-\title{Train a Stacking Prognostic Model}
+\title{Train Stacking Ensemble for Prognosis}
 \usage{
 stacking_pro(
   results_all_models,
@@ -16,57 +16,27 @@ stacking_pro(
 )
 }
 \arguments{
-\item{results_all_models}{A list of results from \code{models_pro()},
-containing trained base model objects and their evaluation metrics.}
+\item{results_all_models}{List of results from \code{models_pro()}.}
 
-\item{data}{A data frame for training the meta-model. The first column must be ID,
-second event status (0/1), third time, and subsequent columns features.}
+\item{data}{Training data.}
 
-\item{meta_model_name}{A character string, the name of the meta-model to use
-(e.g., "lasso_pro", "gbm_pro"). This model must be registered.}
+\item{meta_model_name}{Name of the meta-learner (e.g., "lasso_pro").}
 
-\item{top}{An integer, the number of top-performing base models (ranked by C-index)
-to select for the stacking ensemble.}
+\item{top}{Integer. Number of top base models to include based on C-index.}
 
-\item{tune_meta}{Logical, whether to enable tuning for the meta-model.}
+\item{tune_meta}{Logical. Tune the meta-learner?}
 
-\item{time_unit}{A character string, the unit of time in the third column of \code{data}.}
+\item{time_unit}{Time unit.}
 
-\item{years_to_evaluate}{A numeric vector of specific years at which to
-calculate time-dependent AUROC for evaluation.}
+\item{years_to_evaluate}{Evaluation years.}
 
-\item{seed}{An integer, for reproducibility.}
+\item{seed}{Integer seed.}
 }
 \value{
-A list containing the \code{model_object}, \code{sample_score}, and \code{evaluation_metrics}.
+A list containing the stacking object and evaluation results.
 }
 \description{
-Implements a Stacking ensemble for prognostic models. It trains
-multiple base models and uses their predictions to train a meta-model.
-}
-\examples{
-\donttest{
-# NOTE: This example requires the 'train_pro' dataset.
-if (requireNamespace("E2E", quietly = TRUE) &&
-"train_pro" \%in\% utils::data(package = "E2E")$results[,3]) {
-  data(train_pro, package = "E2E")
-  initialize_modeling_system_pro()
-
-  # First, generate results for base models
-  base_model_results <- models_pro(data = train_pro, model = c("lasso_pro", "rsf_pro"))
-
-  # Then, create the stacking ensemble
-  stacking_lasso_results <- stacking_pro(
-    results_all_models = base_model_results,
-    data = train_pro,
-    meta_model_name = "lasso_pro",
-    top = 3,
-    years_to_evaluate = c(1, 3)
-  )
-  print_model_summary_pro("Stacking (Lasso)", stacking_lasso_results)
-}
-}
-}
-\seealso{
-\code{\link{models_pro}}, \code{\link{evaluate_model_pro}}
+Implements a Stacking Ensemble (Super Learner).
+It uses the risk scores from top-performing base models as meta-features
+to train a second-level meta-learner.
 }

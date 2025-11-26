@@ -18,32 +18,22 @@ utils::globalVariables(c("AUROC", "Category",'Model','Value',"Dataset", "Average
 #'   test datasets. Returns structured results with AUROC values for visualization.
 #'
 #' @param ... Data frames for analysis. The first is the training dataset; all
-#'   subsequent arguments are test datasets. Each should have: first column = sample ID,
-#'   second column = outcome (0/1), remaining columns = features.
-#' @param tune Logical, enable hyperparameter tuning for base models. Default TRUE.
+#'   subsequent arguments are test datasets.
+#' @param model_names Character vector specifying which models to use.
+#'   If NULL (default), uses all registered models.
+#' @param tune Logical, enable hyperparameter tuning. Default TRUE.
 #' @param n_estimators Integer, number of bootstrap samples for bagging. Default 10.
 #' @param seed Integer for reproducibility. Default 123.
-#' @param positive_label_value Value representing positive class in raw data. Default 1.
-#' @param negative_label_value Value representing negative class in raw data. Default 0.
+#' @param positive_label_value Value representing positive class. Default 1.
+#' @param negative_label_value Value representing negative class. Default 0.
 #' @param new_positive_label Factor level name for positive class. Default "Positive".
 #' @param new_negative_label Factor level name for negative class. Default "Negative".
 #'
-#' @return A list containing:
-#'   \itemize{
-#'     \item \code{all_results}: Nested list of complete model outputs
-#'     \item \code{auroc_matrix}: Numeric matrix of AUROC values (models × datasets)
-#'     \item \code{model_categories}: Named vector indicating model type/category
-#'     \item \code{dataset_names}: Character vector of dataset identifiers
-#'   }
-#'
-#' @examples
-#' \dontrun{
-#' integrated_results <- int_dia(train_dia, test_dia1, test_dia2)
-#' plot_integrated_results(integrated_results)
-#' }
+#' @return A list containing all_results, auroc_matrix, model_categories, dataset_names.
 #'
 #' @export
 int_dia <- function(...,
+                    model_names = NULL,
                     tune = TRUE,
                     n_estimators = 10,
                     seed = 123,
@@ -60,61 +50,145 @@ int_dia <- function(...,
   train_data <- datasets[[1]]
 
   initialize_modeling_system_dia()
-  all_base_models <- c("rf", "xb", "svm", "mlp", "lasso", "en", "ridge", "lda", "qda", "nb", "dt", "gbm")
+
+  if (is.null(model_names)) {
+    all_base_models <- names(get_registered_models_dia())
+  } else {
+    all_base_models <- model_names
+    registered <- names(get_registered_models_dia())
+    invalid_models <- setdiff(all_base_models, registered)
+    if (length(invalid_models) > 0) {
+      stop(sprintf("The following models are not registered: %s\nRegistered models are: %s",
+                   paste(invalid_models, collapse = ", "),
+                   paste(registered, collapse = ", ")))
+    }
+  }
 
   all_trained_models <- list()
   model_categories <- c()
 
   set.seed(seed)
-  single_results <- models_dia(
-    data = train_data, model = all_base_models, tune = tune, seed = seed,
-    threshold_choices = "f1", positive_label_value = positive_label_value,
-    negative_label_value = negative_label_value, new_positive_label = new_positive_label,
-    new_negative_label = new_negative_label
-  )
-  all_trained_models <- c(all_trained_models, single_results)
-  model_categories <- c(model_categories, setNames(rep("Single", length(single_results)), names(single_results)))
-
-  for (bm in all_base_models) {
-    bag_name <- paste0("Bagging_", bm)
-    all_trained_models[[bag_name]] <- bagging_dia(
-      data = train_data, base_model_name = bm, n_estimators = n_estimators,
-      subset_fraction = 0.632, tune_base_model = tune, threshold_choices = "f1",
-      positive_label_value = positive_label_value, negative_label_value = negative_label_value,
-      new_positive_label = new_positive_label, new_negative_label = new_negative_label, seed = seed
+  single_results <- tryCatch({
+    models_dia(
+      data = train_data, model = all_base_models, tune = tune, seed = seed,
+      threshold_choices = "youden", positive_label_value = positive_label_value,
+      negative_label_value = negative_label_value, new_positive_label = new_positive_label,
+      new_negative_label = new_negative_label
     )
-    model_categories[bag_name] <- "Bagging"
+  }, error = function(e) {
+    warning(sprintf("Single models training failed: %s. Skipping all single models.", e$message))
+    list()
+  })
+
+  if (length(single_results) > 0) {
+    all_trained_models <- c(all_trained_models, single_results)
+    model_categories <- c(model_categories, setNames(rep("Single", length(single_results)), names(single_results)))
+  } else {
+    warning("No single models were successfully trained. Subsequent ensemble models may fail.")
   }
 
-  aurocs <- sapply(single_results, function(r) r$evaluation_metrics$AUROC)
-  top10 <- names(sort(aurocs, decreasing = TRUE))[1:min(10, length(aurocs))]
-  top5 <- names(sort(aurocs, decreasing = TRUE))[1:min(5, length(aurocs))]
+  # Bagging
+  for (bm in all_base_models) {
+    bag_name <- paste0("Bagging_", bm)
 
-  for (top_set in list(list(name = "10", models = top10), list(name = "5", models = top5))) {
-    for (meta in all_base_models) {
-      stack_name <- paste0("Stacking(", top_set$name, ")_", meta)
-      all_trained_models[[stack_name]] <- stacking_dia(
-        results_all_models = single_results[top_set$models], data = train_data,
-        meta_model_name = meta, top = length(top_set$models), tune_meta = tune,
-        threshold_choices = "f1", seed = seed, positive_label_value = positive_label_value,
-        negative_label_value = negative_label_value, new_positive_label = new_positive_label,
-        new_negative_label = new_negative_label
+    bag_result <- tryCatch({
+      bagging_dia(
+        data = train_data, base_model_name = bm, n_estimators = n_estimators,
+        subset_fraction = 0.632, tune_base_model = tune, threshold_choices = "f1",
+        positive_label_value = positive_label_value, negative_label_value = negative_label_value,
+        new_positive_label = new_positive_label, new_negative_label = new_negative_label, seed = seed
       )
-      model_categories[stack_name] <- paste0("Stacking(", top_set$name, ")")
+    }, error = function(e) {
+      warning(sprintf("Bagging model '%s' failed: %s. Skipping this model.", bag_name, e$message))
+      NULL
+    })
+
+    if (!is.null(bag_result)) {
+      all_trained_models[[bag_name]] <- bag_result
+      model_categories[bag_name] <- "Bagging"
     }
   }
 
-  for (top_set in list(list(name = "10", models = top10), list(name = "5", models = top5))) {
-    for (vote_type in c("soft", "hard")) {
-      vote_name <- paste0("Voting(", top_set$name, ")_", vote_type)
-      all_trained_models[[vote_name]] <- voting_dia(
-        results_all_models = single_results[top_set$models], data = train_data,
-        type = vote_type, weight_metric = "AUROC", top = length(top_set$models),
-        threshold_choices = "f1", seed = seed, positive_label_value = positive_label_value,
-        negative_label_value = negative_label_value, new_positive_label = new_positive_label,
-        new_negative_label = new_negative_label
-      )
-      model_categories[vote_name] <- paste0("Voting(", top_set$name, ")")
+  # Stacking
+  # Stacking
+  if (length(single_results) < 3) {
+    warning("Not enough single models for stacking (need at least 3). Skipping all stacking models.")
+  } else {
+    aurocs <- sapply(single_results, function(r) r$evaluation_metrics$AUROC)
+    top10 <- names(sort(aurocs, decreasing = TRUE))[1:min(10, length(aurocs))]
+    top5 <- names(sort(aurocs, decreasing = TRUE))[1:min(5, length(aurocs))]
+
+    total_stacking <- length(all_base_models) * 2
+    current_stacking <- 0
+
+    for (top_set in list(list(name = "10", models = top10), list(name = "5", models = top5))) {
+      for (meta_model in all_base_models) {
+        current_stacking <- current_stacking + 1
+        stack_name <- paste0("Stacking(", top_set$name, ")_", meta_model)
+
+
+        message(sprintf("Training stacking model %d/%d: %s",
+                        current_stacking, total_stacking, stack_name))
+
+        stack_result <- tryCatch({
+          stacking_dia(
+            results_all_models = single_results[top_set$models],
+            data = train_data,
+            meta_model_name = meta_model,
+            top = length(top_set$models),
+            tune_meta = tune,
+            threshold_choices = "youden",
+            seed = seed,
+            positive_label_value = positive_label_value,
+            negative_label_value = negative_label_value,
+            new_positive_label = new_positive_label,
+            new_negative_label = new_negative_label
+          )
+        }, error = function(e) {
+          warning(sprintf("Stacking model '%s' failed: %s. Skipping this model.", stack_name, e$message))
+          NULL
+        })
+
+        if (!is.null(stack_result)) {
+          all_trained_models[[stack_name]] <- stack_result
+          model_categories[stack_name] <- paste0("Stacking(", top_set$name, ")")
+        }
+      }
+    }
+  }
+
+  # Voting
+  if (length(single_results) < 3) {
+    warning("Not enough single models for voting (need at least 3). Skipping all voting models.")
+  } else {
+    aurocs <- sapply(single_results, function(r) r$evaluation_metrics$AUROC)
+    top10 <- names(sort(aurocs, decreasing = TRUE))[1:min(10, length(aurocs))]
+    top5 <- names(sort(aurocs, decreasing = TRUE))[1:min(5, length(aurocs))]
+
+    for (top_set in list(list(name = "10", models = top10), list(name = "5", models = top5))) {
+      for (vote_type in c("soft", "hard")) {
+        vote_name <- paste0("Voting(", top_set$name, ")_", vote_type)
+
+        vote_result <- tryCatch({
+          voting_dia(
+            results_all_models = single_results[top_set$models], data = train_data,
+            type = vote_type, weight_metric = "AUROC", top = length(top_set$models),
+            threshold_choices = "youden", seed = seed,
+            positive_label_value = positive_label_value,
+            negative_label_value = negative_label_value,
+            new_positive_label = new_positive_label,
+            new_negative_label = new_negative_label
+          )
+        }, error = function(e) {
+          warning(sprintf("Voting model '%s' failed: %s. Skipping this model.", vote_name, e$message))
+          NULL
+        })
+
+        if (!is.null(vote_result)) {
+          all_trained_models[[vote_name]] <- vote_result
+          model_categories[vote_name] <- paste0("Voting(", top_set$name, ")")
+        }
+      }
     }
   }
 
@@ -123,17 +197,31 @@ int_dia <- function(...,
 
   for (i in seq_along(datasets)) {
     for (mn in names(all_trained_models)) {
-      preds <- tryCatch({
-        apply_dia(all_trained_models[[mn]]$model_object, datasets[[i]],
-                  label_col_name = NULL, pos_class = new_positive_label, neg_class = new_negative_label)
-      }, error = function(e) { warning(sprintf("Model %s failed on dataset %d", mn, i)); NULL })
 
-      if (!is.null(preds)) {
-        evals <- tryCatch({
-          evaluate_predictions_dia(preds, "f1", new_positive_label, new_negative_label)
-        }, error = function(e) { warning(sprintf("Evaluation failed for %s on dataset %d", mn, i)); NULL })
+      if (i == 1) {
+        evals <- all_trained_models[[mn]]$evaluation_metrics
+        if (!is.null(evals) && is.null(evals$error)) {
+          auroc_matrix[mn, i] <- evals$AUROC
+        }
+      } else {
+        preds <- tryCatch({
+          apply_dia(all_trained_models[[mn]]$model_object, datasets[[i]],
+                    label_col_name = NULL, pos_class = new_positive_label, neg_class = new_negative_label)
+        }, error = function(e) {
+          warning(sprintf("Model %s failed on dataset %d", mn, i));
+          NULL
+        })
 
-        if (!is.null(evals)) auroc_matrix[mn, i] <- evals$AUROC
+        if (!is.null(preds)) {
+          evals <- tryCatch({
+            evaluate_predictions_dia(preds, "f1", new_positive_label, new_negative_label)
+          }, error = function(e) {
+            warning(sprintf("Evaluation failed for %s on dataset %d", mn, i));
+            NULL
+          })
+
+          if (!is.null(evals)) auroc_matrix[mn, i] <- evals$AUROC
+        }
       }
     }
   }
@@ -141,6 +229,7 @@ int_dia <- function(...,
   list(all_results = all_trained_models, auroc_matrix = auroc_matrix,
        model_categories = model_categories, dataset_names = dataset_names)
 }
+
 
 
 #' @title Imbalanced Data Diagnostic Modeling Pipeline
@@ -158,6 +247,7 @@ int_dia <- function(...,
 #'
 #' @export
 int_imbalance <- function(...,
+                          model_names = NULL,
                           tune = TRUE,
                           n_estimators = 10,
                           seed = 123,
@@ -174,20 +264,48 @@ int_imbalance <- function(...,
 
   datasets <- list(...)
   train_data <- datasets[[1]]
-  all_base_models <- c("rf", "xb", "svm", "mlp", "lasso", "en", "ridge", "lda", "qda", "nb", "dt", "gbm")
 
+  initialize_modeling_system_dia()
+
+  if (is.null(model_names)) {
+    all_base_models <- names(get_registered_models_dia())
+  } else {
+    all_base_models <- model_names
+    registered <- names(get_registered_models_dia())
+    invalid_models <- setdiff(all_base_models, registered)
+    if (length(invalid_models) > 0) {
+      stop(sprintf("The following models are not registered: %s\nRegistered models are: %s",
+                   paste(invalid_models, collapse = ", "),
+                   paste(registered, collapse = ", ")))
+    }
+  }
   imbalance_models <- list()
   imbalance_categories <- c()
 
   for (bm in all_base_models) {
     imb_name <- paste0("Imbalance_", bm)
-    imbalance_models[[imb_name]] <- imbalance_dia(
-      data = train_data, base_model_name = bm, n_estimators = n_estimators,
-      tune_base_model = tune, threshold_choices = "f1",
-      positive_label_value = positive_label_value, negative_label_value = negative_label_value,
-      new_positive_label = new_positive_label, new_negative_label = new_negative_label, seed = seed
-    )
-    imbalance_categories[imb_name] <- "Imbalance"
+
+    imb_result <- tryCatch({
+      imbalance_dia(
+        data = train_data, base_model_name = bm, n_estimators = n_estimators,
+        tune_base_model = tune, threshold_choices = "youden",
+        positive_label_value = positive_label_value, negative_label_value = negative_label_value,
+        new_positive_label = new_positive_label, new_negative_label = new_negative_label, seed = seed
+      )
+    }, error = function(e) {
+      warning(sprintf("Imbalance model '%s' failed: %s. Skipping this model.", imb_name, e$message))
+      NULL
+    })
+
+    if (!is.null(imb_result)) {
+      imbalance_models[[imb_name]] <- imb_result
+      imbalance_categories[imb_name] <- "Imbalance"
+    }
+  }
+
+  if (length(imbalance_models) == 0) {
+    warning("All imbalance models failed to train. Returning only base results.")
+    return(base_results)
   }
 
   all_models <- c(base_results$all_results, imbalance_models)
@@ -231,6 +349,8 @@ int_imbalance <- function(...,
 #'
 #' @param ... Data frames for survival analysis. First = training; others = test sets.
 #'   Format: first column = ID, second = outcome (0/1), third = time, remaining = features.
+#' @param model_names Character vector specifying which models to use.
+#'   If NULL (default), uses all registered prognostic models.
 #' @param tune Logical, enable tuning. Default TRUE.
 #' @param n_estimators Integer, bagging iterations. Default 10.
 #' @param seed Integer for reproducibility. Default 123.
@@ -253,6 +373,7 @@ int_imbalance <- function(...,
 #'
 #' @export
 int_pro <- function(...,
+                    model_names = NULL,
                     tune = TRUE,
                     n_estimators = 10,
                     seed = 123,
@@ -267,43 +388,93 @@ int_pro <- function(...,
   train_data <- datasets[[1]]
 
   initialize_modeling_system_pro()
-  all_base_models <- c("lasso_pro", "en_pro", "ridge_pro", "rsf_pro", "stepcox_pro", "gbm_pro",
-                       "cb_pro","pls_pro","pc_pro")
+  if (is.null(model_names)) {
+    all_base_models <- names(get_registered_models_pro())
+  } else {
+    all_base_models <- model_names
+    registered <- names(get_registered_models_pro())
+    invalid_models <- setdiff(all_base_models, registered)
+    if (length(invalid_models) > 0) {
+      stop(sprintf("Invalid models: %s. Available: %s",
+                   paste(invalid_models, collapse = ", "),
+                   paste(registered, collapse = ", ")))
+    }
+  }
 
   all_trained_models <- list()
   model_categories <- c()
 
   set.seed(seed)
-  single_results <- models_pro(
-    data = train_data, model = all_base_models, tune = tune, seed = seed,
-    time_unit = time_unit, years_to_evaluate = years_to_evaluate
-  )
-  all_trained_models <- c(all_trained_models, single_results)
-  model_categories <- c(model_categories, setNames(rep("Single", length(single_results)), names(single_results)))
+  single_results <- tryCatch({
+    models_pro(
+      data = train_data, model = all_base_models, tune = tune, seed = seed,
+      time_unit = time_unit, years_to_evaluate = years_to_evaluate
+    )
+  }, error = function(e) {
+    warning(sprintf("Single prognostic models training failed: %s. Skipping all single models.", e$message))
+    list()
+  })
+
+  if (length(single_results) > 0) {
+    all_trained_models <- c(all_trained_models, single_results)
+    model_categories <- c(model_categories, setNames(rep("Single", length(single_results)), names(single_results)))
+  }
 
   for (bm in all_base_models) {
     bag_name <- paste0("Bagging_", bm)
-    all_trained_models[[bag_name]] <- bagging_pro(
-      data = train_data, base_model_name = bm, n_estimators = n_estimators,
-      subset_fraction = 0.632, tune_base_model = tune, time_unit = time_unit,
-      years_to_evaluate = years_to_evaluate, seed = seed
-    )
-    model_categories[bag_name] <- "Bagging"
+
+    bag_result <- tryCatch({
+      bagging_pro(
+        data = train_data, base_model_name = bm, n_estimators = n_estimators,
+        subset_fraction = 0.632, tune_base_model = tune, time_unit = time_unit,
+        years_to_evaluate = years_to_evaluate, seed = seed
+      )
+    }, error = function(e) {
+      warning(sprintf("Bagging prognostic model '%s' failed: %s. Skipping.", bag_name, e$message))
+      NULL
+    })
+
+    if (!is.null(bag_result)) {
+      all_trained_models[[bag_name]] <- bag_result
+      model_categories[bag_name] <- "Bagging"
+    }
   }
 
-  cindices <- sapply(single_results, function(r) r$evaluation_metrics$C_index)
-  top5 <- names(sort(cindices, decreasing = TRUE))[1:min(5, length(cindices))]
-  top3 <- names(sort(cindices, decreasing = TRUE))[1:min(3, length(cindices))]
+  if (length(single_results) < 3) {
+    warning("Not enough single models for stacking. Skipping all stacking models.")
+  } else {
+    cindices <- sapply(single_results, function(r) r$evaluation_metrics$C_index)
+    top5 <- names(sort(cindices, decreasing = TRUE))[1:min(5, length(cindices))]
+    top3 <- names(sort(cindices, decreasing = TRUE))[1:min(3, length(cindices))]
 
-  for (top_set in list(list(name = "5", models = top5), list(name = "3", models = top3))) {
-    for (meta in all_base_models) {
-      stack_name <- paste0("Stacking(", top_set$name, ")_", meta)
-      all_trained_models[[stack_name]] <- stacking_pro(
-        results_all_models = single_results[top_set$models], data = train_data,
-        meta_model_name = meta, top = length(top_set$models), tune_meta = tune,
-        time_unit = time_unit, years_to_evaluate = years_to_evaluate, seed = seed
-      )
-      model_categories[stack_name] <- paste0("Stacking(", top_set$name, ")")
+    total_stacking <- length(all_base_models) * 2
+    current_stacking <- 0
+
+    for (top_set in list(list(name = "5", models = top5), list(name = "3", models = top3))) {
+      for (meta in all_base_models) {
+        current_stacking <- current_stacking + 1
+        stack_name <- paste0("Stacking(", top_set$name, ")_", meta)
+
+
+        message(sprintf("Training stacking model %d/%d: %s",
+                        current_stacking, total_stacking, stack_name))
+
+        stack_result <- tryCatch({
+          stacking_pro(
+            results_all_models = single_results[top_set$models], data = train_data,
+            meta_model_name = meta, top = length(top_set$models), tune_meta = tune,
+            time_unit = time_unit, years_to_evaluate = years_to_evaluate, seed = seed
+          )
+        }, error = function(e) {
+          warning(sprintf("Stacking prognostic model '%s' failed: %s. Skipping.", stack_name, e$message))
+          NULL
+        })
+
+        if (!is.null(stack_result)) {
+          all_trained_models[[stack_name]] <- stack_result
+          model_categories[stack_name] <- paste0("Stacking(", top_set$name, ")")
+        }
+      }
     }
   }
 
@@ -314,18 +485,33 @@ int_pro <- function(...,
 
   for (i in seq_along(datasets)) {
     for (mn in names(all_trained_models)) {
-      preds <- tryCatch({
-        apply_pro(all_trained_models[[mn]]$model_object, datasets[[i]], time_unit = time_unit)
-      }, error = function(e) { NULL })
 
-      if (!is.null(preds)) {
-        evals <- tryCatch({
-          evaluate_predictions_pro(preds, years_to_evaluate)
-        }, error = function(e) { NULL })
-
-        if (!is.null(evals)) {
+      if (i == 1) {
+        evals <- all_trained_models[[mn]]$evaluation_metrics
+        if (!is.null(evals) && is.null(evals$error)) {
           cindex_matrix[mn, i] <- evals$C_index
           avg_auroc_matrix[mn, i] <- evals$AUROC_Average
+        }
+      } else {
+        preds <- tryCatch({
+          apply_pro(all_trained_models[[mn]]$model_object, datasets[[i]], time_unit = time_unit)
+        }, error = function(e) {
+          warning(sprintf("Model %s failed on dataset %d: %s", mn, i, e$message))
+          NULL
+        })
+
+        if (!is.null(preds)) {
+          evals <- tryCatch({
+            evaluate_predictions_pro(preds, years_to_evaluate)
+          }, error = function(e) {
+            warning(sprintf("Evaluation failed for %s on dataset %d: %s", mn, i, e$message))
+            NULL
+          })
+
+          if (!is.null(evals)) {
+            cindex_matrix[mn, i] <- evals$C_index
+            avg_auroc_matrix[mn, i] <- evals$AUROC_Average
+          }
         }
       }
     }
@@ -335,7 +521,6 @@ int_pro <- function(...,
        avg_auroc_matrix = avg_auroc_matrix, model_categories = model_categories,
        dataset_names = dataset_names)
 }
-
 
 # ==============================================================================
 # Visualization Function
@@ -361,6 +546,8 @@ int_pro <- function(...,
 #'   theme element_text element_blank coord_fixed geom_col facet_grid scale_y_discrete
 #' @importFrom dplyr mutate arrange desc
 #' @importFrom tidyr pivot_longer
+#' @importFrom cowplot get_legend
+#' @importFrom patchwork plot_layout
 #' @export
 plot_integrated_results <- function(results_obj, metric_name = "AUROC", output_file = NULL) {
 
@@ -395,6 +582,8 @@ plot_integrated_results <- function(results_obj, metric_name = "AUROC", output_f
                                  names_to = "Dataset", values_to = "Value")
   df_long$Model <- factor(df_long$Model, levels = rev(rownames(perf_matrix)))
 
+  df_long$Dataset <- factor(df_long$Dataset, levels = dataset_names)
+
   color_palette <- c("#AAD09D", "#ECF4DD", "#FFF7AC", "#ECB477")
 
   p <- ggplot(df_long, aes(x = Dataset, y = Model, fill = Value)) +
@@ -404,13 +593,13 @@ plot_integrated_results <- function(results_obj, metric_name = "AUROC", output_f
                          name = metric_name, limits = range(perf_matrix, na.rm = TRUE)) +
     labs(title = paste(metric_name, "Heatmap Across Models and Datasets"),
          x = NULL, y = NULL) +
-    theme_minimal(base_size = 12) +
+    theme_minimal(base_size = 10) +
     theme(axis.text.x = element_text(angle = 45, hjust = 1, face = "bold"),
-          axis.text.y = element_text(face = "bold"),
-          legend.position = "right",
+          axis.text.y = element_text(face = "bold", size = 10),
+          legend.position = "bottom",
           plot.title = element_text(hjust = 0.5, face = "bold"),
-          panel.grid = element_blank()) +
-    coord_fixed(ratio = ncol(perf_matrix) / nrow(perf_matrix))
+          panel.grid = element_blank(),
+          plot.margin = margin(5, 5, 5, 5))
 
   df_bars <- data.frame(
     Model = factor(rep(rownames(perf_matrix), 2), levels = rev(rownames(perf_matrix))),
@@ -423,18 +612,53 @@ plot_integrated_results <- function(results_obj, metric_name = "AUROC", output_f
     geom_col(width = 0.7) +
     geom_text(aes(label = sprintf("%.3f", Average)), hjust = -0.1, size = 2.5) +
     facet_grid(~ Type, scales = "free_x") +
+    ggplot2::scale_x_continuous(
+      expand = ggplot2::expansion(mult = c(0, 0.15))
+    ) +
     scale_fill_manual(values = c("Single" = "#76c7c0", "Bagging" = "#f4a259",
-                                 "Stacking(10)" = "#bc4b51", "Stacking(5)" = "#5b8e7d",
+                                 "Stacking(3)" = "#bc4b51","Stacking(10)" = "#bc4b51", "Stacking(5)" = "#5b8e7d",
                                  "Voting(10)" = "#8e7cc3", "Voting(5)" = "#c9a227",
                                  "Imbalance" = "#d4a5a5")) +
     labs(x = paste("Average", metric_name), y = NULL) +
     theme_minimal(base_size = 10) +
     theme(axis.text.y = element_blank(),
           legend.position = "bottom",
-          strip.text = element_text(face = "bold"))
+          strip.text = element_text(face = "bold"),
+          plot.margin = margin(5, 5, 5, 5))
 
-  combined_plot <- p + p_bars + patchwork::plot_layout(ncol = 2, widths = c(3, 1))
 
+  p_bars_legend <- ggplot(df_bars, aes(x = Average, y = Model, fill = Category)) +
+    geom_col(width = 0.7) +
+    scale_fill_manual(values = c("Single" = "#76c7c0", "Bagging" = "#f4a259",
+                                 "Stacking(3)" = "#bc4b51","Stacking(10)" = "#bc4b51", "Stacking(5)" = "#5b8e7d",
+                                 "Voting(10)" = "#8e7cc3", "Voting(5)" = "#c9a227",
+                                 "Imbalance" = "#d4a5a5"),
+                      name = "Model Category") +
+    theme(legend.position = "bottom",
+          legend.box = "horizontal",
+          legend.title = element_text(size = 10, face = "bold"),
+          legend.text = element_text(size = 9))
+
+  legend <- cowplot::get_legend(p_bars_legend)
+
+  main_plot <- p + p_bars + patchwork::plot_layout(ncol = 2, widths = c(ncol(perf_matrix), 2))
+
+  combined_plot <- main_plot / legend +
+    patchwork::plot_layout(heights = c(20, 1))
+
+  cell_width_mm <- 7
+  cell_height_mm <- 28
+  n_rows <- nrow(perf_matrix)
+  n_cols <- ncol(perf_matrix)
+
+  plot_width_inches <- (n_cols * cell_width_mm + 2 * cell_width_mm * 2) / 25.4
+  plot_height_inches <- (n_rows * cell_height_mm + 20) / 25.4
+
+
+  if (!is.null(output_file)) {
+    ggplot2::ggsave(output_file, combined_plot,
+                    width = 14, height = plot_height_inches + 1, dpi = 300)  # +1 for legend
+  }
   if (!is.null(output_file)) {
     ggplot2::ggsave(output_file, combined_plot,
                     width = 14, height = max(8, nrow(perf_matrix) * 0.3), dpi = 300)

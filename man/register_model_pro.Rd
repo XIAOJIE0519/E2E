@@ -2,39 +2,15 @@
 % Please edit documentation in R/prognosis.R
 \name{register_model_pro}
 \alias{register_model_pro}
-\title{Register a Prognostic Model Function}
+\title{Register a Prognostic Model}
 \usage{
 register_model_pro(name, func)
 }
 \arguments{
-\item{name}{A character string, the unique name to register the model under.}
+\item{name}{String identifier for the model.}
 
-\item{func}{A function, the R function implementing the prognostic model.
-This function should typically accept \code{X} (features) and \code{y_surv} (survival object)
-as its first two arguments.}
-}
-\value{
-NULL. The function registers the model function invisibly.
+\item{func}{The model training function.}
 }
 \description{
-Registers a user-defined or pre-defined prognostic model function
-with the internal model registry. This allows the function to be called
-later by its registered name, facilitating a modular model management system.
-}
-\examples{
-# Example of a dummy model function for registration
-my_dummy_cox_model <- function(X, y_surv, tune = FALSE) {
-  # A minimal survival model for demonstration
-  model_fit <- survival::coxph(y_surv ~ ., data = X)
-  structure(list(finalModel = model_fit, X_train_cols = colnames(X),
-                 model_type = "survival_dummy_cox"), class = "train")
-}
-
-# Register the dummy model
-initialize_modeling_system_pro() # Ensure system is initialized
-register_model_pro("dummy_cox", my_dummy_cox_model)
-"dummy_cox" \%in\% names(get_registered_models_pro()) # Check if registered
-}
-\seealso{
-\code{\link{get_registered_models_pro}}, \code{\link{initialize_modeling_system_pro}}
+Registers a model function into the internal system environment, making it available for batch execution.
 }

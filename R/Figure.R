@@ -7,6 +7,7 @@ secondary_color <- "#A23B72" # Magenta, used for secondary elements or contrasts
 accent_color <- "#F18F01"    # Orange, used for highlighting specific points or annotations.
 
 #' @importFrom utils globalVariables
+#' @importFrom ggplot2 margin expansion
 utils::globalVariables(c("FPR", "TPR", "TimePoint", "Predicted", "Actual", "Freq", "Percentage", "precision", "Label"))
 
 # ------------------------------------------------------------------------------
@@ -121,7 +122,14 @@ figure_dia <- function(type, data, file = NULL) {
       labs(title = "Precision-Recall Curve (PRC)",
            subtitle = paste0("AUPRC = ", sprintf("%.3f", auprc_value)),
            x = "Recall (Sensitivity)", y = "Precision") +
-      scale_x_continuous(limits = c(0, 1)) + scale_y_continuous(limits = c(0, 1)) +
+      ggplot2::scale_x_continuous(
+        limits = c(0, 1),
+        expand = ggplot2::expansion(mult = c(0, 0.05))
+      ) +
+      ggplot2::scale_y_continuous(
+        limits = c(0, 1),
+        expand = ggplot2::expansion(mult = c(0, 0.05))
+      ) +
       theme_bw(base_size = 14) +
       theme(plot.title = element_text(face = "bold", hjust = 0.5), plot.subtitle = element_text(hjust = 0.5),
             panel.grid.minor = element_blank()) +

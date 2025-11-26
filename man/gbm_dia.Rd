@@ -4,7 +4,7 @@
 \alias{gbm_dia}
 \title{Train a Gradient Boosting Machine (GBM) Model for Classification}
 \usage{
-gbm_dia(X, y, tune = FALSE, cv_folds = 5)
+gbm_dia(X, y, tune = FALSE, cv_folds = 5, tune_length = 10)
 }
 \arguments{
 \item{X}{A data frame of features.}
@@ -15,6 +15,9 @@ gbm_dia(X, y, tune = FALSE, cv_folds = 5)
 \code{n.trees}, and \code{shrinkage} (if \code{TRUE}) or use fixed values (if \code{FALSE}).}
 
 \item{cv_folds}{An integer, the number of cross-validation folds for \code{caret}.}
+
+\item{tune_length}{An integer, the number of random parameter combinations to try
+when tune=TRUE. Only used when search="random". Default is 20.}
 }
 \value{
 A \code{caret::train} object representing the trained GBM model.
@@ -34,8 +37,12 @@ X_toy <- data.frame(
 y_toy <- factor(sample(c("Control", "Case"), n_obs, replace = TRUE),
                 levels = c("Control", "Case"))
 
-# Train the model
+# Train the model with default parameters
 gbm_model <- gbm_dia(X_toy, y_toy)
 print(gbm_model)
+
+# Train with extensive tuning (random search)
+gbm_model_tuned <- gbm_dia(X_toy, y_toy, tune = TRUE, tune_length = 30)
+print(gbm_model_tuned)
 }
 }

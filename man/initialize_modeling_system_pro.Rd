@@ -2,23 +2,11 @@
 % Please edit documentation in R/prognosis.R
 \name{initialize_modeling_system_pro}
 \alias{initialize_modeling_system_pro}
-\title{Initialize Prognostic Modeling System}
+\title{Initialize Prognosis Modeling System}
 \usage{
 initialize_modeling_system_pro()
 }
-\value{
-Invisible NULL. Initializes the internal model registry.
-}
 \description{
-Initializes the prognostic modeling system by loading required
-packages and registering default prognostic models (Lasso, Elastic Net, Ridge,
-Random Survival Forest, Stepwise Cox, GBM for Cox). This function should
-be called once before using \code{run_models_pro()} or ensemble methods.
-}
-\examples{
-# Initialize the system (typically run once at the start of a session or script)
-initialize_modeling_system_pro()
-
-# Check if models are now registered
-print(names(get_registered_models_pro()))
+Initializes the environment and registers default survival models
+(Lasso, Elastic Net, Ridge, RSF, StepCox, GBM, CoxBoost, PLS).
 }

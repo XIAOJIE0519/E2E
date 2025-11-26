@@ -4,7 +4,7 @@
 \alias{xb_dia}
 \title{Train an XGBoost Tree Model for Classification}
 \usage{
-xb_dia(X, y, tune = FALSE, cv_folds = 5)
+xb_dia(X, y, tune = FALSE, cv_folds = 5, tune_length = 20)
 }
 \arguments{
 \item{X}{A data frame of features.}
@@ -15,6 +15,9 @@ xb_dia(X, y, tune = FALSE, cv_folds = 5)
 default grid (if \code{TRUE}) or use fixed values (if \code{FALSE}).}
 
 \item{cv_folds}{An integer, the number of cross-validation folds for \code{caret}.}
+
+\item{tune_length}{An integer, the number of random parameter combinations to try
+when tune=TRUE. Only used when search="random". Default is 20.}
 }
 \value{
 A \code{caret::train} object representing the trained XGBoost model.

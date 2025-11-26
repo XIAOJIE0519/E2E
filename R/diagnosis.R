@@ -421,10 +421,24 @@ load_and_prepare_data_dia <- function(data_path, label_col_name,
 rf_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
   ctrl <- caret::trainControl(method="cv", number=cv_folds,
                               classProbs=TRUE, summaryFunction=caret::twoClassSummary)
-  grid <- if (tune) NULL else data.frame(mtry = base::floor(base::sqrt(base::ncol(X))))
+
+  grid <- if (tune) {
+    expand.grid(
+      mtry = c(floor(sqrt(ncol(X))),
+               floor(ncol(X)/3),
+               floor(ncol(X)/2),
+               max(1, floor(ncol(X)*0.7)))  # 增加特征采样选项
+    )
+  } else {
+    data.frame(mtry = floor(sqrt(ncol(X))))
+  }
+
   caret::train(x=X, y=y, method="rf", metric="ROC",
-               trControl=ctrl, tuneGrid=grid, ntree=500,
-               tuneLength=if(tune && is.null(grid)) 3 else 1)
+               trControl=ctrl, tuneGrid=grid,
+               ntree=500,
+               nodesize=if(tune) 5 else 1,
+               maxnodes=if(tune) NULL else NULL,
+               tuneLength=if(tune && is.null(grid)) 5 else 1)
 }
 
 #' @title Train an XGBoost Tree Model for Classification
@@ -436,6 +450,8 @@ rf_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
 #' @param tune Logical, whether to perform hyperparameter tuning using `caret`'s
 #'   default grid (if `TRUE`) or use fixed values (if `FALSE`).
 #' @param cv_folds An integer, the number of cross-validation folds for `caret`.
+#' @param tune_length An integer, the number of random parameter combinations to try
+#'   when tune=TRUE. Only used when search="random". Default is 20.
 #' @return A `caret::train` object representing the trained XGBoost model.
 #' @examples
 #' \donttest{
@@ -454,14 +470,59 @@ rf_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
 #' }
 #' @importFrom caret train trainControl twoClassSummary
 #' @export
-xb_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
-  ctrl <- caret::trainControl(method="cv", number=cv_folds,
-                              classProbs=TRUE, summaryFunction=caret::twoClassSummary)
-  grid <- if (tune) expand.grid(nrounds=c(50, 100), max_depth=c(3, 6), eta=c(0.1, 0.3),
-                                gamma=0, colsample_bytree=1, min_child_weight=1, subsample=1) else expand.grid(
-                                  nrounds=100, max_depth=3, eta=0.3, gamma=0, colsample_bytree=1,
-                                  min_child_weight=1, subsample=1)
-  caret::train(x=X, y=y, method="xgbTree", metric="ROC", trControl=ctrl, tuneGrid=grid)
+xb_dia <- function(X, y, tune = FALSE, cv_folds = 5, tune_length = 20) {
+
+  if (tune) {
+    ctrl <- caret::trainControl(
+      method = "cv",
+      number = cv_folds,
+      classProbs = TRUE,
+      summaryFunction = caret::twoClassSummary,
+      search = "random",
+      allowParallel = TRUE
+    )
+
+    grid <- expand.grid(
+      nrounds = c(50, 100),
+      max_depth = c(2, 3, 4, 6),
+      eta = c(0.01, 0.05, 0.1, 0.3),
+      gamma = c(0, 0.1, 0.5, 1, 2),
+      colsample_bytree = c(0.5, 0.7, 0.9, 1),
+      min_child_weight = c(1, 3, 5, 7),
+      subsample = c(0.6, 0.8, 1)
+    )
+
+    model <- caret::train(
+      x = X, y = y,
+      method = "xgbTree",
+      metric = "ROC",
+      trControl = ctrl,
+      tuneLength = tune_length
+    )
+
+  } else {
+    ctrl <- caret::trainControl(
+      method = "cv",
+      number = cv_folds,
+      classProbs = TRUE,
+      summaryFunction = caret::twoClassSummary
+    )
+
+    grid <- expand.grid(
+      nrounds = 100, max_depth = 3, eta = 0.3, gamma = 0,
+      colsample_bytree = 1, min_child_weight = 1, subsample = 1
+    )
+
+    model <- caret::train(
+      x = X, y = y,
+      method = "xgbTree",
+      metric = "ROC",
+      trControl = ctrl,
+      tuneGrid = grid
+    )
+  }
+
+  return(model)
 }
 
 #' @title Train a Support Vector Machine (Linear Kernel) Model for Classification
@@ -494,8 +555,17 @@ xb_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
 svm_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
   ctrl <- caret::trainControl(method="cv", number=cv_folds,
                               classProbs=TRUE, summaryFunction=caret::twoClassSummary)
-  caret::train(x=X, y=y, method="svmLinear", metric="ROC", trControl=ctrl,
-               tuneLength=if (tune) 3 else 1)
+
+  grid <- if (tune) {
+    expand.grid(
+      C = c(0.01, 0.1, 1, 10, 100)
+    )
+  } else {
+    expand.grid(C = 1)
+  }
+
+  caret::train(x=X, y=y, method="svmLinear", metric="ROC",
+               trControl=ctrl, tuneGrid=grid)
 }
 
 
@@ -530,9 +600,23 @@ svm_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
 mlp_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
   ctrl <- caret::trainControl(method="cv", number=cv_folds,
                               classProbs=TRUE, summaryFunction=caret::twoClassSummary)
-  caret::train(x=X, y=y, method="mlp", metric="ROC", trControl=ctrl,
-               tuneLength=if (tune) 3 else 1)
+
+  grid <- if (tune) {
+    expand.grid(
+      size = c(3, 5, 10, 15, 20)
+    )
+  } else {
+    expand.grid(size = 5)
+  }
+
+  caret::train(x=X, y=y, method="mlp", metric="ROC",
+               trControl=ctrl, tuneGrid=grid,
+               maxit = 1000,
+               learnFunc = "Std_Backpropagation",
+               learnFuncParams = c(0.2, 0),
+               linOut = FALSE)
 }
+
 
 #' @title Train a Lasso (L1 Regularized Logistic Regression) Model for Classification
 #' @description Trains a Lasso-regularized logistic regression model using `caret::train`
@@ -564,9 +648,22 @@ mlp_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
 lasso_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
   ctrl <- caret::trainControl(method="cv", number=cv_folds,
                               classProbs=TRUE, summaryFunction=caret::twoClassSummary)
-  grid <- expand.grid(alpha = 1, lambda = if (tune) 10^seq(-4, 0, length=10) else 0.01)
-  caret::train(x=X, y=y, method="glmnet", metric="ROC", trControl=ctrl, tuneGrid=grid)
+
+  grid <- expand.grid(
+    alpha = 1,
+    lambda = if (tune) {
+      c(10^seq(-5, -1, length=15), seq(0.1, 1, length=10))
+    } else {
+      0.01
+    }
+  )
+
+  caret::train(x=X, y=y, method="glmnet", metric="ROC",
+               trControl=ctrl, tuneGrid=grid,
+               standardize = TRUE,
+               thresh = 1e-7)
 }
+
 
 #' @title Train an Elastic Net (L1 and L2 Regularized Logistic Regression) Model for Classification
 #' @description Trains an Elastic Net-regularized logistic regression model
@@ -598,8 +695,20 @@ lasso_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
 en_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
   ctrl <- caret::trainControl(method="cv", number=cv_folds,
                               classProbs=TRUE, summaryFunction=caret::twoClassSummary)
-  grid <- expand.grid(alpha = 0.5, lambda = if (tune) 10^seq(-4, 0, length=10) else 0.01)
-  caret::train(x=X, y=y, method="glmnet", metric="ROC", trControl=ctrl, tuneGrid=grid)
+
+  grid <- expand.grid(
+    alpha = 0.5,
+    lambda = if (tune) {
+      c(10^seq(-5, -1, length=15), seq(0.1, 1, length=10))
+    } else {
+      0.01
+    }
+  )
+
+  caret::train(x=X, y=y, method="glmnet", metric="ROC",
+               trControl=ctrl, tuneGrid=grid,
+               standardize = TRUE,
+               thresh = 1e-7)
 }
 
 #' @title Train a Ridge (L2 Regularized Logistic Regression) Model for Classification
@@ -632,8 +741,20 @@ en_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
 ridge_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
   ctrl <- caret::trainControl(method="cv", number=cv_folds,
                               classProbs=TRUE, summaryFunction=caret::twoClassSummary)
-  grid <- expand.grid(alpha = 0, lambda = if (tune) 10^seq(-4, 0, length=10) else 0.01)
-  caret::train(x=X, y=y, method="glmnet", metric="ROC", trControl=ctrl, tuneGrid=grid)
+
+  grid <- expand.grid(
+    alpha = 0,
+    lambda = if (tune) {
+      c(10^seq(-5, -1, length=15), seq(0.1, 1, length=10))
+    } else {
+      0.01
+    }
+  )
+
+  caret::train(x=X, y=y, method="glmnet", metric="ROC",
+               trControl=ctrl, tuneGrid=grid,
+               standardize = TRUE,
+               thresh = 1e-7)
 }
 
 #' @title Train a Linear Discriminant Analysis (LDA) Model for Classification
@@ -761,10 +882,63 @@ nb_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
 #' @importFrom caret train trainControl twoClassSummary
 #' @export
 dt_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
-  ctrl <- caret::trainControl(method = "cv", number = cv_folds,
-                              classProbs = TRUE, summaryFunction = caret::twoClassSummary)
-  grid <- if (tune) expand.grid(cp = seq(0.001, 0.05, length = 5)) else expand.grid(cp = 0.01)
-  caret::train(x = X, y = y, method = "rpart", metric = "ROC", trControl = ctrl, tuneGrid = grid)
+  ctrl <- caret::trainControl(
+    method = "cv",
+    number = cv_folds,
+    classProbs = TRUE,
+    summaryFunction = caret::twoClassSummary
+  )
+
+  n_samples <- nrow(X)
+
+  grid <- if (tune) {
+
+    expand.grid(
+      cp = c(0, 0.0001, 0.001, 0.005, 0.01, 0.02, 0.05, 0.1)
+    )
+  } else {
+    expand.grid(cp = 0.01)
+  }
+
+  # 设置rpart控制参数以防止过拟合
+  rpart_control <- rpart::rpart.control(
+    minsplit = max(2, floor(n_samples * 0.05)),
+    minbucket = max(1, floor(n_samples * 0.02)),
+    maxdepth = if(tune) 30 else 10,
+    xval = 0
+  )
+
+  model <- tryCatch({
+    caret::train(
+      x = X,
+      y = y,
+      method = "rpart",
+      metric = "ROC",
+      trControl = ctrl,
+      tuneGrid = grid,
+      control = rpart_control
+    )
+  }, error = function(e) {
+    warning(paste("Decision tree training failed with error:", e$message,
+                  "\nRetrying with default parameters..."))
+
+    grid_fallback <- expand.grid(cp = 0.01)
+    caret::train(
+      x = X,
+      y = y,
+      method = "rpart",
+      metric = "ROC",
+      trControl = ctrl,
+      tuneGrid = grid_fallback,
+      control = rpart::rpart.control(
+        minsplit = 20,
+        minbucket = 7,
+        maxdepth = 10
+      )
+    )
+  })
+
+  return(model)
 }
 
 #' @title Train a Gradient Boosting Machine (GBM) Model for Classification
@@ -776,6 +950,8 @@ dt_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
 #' @param tune Logical, whether to perform hyperparameter tuning for `interaction.depth`,
 #'   `n.trees`, and `shrinkage` (if `TRUE`) or use fixed values (if `FALSE`).
 #' @param cv_folds An integer, the number of cross-validation folds for `caret`.
+#' @param tune_length An integer, the number of random parameter combinations to try
+#'   when tune=TRUE. Only used when search="random". Default is 20.
 #' @return A `caret::train` object representing the trained GBM model.
 #' @examples
 #' \donttest{
@@ -788,20 +964,76 @@ dt_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
 #' y_toy <- factor(sample(c("Control", "Case"), n_obs, replace = TRUE),
 #'                 levels = c("Control", "Case"))
 #'
-#' # Train the model
+#' # Train the model with default parameters
 #' gbm_model <- gbm_dia(X_toy, y_toy)
 #' print(gbm_model)
+#'
+#' # Train with extensive tuning (random search)
+#' gbm_model_tuned <- gbm_dia(X_toy, y_toy, tune = TRUE, tune_length = 30)
+#' print(gbm_model_tuned)
 #' }
 #' @importFrom caret train trainControl twoClassSummary
 #' @export
-gbm_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
-  ctrl <- caret::trainControl(method = "cv", number = cv_folds,
-                              classProbs=TRUE, summaryFunction=caret::twoClassSummary)
-  grid <- if (tune) expand.grid(interaction.depth = c(1, 3, 5), n.trees = c(50, 100), shrinkage = c(0.01, 0.1), n.minobsinnode = 10) else expand.grid(
-    interaction.depth = 3, n.trees = 100, shrinkage = 0.1, n.minobsinnode = 10)
-  caret::train(x = X, y = y, method = "gbm", metric = "ROC", trControl = ctrl,
-               verbose = FALSE, tuneGrid = grid)
+gbm_dia <- function(X, y, tune = FALSE, cv_folds = 5, tune_length = 10) {
+
+  if (tune) {
+    ctrl <- caret::trainControl(
+      method = "cv",
+      number = cv_folds,
+      classProbs = TRUE,
+      summaryFunction = caret::twoClassSummary,
+      search = "random",
+      allowParallel = TRUE
+    )
+
+    grid <- expand.grid(
+      interaction.depth = c(1, 2, 3, 5, 7, 10),
+      n.trees = c(50, 100, 150, 200, 300, 500),
+      shrinkage = c(0.001, 0.01, 0.05, 0.1, 0.2),
+      n.minobsinnode = c(5, 10, 15, 20, 30)
+    )
+
+    model <- caret::train(
+      x = X,
+      y = y,
+      method = "gbm",
+      metric = "ROC",
+      trControl = ctrl,
+      verbose = FALSE,
+      tuneLength = tune_length,
+      bag.fraction = 0.5
+    )
+
+  } else {
+    ctrl <- caret::trainControl(
+      method = "cv",
+      number = cv_folds,
+      classProbs = TRUE,
+      summaryFunction = caret::twoClassSummary
+    )
+
+    grid <- expand.grid(
+      interaction.depth = 3,
+      n.trees = 100,
+      shrinkage = 0.1,
+      n.minobsinnode = 10
+    )
+
+    model <- caret::train(
+      x = X,
+      y = y,
+      method = "gbm",
+      metric = "ROC",
+      trControl = ctrl,
+      verbose = FALSE,
+      tuneGrid = grid,
+      bag.fraction = 0.5
+    )
+  }
+
+  return(model)
 }
+
 
 # ------------------------------------------------------------------------------
 # Evaluation, Running, and Ensemble Functions
@@ -1455,7 +1687,7 @@ stacking_dia <- function(results_all_models, data,
 
   X_meta <- Reduce(function(df1, df2) dplyr::left_join(df1, df2, by = "sample"), all_scores)
   names(X_meta) <- c("sample", paste0("pred_", selected_base_models_names))
-  X_meta_features <- X_meta %>% dplyr::select(-sample)
+  X_meta_features <- dplyr::select(X_meta, -sample)
 
   # Ensure all meta-features are numeric
   X_meta_features[] <- lapply(X_meta_features, as.numeric)
@@ -1589,7 +1821,7 @@ voting_dia <- function(results_all_models, data,
   base_model_thresholds <- list()
   for (model_name in selected_base_models_names) {
     selected_base_model_objects[[model_name]] <- results_all_models[[model_name]]$model_object
-    base_model_thresholds[[model_name]] <- results_all_models[[model_name]]$evaluation_metrics$`_Threshold`
+    base_model_thresholds[[model_name]] <- results_all_models[[model_name]]$evaluation_metrics$Final_Threshold
   }
 
   final_prob_predictions <- NULL
@@ -2217,7 +2449,7 @@ print_model_summary_dia <- function(model_name, results_list, on_new_data = FALS
       }
     }
 
-    message(sprintf("Threshold Strategy: %s (%.4f)", metrics$Threshold_Strategy, metrics$`_Threshold`))
+    message(sprintf("Threshold Strategy: %s (%.4f)", metrics$Threshold_Strategy, metrics$Final_Threshold))
     message(sprintf("AUROC: %.4f (95%% CI: %.4f - %.4f)",
                     metrics$AUROC, metrics$AUROC_95CI_Lower, metrics$AUROC_95CI_Upper))
     message(sprintf("AUPRC: %.4f", metrics$AUPRC))

@@ -6,6 +6,7 @@
 \usage{
 int_pro(
   ...,
+  model_names = NULL,
   tune = TRUE,
   n_estimators = 10,
   seed = 123,
@@ -16,6 +17,9 @@ int_pro(
 \arguments{
 \item{...}{Data frames for survival analysis. First = training; others = test sets.
 Format: first column = ID, second = outcome (0/1), third = time, remaining = features.}
+
+\item{model_names}{Character vector specifying which models to use.
+If NULL (default), uses all registered prognostic models.}
 
 \item{tune}{Logical, enable tuning. Default TRUE.}
 

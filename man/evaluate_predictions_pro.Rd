@@ -2,47 +2,18 @@
 % Please edit documentation in R/prognosis.R
 \name{evaluate_predictions_pro}
 \alias{evaluate_predictions_pro}
-\title{Evaluate Prognostic Predictions}
+\title{Evaluate External Predictions}
 \usage{
 evaluate_predictions_pro(prediction_df, years_to_evaluate = c(1, 3, 5))
 }
 \arguments{
-\item{prediction_df}{A data frame containing predictions. Must include columns
-named \code{ID}, \code{outcome}, \code{time}, and \code{score}. This format matches the output
-of \code{apply_pro}.}
+\item{prediction_df}{Data frame with columns \code{time}, \code{outcome}, \code{score}, \code{ID}.}
 
-\item{years_to_evaluate}{A numeric vector of specific years at which to
-calculate time-dependent AUROC.}
+\item{years_to_evaluate}{Years for AUC.}
 }
 \value{
-A list of evaluation metrics, including C-index, time-dependent AUROC,
-and Kaplan-Meier analysis results.
+List of evaluation metrics.
 }
 \description{
-A convenience wrapper to evaluate a data frame of prognostic predictions.
-This function is ideal for evaluating the output of \code{apply_pro}.
-}
-\examples{
-\donttest{
-# Assume 'trained_model' and 'test_pro' data are available
-if (requireNamespace("E2E", quietly = TRUE) &&
-    "train_pro" \%in\% utils::data(package = "E2E")$results[,3] &&
-    "test_pro" \%in\% utils::data(package = "E2E")$results[,3]) {
-
-  data(train_pro, package = "E2E")
-  data(test_pro, package = "E2E")
-  initialize_modeling_system_pro()
-  model_results <- models_pro(data = train_pro, model = "lasso_pro")
-
-  # 1. Get predictions on new data
-  predictions <- apply_pro(model_results$lasso_pro$model_object, test_pro)
-
-  # 2. Evaluate these predictions using the simplified function
-  evaluation_metrics <- evaluate_predictions_pro(predictions, years_to_evaluate = c(1, 3))
-  print(evaluation_metrics)
-}
-}
-}
-\seealso{
-\code{\link{apply_pro}}, \code{\link{evaluate_model_pro}}
+Calculates performance metrics for external prediction sets.
 }

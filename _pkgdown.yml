@@ -70,6 +70,5 @@ reference:
     - "calculate_metrics_at_threshold_dia"
     - "find_optimal_threshold_dia"
     - "load_and_prepare_data_dia"
-    - "load_and_prepare_data_pro"
     - "min_max_normalize"
     - "Surv"

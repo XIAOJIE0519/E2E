@@ -2,46 +2,25 @@
 % Please edit documentation in R/prognosis.R
 \name{gbm_pro}
 \alias{gbm_pro}
-\title{Train a Gradient Boosting Machine (GBM) for Survival Data}
+\title{Train Gradient Boosting Machine (GBM) for Survival}
 \usage{
-gbm_pro(X, y_surv, tune = FALSE, cv.folds = 3)
+gbm_pro(X, y_surv, tune = FALSE, cv.folds = 5, max_tune_iter = 10)
 }
 \arguments{
-\item{X}{A data frame of features.}
+\item{X}{A data frame of predictors.}
 
-\item{y_surv}{A \code{survival::Surv} object representing the survival outcome.}
+\item{y_surv}{A \code{Surv} object.}
 
-\item{tune}{Logical, whether to perform simplified hyperparameter tuning.
-If \code{TRUE}, \code{n.trees}, \code{interaction.depth}, and \code{shrinkage} are set to
-predefined values suitable for tuning; otherwise, default values are used.}
+\item{tune}{Logical. If TRUE, performs random search.}
 
-\item{cv.folds}{Integer. The number of cross-validation folds to use.
-Setting this to 0 or 1 will disable cross-validation. Defaults to 3.}
+\item{cv.folds}{Integer. Number of cross-validation folds.}
+
+\item{max_tune_iter}{Integer. Maximum iterations for random search.}
 }
 \value{
-A list of class "train" containing the trained \code{gbm} model object,
-names of features used in training, and model type. The returned object
-also includes \code{fitted_scores} (linear predictor), \code{y_surv}, and \code{best_iter}.
+An object of class \code{survival_gbm} and \code{pro_model}.
 }
 \description{
-Trains a Gradient Boosting Machine (GBM) model with a Cox
-proportional hazards loss function using \code{gbm}.
-}
-\examples{
-\donttest{
-# Generate some dummy survival data
-set.seed(42)
-n_samples <- 200
-n_features <- 5
-X_data <- as.data.frame(matrix(rnorm(n_samples * n_features), ncol = n_features))
-Y_surv_obj <- survival::Surv(
-  time = runif(n_samples, 100, 1000),
-  event = sample(0:1, n_samples, replace = TRUE)
-)
-
-# Train the model for the example *without* cross-validation to pass R CMD check
-# In real use, you might use the default cv.folds = 3
-gbm_model <- gbm_pro(X_data, Y_surv_obj, cv.folds = 0)
-print(gbm_model$finalModel)
-}
+Fits a stochastic gradient boosting model using the Cox Partial Likelihood distribution.
+Supports random search for hyperparameter optimization.
 }

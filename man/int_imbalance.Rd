@@ -6,6 +6,7 @@
 \usage{
 int_imbalance(
   ...,
+  model_names = NULL,
   tune = TRUE,
   n_estimators = 10,
   seed = 123,
@@ -17,18 +18,20 @@ int_imbalance(
 }
 \arguments{
 \item{...}{Data frames for analysis. The first is the training dataset; all
-subsequent arguments are test datasets. Each should have: first column = sample ID,
-second column = outcome (0/1), remaining columns = features.}
+subsequent arguments are test datasets.}
 
-\item{tune}{Logical, enable hyperparameter tuning for base models. Default TRUE.}
+\item{model_names}{Character vector specifying which models to use.
+If NULL (default), uses all registered models.}
+
+\item{tune}{Logical, enable hyperparameter tuning. Default TRUE.}
 
 \item{n_estimators}{Integer, number of bootstrap samples for bagging. Default 10.}
 
 \item{seed}{Integer for reproducibility. Default 123.}
 
-\item{positive_label_value}{Value representing positive class in raw data. Default 1.}
+\item{positive_label_value}{Value representing positive class. Default 1.}
 
-\item{negative_label_value}{Value representing negative class in raw data. Default 0.}
+\item{negative_label_value}{Value representing negative class. Default 0.}
 
 \item{new_positive_label}{Factor level name for positive class. Default "Positive".}
 

@@ -2,41 +2,24 @@
 % Please edit documentation in R/prognosis.R
 \name{rsf_pro}
 \alias{rsf_pro}
-\title{Train a Random Survival Forest Model}
+\title{Train Random Survival Forest (RSF)}
 \usage{
-rsf_pro(X, y_surv, tune = FALSE)
+rsf_pro(X, y_surv, tune = FALSE, tune_params = NULL)
 }
 \arguments{
-\item{X}{A data frame of features.}
+\item{X}{A data frame of predictors.}
 
-\item{y_surv}{A \code{survival::Surv} object representing the survival outcome.}
+\item{y_surv}{A \code{Surv} object containing time and status.}
 
-\item{tune}{Logical, whether to perform hyperparameter tuning (a simplified
-message is currently provided, full tuning with \code{tune.rfsrc} is recommended
-for advanced use).}
+\item{tune}{Logical. If TRUE, performs grid search for optimal hyperparameters based on C-index.}
+
+\item{tune_params}{Optional data frame containing the grid for tuning.}
 }
 \value{
-A list of class "train" containing the trained \code{rfsrc} model object,
-names of features used in training, and model type. The returned object
-also includes \code{fitted_scores} and \code{y_surv}.
+An object of class \code{survival_rsf} and \code{pro_model}.
 }
 \description{
-Trains a Random Survival Forest (RSF) model using \code{randomForestSRC}.
-}
-\examples{
-\donttest{
-# Generate some dummy survival data
-set.seed(42)
-n_samples <- 50
-n_features <- 5
-X_data <- as.data.frame(matrix(rnorm(n_samples * n_features), ncol = n_features))
-Y_surv_obj <- survival::Surv(
-  time = runif(n_samples, 100, 1000),
-  event = sample(0:1, n_samples, replace = TRUE)
-)
-
-# Train the model (ntree is small for a quick example)
-rsf_model <- rsf_pro(X_data, Y_surv_obj)
-print(rsf_model$finalModel)
-}
+Fits a Random Survival Forest using the log-rank splitting rule.
+Includes capabilities for hyperparameter tuning via grid search over \code{ntree},
+\code{nodesize}, and \code{mtry}.
 }

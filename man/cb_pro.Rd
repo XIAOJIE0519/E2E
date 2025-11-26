@@ -2,33 +2,20 @@
 % Please edit documentation in R/prognosis.R
 \name{cb_pro}
 \alias{cb_pro}
-\title{Train a CoxBoost Model}
+\title{Train CoxBoost}
 \usage{
 cb_pro(X, y_surv, tune = FALSE)
 }
 \arguments{
-\item{X}{A data frame of features.}
+\item{X}{A data frame of predictors.}
 
-\item{y_surv}{A \code{survival::Surv} object representing the survival outcome.}
+\item{y_surv}{A \code{Surv} object containing time and status.}
 
-\item{tune}{Logical, whether to perform hyperparameter tuning.}
+\item{tune}{Logical. If TRUE, performs internal tuning (currently handled by cv.glmnet automatically).}
 }
 \value{
-A list of class "train" containing the trained model object.
+An object of class \code{survival_coxboost} and \code{pro_model}.
 }
 \description{
-Trains a CoxBoost model for survival analysis using gradient boosting.
-}
-\examples{
-\donttest{
-set.seed(42)
-n_samples <- 100
-n_features <- 10
-X_data <- as.data.frame(matrix(rnorm(n_samples * n_features), ncol = n_features))
-Y_surv_obj <- survival::Surv(
-  time = runif(n_samples, 100, 1000),
-  event = sample(0:1, n_samples, replace = TRUE)
-)
-cb_model <- cb_pro(X_data, Y_surv_obj)
-}
+Fits a Cox model by likelihood based boosting.
 }

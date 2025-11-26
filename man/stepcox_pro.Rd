@@ -2,37 +2,20 @@
 % Please edit documentation in R/prognosis.R
 \name{stepcox_pro}
 \alias{stepcox_pro}
-\title{Train a Stepwise Cox Proportional Hazards Model}
+\title{Train Stepwise Cox Model (AIC-based)}
 \usage{
 stepcox_pro(X, y_surv, tune = FALSE)
 }
 \arguments{
-\item{X}{A data frame of features.}
+\item{X}{A data frame of predictors.}
 
-\item{y_surv}{A \code{survival::Surv} object representing the survival outcome.}
+\item{y_surv}{A \code{Surv} object containing time and status.}
 
-\item{tune}{Logical, whether to perform hyperparameter tuning (currently ignored).}
+\item{tune}{Logical. If TRUE, performs internal tuning (currently handled by cv.glmnet automatically).}
 }
 \value{
-A list of class "train" containing the trained \code{coxph} model object
-after stepwise selection, names of features used in training, and model type.
-The returned object also includes \code{fitted_scores} (linear predictor) and \code{y_surv}.
+An object of class \code{survival_stepcox} and \code{pro_model}.
 }
 \description{
-Trains a Cox proportional hazards model and performs backward
-stepwise selection using \code{MASS::stepAIC} to select important features.
-}
-\examples{
-set.seed(42)
-n_samples <- 50
-n_features <- 5
-X_data <- as.data.frame(matrix(rnorm(n_samples * n_features), ncol = n_features))
-Y_surv_obj <- survival::Surv(
-  time = runif(n_samples, 100, 1000),
-  event = sample(0:1, n_samples, replace = TRUE)
-)
-
-# Train the model
-stepcox_model <- stepcox_pro(X_data, Y_surv_obj)
-print(stepcox_model$finalModel)
+Fits a Cox model and performs backward stepwise selection based on AIC.
 }

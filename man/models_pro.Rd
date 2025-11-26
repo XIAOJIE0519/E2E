@@ -14,58 +14,21 @@ models_pro(
 )
 }
 \arguments{
-\item{data}{A data frame for training. The first column must be the sample ID,
-the second column the event status (0/1), the third column the time, and
-subsequent columns the features.}
+\item{data}{Input data frame.}
 
-\item{model}{A character string or vector of character strings, specifying
-which models to run. Use "all_pro" to run all registered models.}
+\item{model}{Character vector of model names or "all_pro".}
 
-\item{tune}{Logical, whether to enable hyperparameter tuning for individual models.}
+\item{tune}{Logical. Enable hyperparameter tuning?}
 
-\item{seed}{An integer, for reproducibility of random processes.}
+\item{seed}{Random seed.}
 
-\item{time_unit}{A character string, the unit of time in the third column of \code{data}.
-Can be "day", "month", or "year".}
+\item{time_unit}{Time unit of input.}
 
-\item{years_to_evaluate}{A numeric vector of specific years at which to
-calculate time-dependent AUROC.}
+\item{years_to_evaluate}{Years for AUC calculation.}
 }
 \value{
-A named list, where each element corresponds to a run model and
-contains its trained \code{model_object}, \code{sample_score} data frame, and
-\code{evaluation_metrics}.
+A list of model results.
 }
 \description{
-Trains and evaluates one or more registered prognostic models on a given dataset.
-}
-\examples{
-\donttest{
-# NOTE: This example requires the 'train_pro' dataset to be exported by the package.
-# If it is not, replace `data(train_pro)` with code to create a dummy dataframe.
-# For demonstration, we assume `train_pro` is available.
-if (requireNamespace("E2E", quietly = TRUE) &&
- "train_pro" \%in\% utils::data(package = "E2E")$results[,3]) {
-  data(train_pro, package = "E2E")
-
-  # Initialize the modeling system
-  initialize_modeling_system_pro()
-
-  # Run selected models
-  results <- models_pro(
-    data = train_pro,
-    model = c("lasso_pro", "rsf_pro"), # Run only Lasso and RSF
-    years_to_evaluate = c(1, 3, 5),
-    seed = 42
-  )
-
-  # Print summaries
-  for (model_name in names(results)) {
-    print_model_summary_pro(model_name, results[[model_name]])
-  }
-}
-}
-}
-\seealso{
-\code{\link{initialize_modeling_system_pro}}, \code{\link{evaluate_model_pro}}
+High-level API to train and evaluate multiple survival models in batch.
 }

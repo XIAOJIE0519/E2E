@@ -2,38 +2,21 @@
 % Please edit documentation in R/prognosis.R
 \name{en_pro}
 \alias{en_pro}
-\title{Train an Elastic Net Cox Proportional Hazards Model}
+\title{Train Elastic Net Cox Model}
 \usage{
 en_pro(X, y_surv, tune = FALSE)
 }
 \arguments{
-\item{X}{A data frame of features.}
+\item{X}{A data frame of predictors.}
 
-\item{y_surv}{A \code{survival::Surv} object representing the survival outcome.}
+\item{y_surv}{A \code{Surv} object containing time and status.}
 
-\item{tune}{Logical, whether to perform hyperparameter tuning (currently simplified/ignored
-for direct \code{cv.glmnet} usage which inherently tunes lambda).}
+\item{tune}{Logical. If TRUE, performs internal tuning (currently handled by cv.glmnet automatically).}
 }
 \value{
-A list of class "train" containing the trained \code{glmnet} model object,
-names of features used in training, and model type. The returned object
-also includes \code{fitted_scores} (linear predictor), \code{y_surv}, \code{best_lambda}, and \code{alpha_val}.
+An object of class \code{survival_glmnet} and \code{pro_model}.
 }
 \description{
-Trains a Cox proportional hazards model with Elastic Net regularization
-using \code{glmnet} (with alpha = 0.5).
-}
-\examples{
-set.seed(42)
-n_samples <- 50
-n_features <- 10
-X_data <- as.data.frame(matrix(rnorm(n_samples * n_features), ncol = n_features))
-Y_surv_obj <- survival::Surv(
-  time = runif(n_samples, 100, 1000),
-  event = sample(0:1, n_samples, replace = TRUE)
-)
-
-# Train the model
-en_model <- en_pro(X_data, Y_surv_obj)
-print(en_model$finalModel)
+Fits a Cox model with Elastic Net regularization (mixture of L1 and L2 penalties).
+Alpha is fixed at 0.5.
 }

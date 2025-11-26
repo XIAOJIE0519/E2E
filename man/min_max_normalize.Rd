@@ -7,28 +7,16 @@
 min_max_normalize(x, min_val = NULL, max_val = NULL)
 }
 \arguments{
-\item{x}{A numeric vector to be normalized.}
+\item{x}{A numeric vector.}
 
-\item{min_val}{Optional. The minimum value to use for normalization. If \code{NULL},
-the minimum of \code{x} is used.}
+\item{min_val}{Optional reference minimum value (e.g., from training set).}
 
-\item{max_val}{Optional. The maximum value to use for normalization. If \code{NULL},
-the maximum of \code{x} is used.}
+\item{max_val}{Optional reference maximum value (e.g., from training set).}
 }
 \value{
-A numeric vector with values scaled between 0 and 1. If \code{min_val}
-and \code{max_val} are equal (or \code{x} has no variance), returns a vector of 0.5s.
+A numeric vector of normalized values.
 }
 \description{
-Normalizes a numeric vector to a range of 0 to 1 using min-max scaling.
-}
-\examples{
-# Normalize a vector
-x_vec <- c(10, 20, 30, 40, 50)
-normalized_x <- min_max_normalize(x_vec)
-print(normalized_x) # Should be 0, 0.25, 0.5, 0.75, 1
-
-# Normalize with custom min/max
-custom_normalized_x <- min_max_normalize(x_vec, min_val = 0, max_val = 100)
-print(custom_normalized_x) # Should be 0.1, 0.2, 0.3, 0.4, 0.5
+Performs linear transformation of data to the range 0 to 1.
+Essential for stacking ensembles to normalize risk scores from heterogeneous base learners.
 }

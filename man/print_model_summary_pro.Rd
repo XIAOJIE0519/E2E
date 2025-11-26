@@ -4,40 +4,13 @@
 \alias{print_model_summary_pro}
 \title{Print Prognostic Model Summary}
 \usage{
-print_model_summary_pro(model_name, results_list, on_new_data = FALSE)
+print_model_summary_pro(model_name, results_list)
 }
 \arguments{
-\item{model_name}{A character string, the name of the model (e.g., "lasso_pro").}
+\item{model_name}{Name of the model.}
 
-\item{results_list}{A list containing model evaluation results, typically
-an element from the output of \code{run_models_pro()} or the result of \code{bagging_pro()},
-\code{stacking_pro()}. It must contain \code{evaluation_metrics} and \code{model_object} (if applicable).}
-
-\item{on_new_data}{Logical, indicating whether the results are from applying
-the model to new, unseen data (\code{TRUE}) or from the training/internal validation
-data (\code{FALSE}).}
-}
-\value{
-NULL. Prints the summary to the console.
+\item{results_list}{Result object containing \code{evaluation_metrics}.}
 }
 \description{
-Prints a formatted summary of the evaluation metrics for a
-prognostic model, either from training data or new data evaluation.
-}
-\examples{
-\donttest{
-if (requireNamespace("E2E", quietly = TRUE) &&
- "train_pro" \%in\% utils::data(package = "E2E")$results[,3]) {
-  data(train_pro, package = "E2E")
-  initialize_modeling_system_pro()
-  results <- models_pro(data = train_pro, model = "lasso_pro")
-
-  # Print summary for the trained model
-  print_model_summary_pro("lasso_pro", results$lasso_pro, on_new_data = FALSE)
-
-  # Example for a failed model
-  failed_results <- list(evaluation_metrics = list(error = "Training failed"))
-  print_model_summary_pro("MyFailedModel", failed_results)
-}
-}
+Formatted console output of model performance.
 }
