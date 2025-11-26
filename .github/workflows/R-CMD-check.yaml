@@ -59,6 +59,11 @@ jobs:
            any::kernlab
           needs: check
 
+      - name: Install CoxBoost from GitHub
+        run: |
+          remotes::install_github("binderh/CoxBoost")
+        shell: Rscript {0}
+
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true
