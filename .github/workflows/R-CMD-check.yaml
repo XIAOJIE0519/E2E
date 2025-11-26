@@ -52,17 +52,18 @@ jobs:
         if: runner.os == 'Windows'
         run: pacman -Syu --noconfirm mingw-w64-x86_64-cairo mingw-w64-x86_64-libxml2
 
+      - name: Install CoxBoost from GitHub
+        run: |
+          install.packages("remotes")
+          remotes::install_github("binderh/CoxBoost")
+        shell: Rscript {0}
+
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: |
            any::rcmdcheck
            any::kernlab
           needs: check
-
-      - name: Install CoxBoost from GitHub
-        run: |
-          remotes::install_github("binderh/CoxBoost")
-        shell: Rscript {0}
 
       - uses: r-lib/actions/check-r-package@v2
         with:
