@@ -9,7 +9,7 @@ for binary classification."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">E2E</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -21,7 +21,8 @@ for binary classification."></head><body>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/getting-started.html">1. Getting Started</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/integrated-pipeline.html">0. One-click run all models</a></li>
+    <li><a class="dropdown-item" href="../articles/getting-started.html">1. Getting Started</a></li>
     <li><a class="dropdown-item" href="../articles/diagnostic-workflow.html">2. Diagnostic Workflow</a></li>
     <li><a class="dropdown-item" href="../articles/prognostic-workflow.html">3. Prognostic Workflow</a></li>
     <li><a class="dropdown-item" href="../articles/advanced-features.html">4. Advanced Features &amp; Customization</a></li>
@@ -50,7 +51,7 @@ for binary classification.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">gbm_dia</span><span class="op">(</span><span class="va">X</span>, <span class="va">y</span>, tune <span class="op">=</span> <span class="cn">FALSE</span>, cv_folds <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">gbm_dia</span><span class="op">(</span><span class="va">X</span>, <span class="va">y</span>, tune <span class="op">=</span> <span class="cn">FALSE</span>, cv_folds <span class="op">=</span> <span class="fl">5</span>, tune_length <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -73,6 +74,11 @@ for binary classification.</p>
 <dt id="arg-cv-folds">cv_folds<a class="anchor" aria-label="anchor" href="#arg-cv-folds"></a></dt>
 <dd><p>An integer, the number of cross-validation folds for <code>caret</code>.</p></dd>
 
+
+<dt id="arg-tune-length">tune_length<a class="anchor" aria-label="anchor" href="#arg-tune-length"></a></dt>
+<dd><p>An integer, the number of random parameter combinations to try
+when tune=TRUE. Only used when search="random". Default is 20.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -91,7 +97,7 @@ for binary classification.</p>
 <span class="r-in"><span><span class="va">y_toy</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Control"</span>, <span class="st">"Case"</span><span class="op">)</span>, <span class="va">n_obs</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>                levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Control"</span>, <span class="st">"Case"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Train the model</span></span></span>
+<span class="r-in"><span><span class="co"># Train the model with default parameters</span></span></span>
 <span class="r-in"><span><span class="va">gbm_model</span> <span class="op">&lt;-</span> <span class="fu">gbm_dia</span><span class="op">(</span><span class="va">X_toy</span>, <span class="va">y_toy</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">gbm_model</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Stochastic Gradient Boosting </span>
@@ -114,6 +120,87 @@ for binary classification.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Tuning parameter 'shrinkage' was held constant at a value of 0.1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Tuning parameter 'n.minobsinnode' was held constant at a value of 10</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Train with extensive tuning (random search)</span></span></span>
+<span class="r-in"><span><span class="va">gbm_model_tuned</span> <span class="op">&lt;-</span> <span class="fu">gbm_dia</span><span class="op">(</span><span class="va">X_toy</span>, <span class="va">y_toy</span>, tune <span class="op">=</span> <span class="cn">TRUE</span>, tune_length <span class="op">=</span> <span class="fl">30</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">gbm_model_tuned</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Stochastic Gradient Boosting </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 200 samples</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   2 predictor</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   2 classes: 'Control', 'Case' </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> No pre-processing</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Resampling: Cross-Validated (5 fold) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Summary of sample sizes: 159, 161, 160, 160, 160 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Resampling results across tuning parameters:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   shrinkage    interaction.depth  n.minobsinnode  n.trees  ROC        Sens     </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.006588957   5                 22               911     0.5445476  0.4668421</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.030901568   3                  7              3064     0.5419649  0.4684211</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.037810451   5                 25              3123     0.4904856  0.4168421</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.057393355   6                 19              2716     0.4979123  0.4489474</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.074852710   9                 22              1224     0.5142544  0.4484211</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.095959811   9                 24              2448     0.4880219  0.4684211</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.099588459   2                 22               356     0.5128440  0.4568421</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.107189977   3                  6              4888     0.5450877  0.4894737</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.114660498  10                 11              4758     0.5181836  0.4678947</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.159841183   7                 12              2409     0.5124330  0.4673684</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.234554175   6                 12              4763     0.5165482  0.4778947</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.244029669   5                 15              4400     0.5135044  0.4800000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.245543187  10                 11               547     0.4951122  0.4484211</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.278538257   7                  8              3791     0.5368227  0.4389474</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.280722493   2                 20              1829     0.4880883  0.4078947</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.282259344   9                 11              3698     0.5202751  0.4884211</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.313769264   9                 23              4043     0.4784787  0.4289474</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.363386679   3                  6              3482     0.5429536  0.4584211</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.420100644   1                 22              1416     0.4729167  0.4478947</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.425526234   3                 15              2293     0.4935207  0.5078947</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.472165606   8                 23              3273     0.5115182  0.5005263</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.472578043   1                 20               600     0.5119066  0.4600000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.473236460   7                 18              2809     0.4998346  0.4994737</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.481101330   5                  5              2769     0.5323396  0.3878947</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.482421041   1                 24              3078     0.4773427  0.4584211</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.488062467   2                 22               792     0.4944799  0.4189474</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.488719943   8                 19               557     0.4846372  0.4489474</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.517516988   4                 10              4756     0.5263910  0.6021053</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.558316088   6                  7              2830     0.5411723  0.3668421</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.569471796   1                 11               944     0.5436667  0.4794737</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Spec     </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.5395238</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.5200000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.5409524</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.5009524</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.5600000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.5800000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.5595238</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.5980952</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.5200000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.5004762</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.5590476</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.5109524</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.5300000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.5980952</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.5495238</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.5195238</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.5690476</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.5871429</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.5204762</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.5180952</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.5209524</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.4709524</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.5100000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.6276190</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.4619048</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.5595238</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.5200000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.4109524</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.7061905</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.5490476</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ROC was used to select the optimal model using the largest value.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> The final values used for the model were n.trees = 4888, interaction.depth =</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3, shrinkage = 0.10719 and n.minobsinnode = 6.</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
@@ -126,7 +213,7 @@ for binary classification.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>

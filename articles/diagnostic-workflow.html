@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">E2E</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,7 +34,8 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/getting-started.html">1. Getting Started</a></li>
+<li><a class="dropdown-item" href="../articles/integrated-pipeline.html">0. One-click run all models</a></li>
+    <li><a class="dropdown-item" href="../articles/getting-started.html">1. Getting Started</a></li>
     <li><a class="dropdown-item" href="../articles/diagnostic-workflow.html">2. Diagnostic Workflow</a></li>
     <li><a class="dropdown-item" href="../articles/prognostic-workflow.html">3. Prognostic Workflow</a></li>
     <li><a class="dropdown-item" href="../articles/advanced-features.html">4. Advanced Features &amp; Customization</a></li>
@@ -109,7 +110,7 @@ this demonstration, we’ll run a subset to save time.</p>
 <span><span class="fu"><a href="../reference/print_model_summary_dia.html">print_model_summary_dia</a></span><span class="op">(</span><span class="st">"rf"</span>, <span class="va">results_all_dia</span><span class="op">$</span><span class="va">rf</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; --- rf Model (on Training Data) Metrics ---</span></span>
-<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Threshold Strategy: default (0.5000)</span></span>
 <span><span class="co">#&gt; AUROC: 1.0000 (95% CI: 1.0000 - 1.0000)</span></span>
 <span><span class="co">#&gt; AUPRC: 1.0000</span></span>
 <span><span class="co">#&gt; Accuracy: 1.0000</span></span>
@@ -138,14 +139,12 @@ parameters.</p>
 <span><span class="co">#&gt; AUC == 1 is always 1-1 and can be misleading.</span></span>
 <span><span class="co">#&gt; Running model: lasso</span></span>
 <span><span class="co">#&gt; Running model: xb</span></span>
-<span><span class="co">#&gt; Warning in ci.auc.roc(roc_obj, conf.level = 0.95): ci.auc() of a ROC curve with</span></span>
-<span><span class="co">#&gt; AUC == 1 is always 1-1 and can be misleading.</span></span>
 <span></span>
 <span><span class="co"># View the custom results</span></span>
 <span><span class="fu"><a href="../reference/print_model_summary_dia.html">print_model_summary_dia</a></span><span class="op">(</span><span class="st">"rf"</span>, <span class="va">results_dia_custom</span><span class="op">$</span><span class="va">rf</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; --- rf Model (on Training Data) Metrics ---</span></span>
-<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Threshold Strategy: f1 (0.6220)</span></span>
 <span><span class="co">#&gt; AUROC: 1.0000 (95% CI: 1.0000 - 1.0000)</span></span>
 <span><span class="co">#&gt; AUPRC: 1.0000</span></span>
 <span><span class="co">#&gt; Accuracy: 1.0000</span></span>
@@ -173,7 +172,7 @@ bootstrap samples.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; --- Bagging (XGBoost) Model (on Training Data) Metrics ---</span></span>
 <span><span class="co">#&gt; Ensemble Type: Bagging (Base: xb, Estimators: 5)</span></span>
-<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Threshold Strategy: default (0.5000)</span></span>
 <span><span class="co">#&gt; AUROC: 0.9995 (95% CI: 0.9989 - 1.0000)</span></span>
 <span><span class="co">#&gt; AUPRC: 0.9999</span></span>
 <span><span class="co">#&gt; Accuracy: 0.9919</span></span>
@@ -201,7 +200,7 @@ bootstrap samples.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; --- Voting (Soft) Model (on Training Data) Metrics ---</span></span>
 <span><span class="co">#&gt; Ensemble Type: Voting (Type: soft, Weight Metric: AUROC, Base models used: rf, xb, lasso)</span></span>
-<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Threshold Strategy: f1 (0.6027)</span></span>
 <span><span class="co">#&gt; AUROC: 1.0000 (95% CI: 1.0000 - 1.0000)</span></span>
 <span><span class="co">#&gt; AUPRC: 1.0000</span></span>
 <span><span class="co">#&gt; Accuracy: 1.0000</span></span>
@@ -230,7 +229,7 @@ meta-model.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; --- Stacking (Lasso) Model (on Training Data) Metrics ---</span></span>
 <span><span class="co">#&gt; Ensemble Type: Stacking (Meta: lasso, Base models used: rf, xb, lasso)</span></span>
-<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Threshold Strategy: f1 (0.9794)</span></span>
 <span><span class="co">#&gt; AUROC: 1.0000 (95% CI: 1.0000 - 1.0000)</span></span>
 <span><span class="co">#&gt; AUPRC: 1.0000</span></span>
 <span><span class="co">#&gt; Accuracy: 1.0000</span></span>
@@ -253,7 +252,7 @@ meta-model.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; --- Imbalance (XGBoost) Model (on Training Data) Metrics ---</span></span>
 <span><span class="co">#&gt; Ensemble Type: EasyEnsemble (Base: xb, Estimators: 5)</span></span>
-<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Threshold Strategy: default (0.5000)</span></span>
 <span><span class="co">#&gt; AUROC: 0.9999 (95% CI: 0.9998 - 1.0000)</span></span>
 <span><span class="co">#&gt; AUPRC: 1.0000</span></span>
 <span><span class="co">#&gt; Accuracy: 0.9838</span></span>
@@ -313,7 +312,7 @@ dataset.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

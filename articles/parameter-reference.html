@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">E2E</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,7 +34,8 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/getting-started.html">1. Getting Started</a></li>
+<li><a class="dropdown-item" href="../articles/integrated-pipeline.html">0. One-click run all models</a></li>
+    <li><a class="dropdown-item" href="../articles/getting-started.html">1. Getting Started</a></li>
     <li><a class="dropdown-item" href="../articles/diagnostic-workflow.html">2. Diagnostic Workflow</a></li>
     <li><a class="dropdown-item" href="../articles/prognostic-workflow.html">3. Prognostic Workflow</a></li>
     <li><a class="dropdown-item" href="../articles/advanced-features.html">4. Advanced Features &amp; Customization</a></li>
@@ -138,7 +139,7 @@ features (columns 4+)</li>
 </ul>
 </div>
 <div class="section level4">
-<h4 id="prognostic-models-6-algorithms">Prognostic Models (6 algorithms)<a class="anchor" aria-label="anchor" href="#prognostic-models-6-algorithms"></a>
+<h4 id="prognostic-models-9-algorithms">Prognostic Models (9 algorithms)<a class="anchor" aria-label="anchor" href="#prognostic-models-9-algorithms"></a>
 </h4>
 <ul>
 <li>
@@ -151,11 +152,74 @@ features (columns 4+)</li>
 <li>
 <strong>stepcox_pro</strong>: Stepwise Cox Regression</li>
 <li>
-<strong>gbm_pro</strong>: Gradient Boosting Machine</li>
+<strong>gbm_pro</strong>: Gradient Boosting Machine for Cox</li>
 <li>
 <strong>rsf_pro</strong>: Random Survival Forest</li>
+<li>
+<strong>cb_pro</strong>: CoxBoost</li>
+<li>
+<strong>pc_pro</strong>: Supervised Principal Components
+(SuperPC)</li>
+<li>
+<strong>pls_pro</strong>: Partial Least Squares Cox Regression</li>
 </ul>
 </div>
+</div>
+</div>
+<div class="section level2">
+<h2 id="integrated-pipeline-functions">Integrated Pipeline Functions<a class="anchor" aria-label="anchor" href="#integrated-pipeline-functions"></a>
+</h2>
+<div class="section level3">
+<h3 id="int_dia">int_dia()<a class="anchor" aria-label="anchor" href="#int_dia"></a>
+</h3>
+<p>Comprehensive diagnostic modeling pipeline executing single models,
+bagging, stacking, and voting ensembles.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><p><code>...</code> (required): Data frames for analysis. First =
+training dataset; subsequent = test datasets. Structure: column 1 =
+sample ID, column 2 = outcome (0/1), columns 3+ = features</p></li>
+<li><p><code>tune</code>: Logical (default TRUE). Enable hyperparameter
+tuning for base models</p></li>
+<li><p><code>n_estimators</code>: Integer (default 10). Number of
+bootstrap samples for bagging</p></li>
+<li><p><code>seed</code>: Integer (default 123). Random seed for
+reproducibility</p></li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="int_pro">int_pro()<a class="anchor" aria-label="anchor" href="#int_pro"></a>
+</h3>
+<p>Comprehensive prognostic modeling pipeline for survival analysis.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><p><code>...</code> (required): Data frames. First = training;
+others = test sets. Structure: column 1 = ID, column 2 = survival status
+(0/1), column 3 = survival time, columns 4+ = features</p></li>
+<li><p><code>tune</code>: Logical (default TRUE). Enable tuning</p></li>
+<li><p><code>n_estimators</code>: Integer (default 10). Bagging
+iterations</p></li>
+<li><p><code>seed</code>: Integer (default 123). Random seed</p></li>
+<li><p><code>time_unit</code>: String (default “day”). Time unit: “day”,
+“month”, or “year”</p></li>
+<li><p><code>years_to_evaluate</code>: Numeric vector (default
+c(1,3,5)). Years for time-dependent AUROC</p></li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="plot_integrated_results">plot_integrated_results()<a class="anchor" aria-label="anchor" href="#plot_integrated_results"></a>
+</h3>
+<p>Visualizes integrated modeling results with heatmap and summary
+plots.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><p><code>results_obj</code> (required): Output from
+<code><a href="../reference/int_dia.html">int_dia()</a></code>, <code><a href="../reference/int_imbalance.html">int_imbalance()</a></code>, or
+<code><a href="../reference/int_pro.html">int_pro()</a></code></p></li>
+<li><p><code>metric_name</code>: Character string (default “AUROC”).
+Metric name for plot labels (e.g., “AUROC”, “C-index”)</p></li>
+</ul>
+<p><strong>Returns:</strong> ggplot object (invisibly)</p>
 </div>
 </div>
 <div class="section level2">
@@ -460,7 +524,7 @@ registered model in E2E workflows</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

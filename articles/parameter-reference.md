@@ -1,0 +1,365 @@
+# Parameter Reference Guide
+
+## E2E Package Parameter Reference Guide
+
+This guide provides comprehensive parameter documentation for all E2E
+functions.
+
+### Built-in Datasets
+
+E2E includes example datasets for both diagnostic and prognostic
+modeling:
+
+#### Diagnostic Datasets
+
+- **train_dia**: Training data with sample IDs (column 1), outcomes 0/1
+  (column 2), and features (columns 3+)
+- **test_dia**: Test data with the same structure
+
+#### Prognostic Datasets
+
+- **train_pro**: Training data with sample IDs (column 1), survival
+  status 0/1 (column 2), survival time (column 3), and features (columns
+  4+)
+- **test_pro**: Test data with the same structure
+
+### Built-in Models
+
+#### Diagnostic Models (12 algorithms)
+
+- **rf**: Random Forest
+- **xb**: XGBoost  
+- **svm**: Support Vector Machine
+- **mlp**: Multi-Layer Perceptron
+- **lasso**: L1-regularized Logistic Regression
+- **en**: Elastic Net
+- **ridge**: L2-regularized Logistic Regression
+- **lda**: Linear Discriminant Analysis
+- **qda**: Quadratic Discriminant Analysis
+- **nb**: Naive Bayes
+- **dt**: Decision Tree
+- **gbm**: Gradient Boosting Machine
+
+#### Prognostic Models (9 algorithms)
+
+- **lasso_pro**: Lasso Cox Regression
+- **en_pro**: Elastic Net Cox Regression  
+- **ridge_pro**: Ridge Cox Regression
+- **stepcox_pro**: Stepwise Cox Regression
+- **gbm_pro**: Gradient Boosting Machine for Cox
+- **rsf_pro**: Random Survival Forest
+- **cb_pro**: CoxBoost
+- **pc_pro**: Supervised Principal Components (SuperPC)
+- **pls_pro**: Partial Least Squares Cox Regression
+
+## Integrated Pipeline Functions
+
+### int_dia()
+
+Comprehensive diagnostic modeling pipeline executing single models,
+bagging, stacking, and voting ensembles.
+
+**Parameters:**
+
+- `...` (required): Data frames for analysis. First = training dataset;
+  subsequent = test datasets. Structure: column 1 = sample ID, column 2
+  = outcome (0/1), columns 3+ = features
+
+- `tune`: Logical (default TRUE). Enable hyperparameter tuning for base
+  models
+
+- `n_estimators`: Integer (default 10). Number of bootstrap samples for
+  bagging
+
+- `seed`: Integer (default 123). Random seed for reproducibility
+
+### int_pro()
+
+Comprehensive prognostic modeling pipeline for survival analysis.
+
+**Parameters:**
+
+- `...` (required): Data frames. First = training; others = test sets.
+  Structure: column 1 = ID, column 2 = survival status (0/1), column 3 =
+  survival time, columns 4+ = features
+
+- `tune`: Logical (default TRUE). Enable tuning
+
+- `n_estimators`: Integer (default 10). Bagging iterations
+
+- `seed`: Integer (default 123). Random seed
+
+- `time_unit`: String (default “day”). Time unit: “day”, “month”, or
+  “year”
+
+- `years_to_evaluate`: Numeric vector (default c(1,3,5)). Years for
+  time-dependent AUROC
+
+### plot_integrated_results()
+
+Visualizes integrated modeling results with heatmap and summary plots.
+
+**Parameters:**
+
+- `results_obj` (required): Output from
+  [`int_dia()`](https://xiaojie0519.github.io/E2E/reference/int_dia.md),
+  [`int_imbalance()`](https://xiaojie0519.github.io/E2E/reference/int_imbalance.md),
+  or
+  [`int_pro()`](https://xiaojie0519.github.io/E2E/reference/int_pro.md)
+
+- `metric_name`: Character string (default “AUROC”). Metric name for
+  plot labels (e.g., “AUROC”, “C-index”)
+
+**Returns:** ggplot object (invisibly)
+
+## Diagnostic Modeling Functions
+
+### models_dia()
+
+Trains base classification models for diagnostic tasks. **Parameters:**
+
+- `data` (required): Data frame with sample names (column 1), outcomes
+  0/1 (column 2), features (columns 3+)
+
+- `model` (required): Character vector of model names or “all_dia” for
+  all models
+
+- `tune`: Logical (default FALSE). Whether to perform hyperparameter
+  tuning
+
+- `threshold_choices`: Threshold selection method
+
+  - “default” (default): Fixed 0.5 threshold
+  - “f1”: Optimize F1 score
+  - “youden”: Optimize Youden index  
+  - Numeric value (0-1): Custom threshold
+
+- `seed`: Integer (default 123). Random seed for reproducibility
+
+### bagging_dia()
+
+Bootstrap aggregating ensemble method. **Parameters:**
+
+- `data` (required): Training data frame
+
+- `base_model_name` (required): Base model name (e.g., “xb”, “rf”)
+
+- `n_estimators`: Integer (default 50). Number of base models
+
+- `subset_fraction`: Numeric (default 0.632). Bootstrap sampling
+  fraction
+
+- `tune_base_model`: Logical (default FALSE). Tune base models
+
+- `threshold_choices`: Same as models_dia()
+
+- `seed`: Integer (default 123). Random seed
+
+### voting_dia()
+
+Voting ensemble combining multiple models. **Parameters:**
+
+- `results_all_models` (required): Output from models_dia()
+
+- `data` (required): Training data
+
+- `type`: Voting type
+
+  - “soft” (default): Weighted probability averaging
+  - “hard”: Majority voting
+
+- `weight_metric`: String (default “AUROC”). Metric for soft voting
+  weights
+
+- `top`: Integer (default 5). Number of top models to use
+
+- `threshold_choices`: Same as models_dia()
+
+- `seed`: Integer (default 123). Random seed
+
+### stacking_dia()
+
+Stacking ensemble with meta-model. **Parameters:**
+
+- `results_all_models` (required): Output from models_dia()
+
+- `data` (required): Training data
+
+- `meta_model_name` (required): Meta-model name (e.g., “lasso”, “gbm”)
+
+- `top`: Integer (default 5). Number of top base models
+
+- `tune_meta`: Logical (default FALSE). Tune meta-model
+
+- `threshold_choices`: Same as models_dia()
+
+- `seed`: Integer (default 123). Random seed
+
+### imbalance_dia()
+
+Handles imbalanced datasets using EasyEnsemble-like algorithm.
+**Parameters:**
+
+- `data` (required): Imbalanced training data
+
+- `base_model_name` (required): Base model for balanced subsets
+
+- `n_estimators`: Integer (default 10). Number of balanced subsets
+
+- `tune_base_model`: Logical (default FALSE). Tune base models
+
+- `threshold_choices`: Same as models_dia()
+
+- `seed`: Integer (default 123). Random seed
+
+### apply_dia()
+
+Applies trained model to new data. **Parameters:**
+
+- `trained_model_object` (required): Trained model object from E2E
+  functions
+
+- `new_data` (required): New data for prediction (sample IDs in column
+  1)
+
+- `label_col_name`: String (default NULL). True label column name if
+  available
+
+### evaluate_predictions_dia()
+
+Evaluates model predictions. **Parameters:**
+
+- `prediction_df` (required): Prediction data frame from apply_dia()
+
+- `threshold_choices`: Same as models_dia()
+
+## Prognostic Modeling Functions
+
+### models_pro()
+
+Trains base survival models. **Parameters:**
+
+- `data` (required): Data frame with sample ID, survival status, time,
+  features
+
+- `model` (required): Model names or “all_pro” for all models
+
+- `tune`: Logical (default FALSE). Hyperparameter tuning
+
+- `time_unit`: String (default “day”). Time unit (“day”, “month”,
+  “year”)
+
+- `years_to_evaluate`: Numeric vector (default c(1,3,5)). Time points
+  for time-dependent AUROC
+
+- `seed`: Integer (default 789). Random seed
+
+### stacking_pro()
+
+Stacking ensemble for survival analysis. **Parameters:**
+
+- `results_all_models` (required): Output from models_pro()
+
+- `data` (required): Training data
+
+- `meta_model_name` (required): Meta-model name
+
+- `top`: Integer (default 3). Number of top base models
+
+- `tune_meta`: Logical (default FALSE). Tune meta-model
+
+- `time_unit`: String (default “day”). Time unit
+
+- `years_to_evaluate`: Numeric vector (default c(1,3,5)). Evaluation
+  time points
+
+- `seed`: Integer (default 789). Random seed
+
+### bagging_pro()
+
+Bootstrap aggregating for survival analysis. **Parameters:**
+
+- `data` (required): Training data
+
+- `base_model_name` (required): Base model name
+
+- `n_estimators`: Integer (default 10). Number of base models
+
+- `subset_fraction`: Numeric (default 0.632). Bootstrap sampling
+  fraction
+
+- `tune_base_model`: Logical (default FALSE). Tune base models
+
+- `time_unit`: String (default “day”). Time unit
+
+- `years_to_evaluate`: Numeric vector (default c(1,3,5)). Evaluation
+  time points
+
+- `seed`: Integer (default 456). Random seed
+
+### apply_pro()
+
+Applies trained survival model to new data. **Parameters:**
+
+- `trained_model_object` (required): Trained model object
+
+- `new_data` (required): New data with same structure as training data
+
+- `time_unit`: String (default “day”). Time unit
+
+### evaluate_predictions_pro()
+
+Evaluates survival model predictions. **Parameters:**
+
+- `prediction_df` (required): Prediction data frame from apply_pro()
+
+- `years_to_evaluate`: Numeric vector (default c(1,3,5)). Evaluation
+  time points
+
+## Visualization Functions
+
+### figure_dia()
+
+Creates diagnostic model evaluation plots. **Parameters:**
+
+- `type` (required): Plot type
+  - “roc”: ROC curve
+  - “prc”: Precision-recall curve
+  - “matrix”: Confusion matrix
+- `data` (required): Model results object
+
+### figure_pro()
+
+Creates prognostic model evaluation plots. **Parameters:**
+
+- `type` (required): Plot type
+
+  - “km”: Kaplan-Meier survival curves
+  - “tdroc”: Time-dependent ROC curves
+
+- `data` (required): Model results object
+
+- `time_unit`: String (default “days”). Time unit for axis labels
+
+### figure_shap()
+
+Creates SHAP interpretation plots. **Parameters:**
+
+- `data` (required): Model results with sample_score data frame
+
+- `raw_data` (required): Original feature data
+
+- `target_type` (required): Data type
+
+  - “diagnosis”: Features start from column 3
+  - “prognosis”: Features start from column 4
+
+## Custom Model Registration
+
+### register_model_dia() / register_model_pro()
+
+Registers custom algorithms.
+
+**Usage:** 1. Define custom function following E2E conventions 2.
+Register with `register_model_dia("model_name", custom_function)` 3. Use
+registered model in E2E workflows

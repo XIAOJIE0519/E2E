@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">E2E</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,7 +34,8 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/getting-started.html">1. Getting Started</a></li>
+<li><a class="dropdown-item" href="../articles/integrated-pipeline.html">0. One-click run all models</a></li>
+    <li><a class="dropdown-item" href="../articles/getting-started.html">1. Getting Started</a></li>
     <li><a class="dropdown-item" href="../articles/diagnostic-workflow.html">2. Diagnostic Workflow</a></li>
     <li><a class="dropdown-item" href="../articles/prognostic-workflow.html">3. Prognostic Workflow</a></li>
     <li><a class="dropdown-item" href="../articles/advanced-features.html">4. Advanced Features &amp; Customization</a></li>
@@ -81,7 +82,7 @@
 <p>First, initialize the prognostic modeling system.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/initialize_modeling_system_pro.html">initialize_modeling_system_pro</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Prognosis modeling system initialized and default models registered.</span></span></code></pre></div>
+<span><span class="co">#&gt; Prognosis modeling system initialized.</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="training-single-models-with-models_pro">2. Training Single Models with <code>models_pro</code><a class="anchor" aria-label="anchor" href="#training-single-models-with-models_pro"></a>
@@ -97,12 +98,10 @@ survival models. For this demonstration, we’ll run a subset.</p>
 <span><span class="co"># Print summary for Random Survival Forest</span></span>
 <span><span class="fu"><a href="../reference/print_model_summary_pro.html">print_model_summary_pro</a></span><span class="op">(</span><span class="st">"rsf_pro"</span>, <span class="va">results_all_pro</span><span class="op">$</span><span class="va">rsf_pro</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; --- rsf_pro Prognosis Model (on Training Data) Metrics ---</span></span>
-<span><span class="co">#&gt; C-index: 0.8702</span></span>
-<span><span class="co">#&gt; Time-dependent AUROC (years 1, 3, 5): 0.8041, 0.8170, 0.7559</span></span>
-<span><span class="co">#&gt; Average Time-dependent AUROC: 0.7923</span></span>
-<span><span class="co">#&gt; KM Group HR (High vs Low): 15.1349 (p-value: 1.509e-16, Cutoff: -1132.7747)</span></span>
-<span><span class="co">#&gt; --------------------------------------------------</span></span></code></pre></div>
+<span><span class="co">#&gt; --- rsf_pro Summary ---</span></span>
+<span><span class="co">#&gt; C-index: 0.9458</span></span>
+<span><span class="co">#&gt; Avg AUC: 0.9191</span></span>
+<span><span class="co">#&gt; KM HR: 92.2028 (p=1.116e-17)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="ensemble-modeling">3. Ensemble Modeling<a class="anchor" aria-label="anchor" href="#ensemble-modeling"></a>
@@ -115,16 +114,13 @@ survival models. For this demonstration, we’ll run a subset.</p>
 <code class="sourceCode R"><span><span class="co"># Create a Bagging ensemble with lasso as the base survival model</span></span>
 <span><span class="co"># n_estimators is reduced for faster execution.</span></span>
 <span><span class="va">bagging_lasso_pro_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bagging_pro.html">bagging_pro</a></span><span class="op">(</span><span class="va">train_pro</span>, base_model_name <span class="op">=</span> <span class="st">"lasso_pro"</span>, n_estimators <span class="op">=</span> <span class="fl">5</span>, seed <span class="op">=</span> <span class="fl">123</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Running Bagging model: Bagging_pro (base: lasso_pro)</span></span>
+<span><span class="co">#&gt; Running Bagging: Target 5 models using lasso_pro...</span></span>
 <span><span class="fu"><a href="../reference/print_model_summary_pro.html">print_model_summary_pro</a></span><span class="op">(</span><span class="st">"Bagging (LASSO)"</span>, <span class="va">bagging_lasso_pro_results</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; --- Bagging (LASSO) Prognosis Model (on Training Data) Metrics ---</span></span>
-<span><span class="co">#&gt; Ensemble Type: Bagging (Base: lasso_pro, Estimators: 5)</span></span>
+<span><span class="co">#&gt; --- Bagging (LASSO) Summary ---</span></span>
 <span><span class="co">#&gt; C-index: 0.7330</span></span>
-<span><span class="co">#&gt; Time-dependent AUROC (years 1, 3, 5): 0.5318, 0.6148, 0.6028</span></span>
-<span><span class="co">#&gt; Average Time-dependent AUROC: 0.5831</span></span>
-<span><span class="co">#&gt; KM Group HR (High vs Low): 3.2048 (p-value: 2.22e-08, Cutoff: 0.3661)</span></span>
-<span><span class="co">#&gt; --------------------------------------------------</span></span></code></pre></div>
+<span><span class="co">#&gt; Avg AUC: 0.5831</span></span>
+<span><span class="co">#&gt; KM HR: 3.2048 (p=2.22e-08)</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="stacking-stacking_pro">Stacking (<code>stacking_pro</code>)<a class="anchor" aria-label="anchor" href="#stacking-stacking_pro"></a>
@@ -137,16 +133,12 @@ survival models. For this demonstration, we’ll run a subset.</p>
 <span>  data <span class="op">=</span> <span class="va">train_pro</span>,</span>
 <span>  meta_model_name <span class="op">=</span> <span class="st">"lasso_pro"</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; Running Stacking model: Stacking_pro (meta: lasso_pro)</span></span>
 <span><span class="fu"><a href="../reference/print_model_summary_pro.html">print_model_summary_pro</a></span><span class="op">(</span><span class="st">"Stacking (LASSO)"</span>, <span class="va">stacking_lasso_pro_results</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; --- Stacking (LASSO) Prognosis Model (on Training Data) Metrics ---</span></span>
-<span><span class="co">#&gt; Ensemble Type: Stacking (Meta: lasso_pro, Base models used: rsf_pro, lasso_pro)</span></span>
-<span><span class="co">#&gt; C-index: 0.8814</span></span>
-<span><span class="co">#&gt; Time-dependent AUROC (years 1, 3, 5): 0.7389, 0.8173, 0.8510</span></span>
-<span><span class="co">#&gt; Average Time-dependent AUROC: 0.8024</span></span>
-<span><span class="co">#&gt; KM Group HR (High vs Low): 19.5197 (p-value: 3.159e-18, Cutoff: 18.0175)</span></span>
-<span><span class="co">#&gt; --------------------------------------------------</span></span></code></pre></div>
+<span><span class="co">#&gt; --- Stacking (LASSO) Summary ---</span></span>
+<span><span class="co">#&gt; C-index: 0.9491</span></span>
+<span><span class="co">#&gt; Avg AUC: 0.9243</span></span>
+<span><span class="co">#&gt; KM HR: 93.2054 (p=8.946e-18)</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level3">
@@ -169,30 +161,30 @@ survival models. For this demonstration, we’ll run a subset.</p>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">eval_pro_new</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $C_index</span></span>
-<span><span class="co">#&gt; [1] 0.5778903</span></span>
+<span><span class="co">#&gt; [1] 0.6549641</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $AUROC_Years</span></span>
 <span><span class="co">#&gt; $AUROC_Years$`1`</span></span>
-<span><span class="co">#&gt; [1] 0.4968283</span></span>
+<span><span class="co">#&gt; [1] 0.6108769</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $AUROC_Years$`3`</span></span>
-<span><span class="co">#&gt; [1] 0.5527718</span></span>
+<span><span class="co">#&gt; [1] 0.6592235</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $AUROC_Years$`5`</span></span>
-<span><span class="co">#&gt; [1] 0.566955</span></span>
+<span><span class="co">#&gt; [1] 0.569949</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $AUROC_Average</span></span>
-<span><span class="co">#&gt; [1] 0.5388517</span></span>
+<span><span class="co">#&gt; [1] 0.6133498</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $KM_HR</span></span>
-<span><span class="co">#&gt; [1] 1.862771</span></span>
+<span><span class="co">#&gt; [1] 1.574968</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $KM_P_value</span></span>
-<span><span class="co">#&gt; [1] 0.04657938</span></span>
+<span><span class="co">#&gt; [1] 0.1311643</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $KM_Cutoff</span></span>
-<span><span class="co">#&gt; [1] 17.41586</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 2.228376</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="visualization-figure_pro">5. Visualization (<code>figure_pro</code>)<a class="anchor" aria-label="anchor" href="#visualization-figure_pro"></a>
@@ -219,7 +211,7 @@ survival models. For this demonstration, we’ll run a subset.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

@@ -1,0 +1,102 @@
+# 4. Advanced Features & Customization
+
+``` r
+library(E2E)
+# Initialize systems for the examples
+initialize_modeling_system_dia()
+#> Diagnostic modeling system initialized and default models registered.
+initialize_modeling_system_pro()
+#> Prognosis modeling system initialized.
+```
+
+## Advanced Features
+
+This guide covers advanced topics such as extending the E2E framework
+with custom models and interpreting model predictions using SHAP.
+
+### 1. Extending the Framework: Adding New Models
+
+The E2E framework is fully extensible. You can register your own custom
+models. For example, to add Adaboost for diagnosis:
+
+``` r
+# 1. Define the model function (must accept X, y, and other standard args)
+ab_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
+  # Ensure caret is available
+  if (!requireNamespace("caret", quietly = TRUE)) {
+    stop("Package 'caret' is required for this custom model.")
+  }
+  ctrl <- caret::trainControl(method = "cv", number = cv_folds,
+                              classProbs = TRUE, summaryFunction = caret::twoClassSummary)
+  grid <- if (tune) {
+    expand.grid(iter = c(50, 100), maxdepth = c(1, 2), nu = 0.1)
+  } else {
+    expand.grid(iter = 50, maxdepth = 1, nu = 0.1)
+  }
+  caret::train(x = X, y = y, method = "ada", metric = "ROC", trControl = ctrl, tuneGrid = grid)
+}
+
+# 2. Register the model with a unique name
+register_model_dia("ab", ab_dia)
+
+# 3. Now you can use "ab" in any diagnostic function
+results_ab <- models_dia(train_dia, model = "ab")
+#> Running model: ab
+print_model_summary_dia("ab", results_ab$ab)
+#> 
+#> --- ab Model (on Training Data) Metrics ---
+#> Threshold Strategy: default (0.5000)
+#> AUROC: 0.9994 (95% CI: 0.9987 - 1.0000)
+#> AUPRC: 0.9999
+#> Accuracy: 0.9919
+#> F1: 0.9955
+#> Precision: 0.9936
+#> Recall: 0.9974
+#> Specificity: 0.9375
+#> --------------------------------------------------
+```
+
+### 2. Model Explanation with SHAP (`figure_shap`)
+
+The `figure_shap` function provides model-agnostic explanations by
+calculating SHAP values. This reveals which features had the most impact
+on the model’s output.
+
+#### Explaining a Diagnostic Model
+
+``` r
+# First, we need a model result object
+bagging_xb_results <- bagging_dia(train_dia, base_model_name = "xb", n_estimators = 10, seed=123)
+#> Running Bagging model: Bagging_dia (base: xb)
+
+# Now, generate the SHAP explanation plot
+p6 <- figure_shap(
+  data = bagging_xb_results,
+  raw_data = train_dia,
+  target_type = "diagnosis"
+)
+#> Training 'xgboost' surrogate model and calculating SHAP values...
+#plot(p6)
+```
+
+#### Explaining a Prognostic Model
+
+``` r
+# First, we need a model result object
+stacking_stepcox_pro_results <- stacking_pro(
+  results_all_models = models_pro(train_pro, model = c("lasso_pro", "rsf_pro")),
+  data = train_pro,
+  meta_model_name = "stepcox_pro"
+)
+#> Running model: lasso_pro
+#> Running model: rsf_pro
+
+# Generate the SHAP explanation plot
+p7 <- figure_shap(
+  data = stacking_stepcox_pro_results,
+  raw_data = train_pro,
+  target_type = "prognosis"
+)
+#> Training 'xgboost' surrogate model and calculating SHAP values...
+#plot(p7)
+```

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">E2E</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -19,7 +19,8 @@
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/getting-started.html">1. Getting Started</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/integrated-pipeline.html">0. One-click run all models</a></li>
+    <li><a class="dropdown-item" href="../articles/getting-started.html">1. Getting Started</a></li>
     <li><a class="dropdown-item" href="../articles/diagnostic-workflow.html">2. Diagnostic Workflow</a></li>
     <li><a class="dropdown-item" href="../articles/prognostic-workflow.html">3. Prognostic Workflow</a></li>
     <li><a class="dropdown-item" href="../articles/advanced-features.html">4. Advanced Features &amp; Customization</a></li>
@@ -40,12 +41,48 @@
     </div>
 
     <div class="section level2">
+      <h2 id="integrated-pipelines">Integrated Pipelines<a class="anchor" aria-label="anchor" href="#integrated-pipelines"></a></h2>
+
+      <div class="section-desc"><p>One-click functions for comprehensive model comparison across multiple algorithms and ensemble methods.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="int_dia.html">int_dia()</a></code>
+
+        </dt>
+        <dd>Comprehensive Diagnostic Modeling Pipeline</dd>
+
+        <dt>
+
+          <code><a href="int_imbalance.html">int_imbalance()</a></code>
+
+        </dt>
+        <dd>Imbalanced Data Diagnostic Modeling Pipeline</dd>
+
+        <dt>
+
+          <code><a href="int_pro.html">int_pro()</a></code>
+
+        </dt>
+        <dd>Comprehensive Prognostic Modeling Pipeline</dd>
+
+        <dt>
+
+          <code><a href="plot_integrated_results.html">plot_integrated_results()</a></code>
+
+        </dt>
+        <dd>Visualize Integrated Modeling Results</dd>
+      </dl></div><div class="section level2">
       <h2 id="core-modeling-functions">Core Modeling Functions<a class="anchor" aria-label="anchor" href="#core-modeling-functions"></a></h2>
 
       <div class="section-desc"><p>Main functions for building and evaluating models.</p></div>
 
-
-    </div><div class="section level2">
+      <dl></dl></div><div class="section level2">
 
 
 
@@ -56,43 +93,50 @@
 
         </dt>
         <dd>Run Multiple Diagnostic Models</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="models_pro.html">models_pro()</a></code>
 
         </dt>
         <dd>Run Multiple Prognostic Models</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="bagging_dia.html">bagging_dia()</a></code>
 
         </dt>
         <dd>Train a Bagging Diagnostic Model</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="bagging_pro.html">bagging_pro()</a></code>
 
         </dt>
-        <dd>Train a Bagging Prognostic Model</dd>
-      </dl><dl><dt>
+        <dd>Train Bagging Ensemble for Prognosis</dd>
+
+        <dt>
 
           <code><a href="voting_dia.html">voting_dia()</a></code>
 
         </dt>
         <dd>Train a Voting Ensemble Diagnostic Model</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="stacking_dia.html">stacking_dia()</a></code>
 
         </dt>
         <dd>Train a Stacking Diagnostic Model</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="stacking_pro.html">stacking_pro()</a></code>
 
         </dt>
-        <dd>Train a Stacking Prognostic Model</dd>
-      </dl><dl><dt>
+        <dd>Train Stacking Ensemble for Prognosis</dd>
+
+        <dt>
 
           <code><a href="imbalance_dia.html">imbalance_dia()</a></code>
 
@@ -103,8 +147,7 @@
 
       <div class="section-desc"><p>Functions for applying, evaluating, visualizing, and explaining models.</p></div>
 
-
-    </div><div class="section level2">
+      <dl></dl></div><div class="section level2">
 
 
 
@@ -115,61 +158,71 @@
 
         </dt>
         <dd>Apply a Trained Model to New Data</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="apply_pro.html">apply_pro()</a></code>
 
         </dt>
-        <dd>Apply a Trained Prognostic Model to New Data</dd>
-      </dl><dl><dt>
+        <dd>Apply Prognostic Model to New Data</dd>
+
+        <dt>
 
           <code><a href="evaluate_model_dia.html">evaluate_model_dia()</a></code>
 
         </dt>
         <dd>Evaluate Diagnostic Model Performance</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="evaluate_model_pro.html">evaluate_model_pro()</a></code>
 
         </dt>
         <dd>Evaluate Prognostic Model Performance</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="evaluate_predictions_dia.html">evaluate_predictions_dia()</a></code>
 
         </dt>
         <dd>Evaluate Predictions from a Data Frame</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="evaluate_predictions_pro.html">evaluate_predictions_pro()</a></code>
 
         </dt>
-        <dd>Evaluate Prognostic Predictions</dd>
-      </dl><dl><dt>
+        <dd>Evaluate External Predictions</dd>
+
+        <dt>
 
           <code><a href="figure_dia.html">figure_dia()</a></code>
 
         </dt>
         <dd>Plot Diagnostic Model Evaluation Figures</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="figure_pro.html">figure_pro()</a></code>
 
         </dt>
         <dd>Plot Prognostic Model Evaluation Figures</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="figure_shap.html">figure_shap()</a></code>
 
         </dt>
         <dd>Generate and Plot SHAP Explanation Figures</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="print_model_summary_dia.html">print_model_summary_dia()</a></code>
 
         </dt>
         <dd>Print Diagnostic Model Summary</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="print_model_summary_pro.html">print_model_summary_pro()</a></code>
 
@@ -180,8 +233,7 @@
 
       <div class="section-desc"><p>Functions for initialization and framework extension.</p></div>
 
-
-    </div><div class="section level2">
+      <dl></dl></div><div class="section level2">
 
 
 
@@ -192,31 +244,36 @@
 
         </dt>
         <dd>Initialize Diagnostic Modeling System</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="initialize_modeling_system_pro.html">initialize_modeling_system_pro()</a></code>
 
         </dt>
-        <dd>Initialize Prognostic Modeling System</dd>
-      </dl><dl><dt>
+        <dd>Initialize Prognosis Modeling System</dd>
+
+        <dt>
 
           <code><a href="register_model_dia.html">register_model_dia()</a></code>
 
         </dt>
         <dd>Register a Diagnostic Model Function</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="register_model_pro.html">register_model_pro()</a></code>
 
         </dt>
-        <dd>Register a Prognostic Model Function</dd>
-      </dl><dl><dt>
+        <dd>Register a Prognostic Model</dd>
+
+        <dt>
 
           <code><a href="get_registered_models_dia.html">get_registered_models_dia()</a></code>
 
         </dt>
         <dd>Get Registered Diagnostic Models</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="get_registered_models_pro.html">get_registered_models_pro()</a></code>
 
@@ -227,8 +284,7 @@
 
       <div class="section-desc"><p>Example datasets included with the package.</p></div>
 
-
-    </div><div class="section level2">
+      <dl></dl></div><div class="section level2">
 
 
 
@@ -239,19 +295,22 @@
 
         </dt>
         <dd>Training Data for Diagnostic Models</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="test_dia.html">test_dia</a></code>
 
         </dt>
         <dd>Test Data for Diagnostic Models</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="train_pro.html">train_pro</a></code>
 
         </dt>
         <dd>Training Data for Prognostic (Survival) Models</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="test_pro.html">test_pro</a></code>
 
@@ -262,8 +321,7 @@
 
       <div class="section-desc"><p>These are lower-level functions, generally not called directly by the user.</p></div>
 
-
-    </div><div class="section level2">
+      <dl></dl></div><div class="section level2">
 
 
 
@@ -274,307 +332,386 @@
 
         </dt>
         <dd>Apply a Trained Model to New Data</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="apply_pro.html">apply_pro()</a></code>
 
         </dt>
-        <dd>Apply a Trained Prognostic Model to New Data</dd>
-      </dl><dl><dt>
+        <dd>Apply Prognostic Model to New Data</dd>
+
+        <dt>
 
           <code><a href="bagging_dia.html">bagging_dia()</a></code>
 
         </dt>
         <dd>Train a Bagging Diagnostic Model</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="bagging_pro.html">bagging_pro()</a></code>
 
         </dt>
-        <dd>Train a Bagging Prognostic Model</dd>
-      </dl><dl><dt>
+        <dd>Train Bagging Ensemble for Prognosis</dd>
+
+        <dt>
 
           <code><a href="calculate_metrics_at_threshold_dia.html">calculate_metrics_at_threshold_dia()</a></code>
 
         </dt>
         <dd>Calculate Classification Metrics at a Specific Threshold</dd>
-      </dl><dl><dt>
+
+        <dt>
+
+          <code><a href="cb_pro.html">cb_pro()</a></code>
+
+        </dt>
+        <dd>Train CoxBoost</dd>
+
+        <dt>
 
           <code><a href="dt_dia.html">dt_dia()</a></code>
 
         </dt>
         <dd>Train a Decision Tree Model for Classification</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="en_dia.html">en_dia()</a></code>
 
         </dt>
         <dd>Train an Elastic Net (L1 and L2 Regularized Logistic Regression) Model for Classification</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="en_pro.html">en_pro()</a></code>
 
         </dt>
-        <dd>Train an Elastic Net Cox Proportional Hazards Model</dd>
-      </dl><dl><dt>
+        <dd>Train Elastic Net Cox Model</dd>
+
+        <dt>
 
           <code><a href="evaluate_model_dia.html">evaluate_model_dia()</a></code>
 
         </dt>
         <dd>Evaluate Diagnostic Model Performance</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="evaluate_model_pro.html">evaluate_model_pro()</a></code>
 
         </dt>
         <dd>Evaluate Prognostic Model Performance</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="evaluate_predictions_dia.html">evaluate_predictions_dia()</a></code>
 
         </dt>
         <dd>Evaluate Predictions from a Data Frame</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="evaluate_predictions_pro.html">evaluate_predictions_pro()</a></code>
 
         </dt>
-        <dd>Evaluate Prognostic Predictions</dd>
-      </dl><dl><dt>
+        <dd>Evaluate External Predictions</dd>
+
+        <dt>
 
           <code><a href="figure_dia.html">figure_dia()</a></code>
 
         </dt>
         <dd>Plot Diagnostic Model Evaluation Figures</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="figure_pro.html">figure_pro()</a></code>
 
         </dt>
         <dd>Plot Prognostic Model Evaluation Figures</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="find_optimal_threshold_dia.html">find_optimal_threshold_dia()</a></code>
 
         </dt>
         <dd>Find Optimal Probability Threshold</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="gbm_dia.html">gbm_dia()</a></code>
 
         </dt>
         <dd>Train a Gradient Boosting Machine (GBM) Model for Classification</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="gbm_pro.html">gbm_pro()</a></code>
 
         </dt>
-        <dd>Train a Gradient Boosting Machine (GBM) for Survival Data</dd>
-      </dl><dl><dt>
+        <dd>Train Gradient Boosting Machine (GBM) for Survival</dd>
+
+        <dt>
 
           <code><a href="get_registered_models_dia.html">get_registered_models_dia()</a></code>
 
         </dt>
         <dd>Get Registered Diagnostic Models</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="get_registered_models_pro.html">get_registered_models_pro()</a></code>
 
         </dt>
         <dd>Get Registered Prognostic Models</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="imbalance_dia.html">imbalance_dia()</a></code>
 
         </dt>
         <dd>Train an EasyEnsemble Model for Imbalanced Classification</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="initialize_modeling_system_dia.html">initialize_modeling_system_dia()</a></code>
 
         </dt>
         <dd>Initialize Diagnostic Modeling System</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="initialize_modeling_system_pro.html">initialize_modeling_system_pro()</a></code>
 
         </dt>
-        <dd>Initialize Prognostic Modeling System</dd>
-      </dl><dl><dt>
+        <dd>Initialize Prognosis Modeling System</dd>
+
+        <dt>
+
+          <code><a href="int_dia.html">int_dia()</a></code>
+
+        </dt>
+        <dd>Comprehensive Diagnostic Modeling Pipeline</dd>
+
+        <dt>
+
+          <code><a href="int_pro.html">int_pro()</a></code>
+
+        </dt>
+        <dd>Comprehensive Prognostic Modeling Pipeline</dd>
+
+        <dt>
 
           <code><a href="lasso_dia.html">lasso_dia()</a></code>
 
         </dt>
         <dd>Train a Lasso (L1 Regularized Logistic Regression) Model for Classification</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="lasso_pro.html">lasso_pro()</a></code>
 
         </dt>
-        <dd>Train a Lasso Cox Proportional Hazards Model</dd>
-      </dl><dl><dt>
+        <dd>Train Lasso Cox Proportional Hazards Model</dd>
+
+        <dt>
 
           <code><a href="lda_dia.html">lda_dia()</a></code>
 
         </dt>
         <dd>Train a Linear Discriminant Analysis (LDA) Model for Classification</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="load_and_prepare_data_dia.html">load_and_prepare_data_dia()</a></code>
 
         </dt>
         <dd>Load and Prepare Data for Diagnostic Models</dd>
-      </dl><dl><dt>
 
-          <code><a href="load_and_prepare_data_pro.html">load_and_prepare_data_pro()</a></code>
-
-        </dt>
-        <dd>Load and Prepare Data for Prognostic Models</dd>
-      </dl><dl><dt>
+        <dt>
 
           <code><a href="mlp_dia.html">mlp_dia()</a></code>
 
         </dt>
         <dd>Train a Multi-Layer Perceptron (Neural Network) Model for Classification</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="models_dia.html">models_dia()</a></code>
 
         </dt>
         <dd>Run Multiple Diagnostic Models</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="models_pro.html">models_pro()</a></code>
 
         </dt>
         <dd>Run Multiple Prognostic Models</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="nb_dia.html">nb_dia()</a></code>
 
         </dt>
         <dd>Train a Naive Bayes Model for Classification</dd>
-      </dl><dl><dt>
+
+        <dt>
+
+          <code><a href="pls_pro.html">pls_pro()</a></code>
+
+        </dt>
+        <dd>Train Partial Least Squares Cox (PLS-Cox)</dd>
+
+        <dt>
+
+          <code><a href="predict_pro.html">predict_pro()</a></code>
+
+        </dt>
+        <dd>Generic Prediction Interface for Prognostic Models</dd>
+
+        <dt>
 
           <code><a href="print_model_summary_dia.html">print_model_summary_dia()</a></code>
 
         </dt>
         <dd>Print Diagnostic Model Summary</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="print_model_summary_pro.html">print_model_summary_pro()</a></code>
 
         </dt>
         <dd>Print Prognostic Model Summary</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="qda_dia.html">qda_dia()</a></code>
 
         </dt>
         <dd>Train a Quadratic Discriminant Analysis (QDA) Model for Classification</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="register_model_dia.html">register_model_dia()</a></code>
 
         </dt>
         <dd>Register a Diagnostic Model Function</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="register_model_pro.html">register_model_pro()</a></code>
 
         </dt>
-        <dd>Register a Prognostic Model Function</dd>
-      </dl><dl><dt>
+        <dd>Register a Prognostic Model</dd>
+
+        <dt>
 
           <code><a href="rf_dia.html">rf_dia()</a></code>
 
         </dt>
         <dd>Train a Random Forest Model for Classification</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="ridge_dia.html">ridge_dia()</a></code>
 
         </dt>
         <dd>Train a Ridge (L2 Regularized Logistic Regression) Model for Classification</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="ridge_pro.html">ridge_pro()</a></code>
 
         </dt>
-        <dd>Train a Ridge Cox Proportional Hazards Model</dd>
-      </dl><dl><dt>
+        <dd>Train Ridge Cox Model</dd>
+
+        <dt>
 
           <code><a href="rsf_pro.html">rsf_pro()</a></code>
 
         </dt>
-        <dd>Train a Random Survival Forest Model</dd>
-      </dl><dl><dt>
+        <dd>Train Random Survival Forest (RSF)</dd>
+
+        <dt>
 
           <code><a href="stacking_dia.html">stacking_dia()</a></code>
 
         </dt>
         <dd>Train a Stacking Diagnostic Model</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="stacking_pro.html">stacking_pro()</a></code>
 
         </dt>
-        <dd>Train a Stacking Prognostic Model</dd>
-      </dl><dl><dt>
+        <dd>Train Stacking Ensemble for Prognosis</dd>
+
+        <dt>
 
           <code><a href="stepcox_pro.html">stepcox_pro()</a></code>
 
         </dt>
-        <dd>Train a Stepwise Cox Proportional Hazards Model</dd>
-      </dl><dl><dt>
+        <dd>Train Stepwise Cox Model (AIC-based)</dd>
+
+        <dt>
 
           <code><a href="svm_dia.html">svm_dia()</a></code>
 
         </dt>
         <dd>Train a Support Vector Machine (Linear Kernel) Model for Classification</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="test_dia.html">test_dia</a></code>
 
         </dt>
         <dd>Test Data for Diagnostic Models</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="test_pro.html">test_pro</a></code>
 
         </dt>
         <dd>Test Data for Prognostic (Survival) Models</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="train_dia.html">train_dia</a></code>
 
         </dt>
         <dd>Training Data for Diagnostic Models</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="train_pro.html">train_pro</a></code>
 
         </dt>
         <dd>Training Data for Prognostic (Survival) Models</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="voting_dia.html">voting_dia()</a></code>
 
         </dt>
         <dd>Train a Voting Ensemble Diagnostic Model</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="xb_dia.html">xb_dia()</a></code>
 
         </dt>
         <dd>Train an XGBoost Tree Model for Classification</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="min_max_normalize.html">min_max_normalize()</a></code>
 
         </dt>
         <dd>Min-Max Normalization</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="Surv.html">Surv</a></code>
 
@@ -590,7 +727,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>

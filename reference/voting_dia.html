@@ -9,7 +9,7 @@ base models through soft or hard voting."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">E2E</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -21,7 +21,8 @@ base models through soft or hard voting."></head><body>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/getting-started.html">1. Getting Started</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/integrated-pipeline.html">0. One-click run all models</a></li>
+    <li><a class="dropdown-item" href="../articles/getting-started.html">1. Getting Started</a></li>
     <li><a class="dropdown-item" href="../articles/diagnostic-workflow.html">2. Diagnostic Workflow</a></li>
     <li><a class="dropdown-item" href="../articles/prognostic-workflow.html">3. Prognostic Workflow</a></li>
     <li><a class="dropdown-item" href="../articles/advanced-features.html">4. Advanced Features &amp; Customization</a></li>
@@ -137,7 +138,7 @@ for the negative class (e.g., "Negative").</p></dd>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span><span class="co"># 1. Initialize the modeling system</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="initialize_modeling_system_dia.html">initialize_modeling_system_dia</a></span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Diagnostic modeling system already initialized.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Diagnostic modeling system already initialized</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># 2. Create a toy dataset for demonstration</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span></span>
@@ -173,7 +174,7 @@ for the negative class (e.g., "Negative").</p></dd>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> --- Soft Voting Model (on Training Data) Metrics ---</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Ensemble Type: Voting (Type: soft, Weight Metric: AUROC, Base models used: rf, lasso)</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Threshold Strategy: f1 (0.5622)</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> AUROC: 1.0000 (95% CI: 1.0000 - 1.0000)</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> AUPRC: 1.0000</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Accuracy: 1.0000</span>
@@ -194,7 +195,7 @@ for the negative class (e.g., "Negative").</p></dd>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>

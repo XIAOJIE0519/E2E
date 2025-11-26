@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">E2E</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,7 +34,8 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/getting-started.html">1. Getting Started</a></li>
+<li><a class="dropdown-item" href="../articles/integrated-pipeline.html">0. One-click run all models</a></li>
+    <li><a class="dropdown-item" href="../articles/getting-started.html">1. Getting Started</a></li>
     <li><a class="dropdown-item" href="../articles/diagnostic-workflow.html">2. Diagnostic Workflow</a></li>
     <li><a class="dropdown-item" href="../articles/prognostic-workflow.html">3. Prognostic Workflow</a></li>
     <li><a class="dropdown-item" href="../articles/advanced-features.html">4. Advanced Features &amp; Customization</a></li>
@@ -75,7 +76,7 @@
 <span><span class="fu"><a href="../reference/initialize_modeling_system_dia.html">initialize_modeling_system_dia</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Diagnostic modeling system initialized and default models registered.</span></span>
 <span><span class="fu"><a href="../reference/initialize_modeling_system_pro.html">initialize_modeling_system_pro</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Prognosis modeling system initialized and default models registered.</span></span></code></pre></div>
+<span><span class="co">#&gt; Prognosis modeling system initialized.</span></span></code></pre></div>
 <div class="section level2">
 <h2 id="advanced-features">Advanced Features<a class="anchor" aria-label="anchor" href="#advanced-features"></a>
 </h2>
@@ -112,7 +113,7 @@ custom models. For example, to add Adaboost for diagnosis:</p>
 <span><span class="fu"><a href="../reference/print_model_summary_dia.html">print_model_summary_dia</a></span><span class="op">(</span><span class="st">"ab"</span>, <span class="va">results_ab</span><span class="op">$</span><span class="va">ab</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; --- ab Model (on Training Data) Metrics ---</span></span>
-<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Threshold Strategy: default (0.5000)</span></span>
 <span><span class="co">#&gt; AUROC: 0.9994 (95% CI: 0.9987 - 1.0000)</span></span>
 <span><span class="co">#&gt; AUPRC: 0.9999</span></span>
 <span><span class="co">#&gt; Accuracy: 0.9919</span></span>
@@ -157,7 +158,6 @@ the most impact on the model’s output.</p>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Running model: lasso_pro</span></span>
 <span><span class="co">#&gt; Running model: rsf_pro</span></span>
-<span><span class="co">#&gt; Running Stacking model: Stacking_pro (meta: stepcox_pro)</span></span>
 <span></span>
 <span><span class="co"># Generate the SHAP explanation plot</span></span>
 <span><span class="va">p7</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/figure_shap.html">figure_shap</a></span><span class="op">(</span></span>
@@ -181,7 +181,7 @@ the most impact on the model’s output.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

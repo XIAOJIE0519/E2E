@@ -1,13 +1,14 @@
 pandoc: 3.1.11
-pkgdown: 2.1.3
+pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
   advanced-features: advanced-features.html
   diagnostic-workflow: diagnostic-workflow.html
   getting-started: getting-started.html
+  integrated-pipeline: integrated-pipeline.html
   parameter-reference: parameter-reference.html
   prognostic-workflow: prognostic-workflow.html
-last_built: 2025-09-02T07:18Z
+last_built: 2025-11-26T14:11Z
 urls:
   reference: https://xiaojie0519.github.io/E2E/reference
   article: https://xiaojie0519.github.io/E2E/articles
