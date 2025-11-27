@@ -197,6 +197,9 @@ predict_pro.survival_gbm <- function(object, newdata, ...) {
 
 #' @export
 predict_pro.survival_coxboost <- function(object, newdata, ...) {
+  if (!requireNamespace("CoxBoost", quietly = TRUE)) {
+    stop("Package 'CoxBoost' is needed for prediction.")
+  }
   newdata <- .ensure_features(object, newdata)
   X_matrix <- as.matrix(newdata)
   as.vector(predict(object$finalModel, newdata = X_matrix, type = "lp"))
@@ -633,11 +636,16 @@ gbm_pro <- function(X, y_surv, tune = FALSE, cv.folds = 5, max_tune_iter = 10) {
 #' @return An object of class \code{survival_coxboost} and \code{pro_model}.
 #' @export
 cb_pro <- function(X, y_surv, tune = FALSE) {
+
+  if (!requireNamespace("CoxBoost", quietly = TRUE)) {
+    stop("Package 'CoxBoost' is required for this function but is not installed.
+          Please install it from GitHub using: remotes::install_github('binderh/CoxBoost')")
+  }
+
   X_matrix <- as.matrix(X)
   stepno_val <- 100
-  if (tune) stepno_val <- 100 # Placeholder for advanced tuning implementation
+  if (tune) stepno_val <- 100
 
-  # Note: CoxBoost requires specific namespace loading in some R versions
   fit <- CoxBoost::CoxBoost(time = y_surv[,1], status = y_surv[,2], x = X_matrix, stepno = stepno_val, penalty = 100)
   fit$fitted_scores <- as.vector(predict(fit, newdata = X_matrix, type = "lp"))
 

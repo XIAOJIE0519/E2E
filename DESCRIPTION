@@ -17,8 +17,6 @@ URL: https://xiaojie0519.github.io/E2E/
 BugReports: https://github.com/xiaojie0519/E2E/issues
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
-Remotes: 
-    github::binderh/CoxBoost
 Imports: 
     caret,
     dplyr,
@@ -41,7 +39,6 @@ Imports:
     survminer,
     timeROC,
     xgboost,
-    CoxBoost,
     plsRcox,
     cowplot,
 Suggests: 
@@ -56,6 +53,7 @@ Suggests:
     RColorBrewer,
     rmarkdown,
     rpart,
+    CoxBoost,
 Depends: 
     R (>= 3.5)
 LazyData: true
