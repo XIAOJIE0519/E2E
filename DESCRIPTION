@@ -54,6 +54,8 @@ Suggests:
     rmarkdown,
     rpart,
     CoxBoost,
+Remotes:
+    binderh/CoxBoost
 Depends: 
     R (>= 3.5)
 LazyData: true
