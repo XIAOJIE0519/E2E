@@ -107,8 +107,6 @@ user.
   : Train Bagging Ensemble for Prognosis
 - [`calculate_metrics_at_threshold_dia()`](https://xiaojie0519.github.io/E2E/reference/calculate_metrics_at_threshold_dia.md)
   : Calculate Classification Metrics at a Specific Threshold
-- [`cb_pro()`](https://xiaojie0519.github.io/E2E/reference/cb_pro.md) :
-  Train CoxBoost
 - [`dt_dia()`](https://xiaojie0519.github.io/E2E/reference/dt_dia.md) :
   Train a Decision Tree Model for Classification
 - [`en_dia()`](https://xiaojie0519.github.io/E2E/reference/en_dia.md) :
@@ -211,6 +209,8 @@ user.
   : Train a Voting Ensemble Diagnostic Model
 - [`xb_dia()`](https://xiaojie0519.github.io/E2E/reference/xb_dia.md) :
   Train an XGBoost Tree Model for Classification
+- [`xgb_pro()`](https://xiaojie0519.github.io/E2E/reference/xgb_pro.md)
+  : Train XGBoost Cox Model
 - [`min_max_normalize()`](https://xiaojie0519.github.io/E2E/reference/min_max_normalize.md)
   : Min-Max Normalization
 - [`Surv`](https://xiaojie0519.github.io/E2E/reference/Surv.md) :

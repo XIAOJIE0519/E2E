@@ -48,7 +48,7 @@ modeling:
 - **stepcox_pro**: Stepwise Cox Regression
 - **gbm_pro**: Gradient Boosting Machine for Cox
 - **rsf_pro**: Random Survival Forest
-- **cb_pro**: CoxBoost
+- **xgb_pro**: XGBoost for prognosis
 - **pc_pro**: Supervised Principal Components (SuperPC)
 - **pls_pro**: Partial Least Squares Cox Regression
 

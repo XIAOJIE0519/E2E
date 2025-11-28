@@ -7,16 +7,16 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/xiaojie0519/E2E/blob/main/DESCRIPTION)
+[`inst/CITATION`](https://github.com/xiaojie0519/E2E/blob/main/inst/CITATION)
 
-Luan S (2025). *E2E: Ensemble Learning Framework for Diagnostic and
-Prognostic Modeling*. R package version 0.1.1,
-<https://xiaojie0519.github.io/E2E/>.
+Luan S, Wang X (2025). “E2E: An R Package for Easy-to-Build Ensemble
+Models.” *Med Research*.
+[doi:10.1002/mdr2.70030](https://doi.org/10.1002/mdr2.70030).
 
-    @Manual{,
-      title = {E2E: Ensemble Learning Framework for Diagnostic and Prognostic Modeling},
-      author = {Shanjie Luan},
+    @Article{,
+      title = {E2E: An R Package for Easy-to-Build Ensemble Models},
+      author = {S. Luan and X. Wang},
+      journal = {Med Research},
       year = {2025},
-      note = {R package version 0.1.1},
-      url = {https://xiaojie0519.github.io/E2E/},
+      doi = {10.1002/mdr2.70030},
     }

@@ -56,6 +56,37 @@ print_model_summary_dia("ab", results_ab$ab)
 #> --------------------------------------------------
 ```
 
+``` r
+# and also you can add coxboost as a prognosis model like
+#' @title Train CoxBoost
+#your_model_pro <- function(X, y_surv, tune = FALSE) {
+#  if (!requireNamespace("CoxBoost", quietly = TRUE)) {
+#    stop("Package 'CoxBoost' is required for this function but is not installed.
+#          Please install it from GitHub using: remotes::install_github('binderh/CoxBoost')")}
+#  X_matrix <- as.matrix(X)
+#  stepno_val <- 100
+#  if (tune) stepno_val <- 100
+#  fit <- CoxBoost::CoxBoost(time = y_surv[,1], status = y_surv[,2], x = X_matrix, stepno = stepno_val, penalty = 100)
+#  fit$fitted_scores <- as.vector(predict(fit, newdata = X_matrix, type = "lp"))
+#  structure(
+#    list(finalModel = fit, X_train_cols = colnames(X), model_type = "survival_coxboost"),
+#    class = c("survival_coxboost", "pro_model")
+#  )
+#}
+#
+#' @export
+#predict_pro.survival_coxboost <- function(object, newdata, ...) {
+#  if (!requireNamespace("CoxBoost", quietly = TRUE)) {
+#    stop("Package 'CoxBoost' is needed for prediction.")
+#  }
+#  newdata <- .ensure_features(object, newdata)
+#  X_matrix <- as.matrix(newdata)
+#  as.vector(predict(object$finalModel, newdata = X_matrix, type = "lp"))
+#}
+
+#register_model_pro("cb_pro", cb_pro)
+```
+
 ### 2. Model Explanation with SHAP (`figure_shap`)
 
 The `figure_shap` function provides model-agnostic explanations by

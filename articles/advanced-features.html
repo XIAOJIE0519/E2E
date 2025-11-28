@@ -122,6 +122,35 @@ custom models. For example, to add Adaboost for diagnosis:</p>
 <span><span class="co">#&gt; Recall: 0.9974</span></span>
 <span><span class="co">#&gt; Specificity: 0.9375</span></span>
 <span><span class="co">#&gt; --------------------------------------------------</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># and also you can add coxboost as a prognosis model like</span></span>
+<span><span class="co">#' @title Train CoxBoost</span></span>
+<span><span class="co">#your_model_pro &lt;- function(X, y_surv, tune = FALSE) {</span></span>
+<span><span class="co">#  if (!requireNamespace("CoxBoost", quietly = TRUE)) {</span></span>
+<span><span class="co">#    stop("Package 'CoxBoost' is required for this function but is not installed.</span></span>
+<span><span class="co">#          Please install it from GitHub using: remotes::install_github('binderh/CoxBoost')")}</span></span>
+<span><span class="co">#  X_matrix &lt;- as.matrix(X)</span></span>
+<span><span class="co">#  stepno_val &lt;- 100</span></span>
+<span><span class="co">#  if (tune) stepno_val &lt;- 100</span></span>
+<span><span class="co">#  fit &lt;- CoxBoost::CoxBoost(time = y_surv[,1], status = y_surv[,2], x = X_matrix, stepno = stepno_val, penalty = 100)</span></span>
+<span><span class="co">#  fit$fitted_scores &lt;- as.vector(predict(fit, newdata = X_matrix, type = "lp"))</span></span>
+<span><span class="co">#  structure(</span></span>
+<span><span class="co">#    list(finalModel = fit, X_train_cols = colnames(X), model_type = "survival_coxboost"),</span></span>
+<span><span class="co">#    class = c("survival_coxboost", "pro_model")</span></span>
+<span><span class="co">#  )</span></span>
+<span><span class="co">#}</span></span>
+<span><span class="co">#</span></span>
+<span><span class="co">#' @export</span></span>
+<span><span class="co">#predict_pro.survival_coxboost &lt;- function(object, newdata, ...) {</span></span>
+<span><span class="co">#  if (!requireNamespace("CoxBoost", quietly = TRUE)) {</span></span>
+<span><span class="co">#    stop("Package 'CoxBoost' is needed for prediction.")</span></span>
+<span><span class="co">#  }</span></span>
+<span><span class="co">#  newdata &lt;- .ensure_features(object, newdata)</span></span>
+<span><span class="co">#  X_matrix &lt;- as.matrix(newdata)</span></span>
+<span><span class="co">#  as.vector(predict(object$finalModel, newdata = X_matrix, type = "lp"))</span></span>
+<span><span class="co">#}</span></span>
+<span></span>
+<span><span class="co">#register_model_pro("cb_pro", cb_pro)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="model-explanation-with-shap-figure_shap">2. Model Explanation with SHAP (<code>figure_shap</code>)<a class="anchor" aria-label="anchor" href="#model-explanation-with-shap-figure_shap"></a>
@@ -132,7 +161,7 @@ the most impact on the model’s output.</p>
 <div class="section level4">
 <h4 id="explaining-a-diagnostic-model">Explaining a Diagnostic Model<a class="anchor" aria-label="anchor" href="#explaining-a-diagnostic-model"></a>
 </h4>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># First, we need a model result object</span></span>
 <span><span class="va">bagging_xb_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bagging_dia.html">bagging_dia</a></span><span class="op">(</span><span class="va">train_dia</span>, base_model_name <span class="op">=</span> <span class="st">"xb"</span>, n_estimators <span class="op">=</span> <span class="fl">10</span>, seed<span class="op">=</span><span class="fl">123</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Running Bagging model: Bagging_dia (base: xb)</span></span>
@@ -149,7 +178,7 @@ the most impact on the model’s output.</p>
 <div class="section level4">
 <h4 id="explaining-a-prognostic-model">Explaining a Prognostic Model<a class="anchor" aria-label="anchor" href="#explaining-a-prognostic-model"></a>
 </h4>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># First, we need a model result object</span></span>
 <span><span class="va">stacking_stepcox_pro_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/stacking_pro.html">stacking_pro</a></span><span class="op">(</span></span>
 <span>  results_all_models <span class="op">=</span> <span class="fu"><a href="../reference/models_pro.html">models_pro</a></span><span class="op">(</span><span class="va">train_pro</span>, model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lasso_pro"</span>, <span class="st">"rsf_pro"</span><span class="op">)</span><span class="op">)</span>,</span>
