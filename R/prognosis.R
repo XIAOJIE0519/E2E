@@ -196,13 +196,14 @@ predict_pro.survival_gbm <- function(object, newdata, ...) {
 }
 
 #' @export
-predict_pro.survival_coxboost <- function(object, newdata, ...) {
-  if (!requireNamespace("CoxBoost", quietly = TRUE)) {
-    stop("Package 'CoxBoost' is needed for prediction.")
+predict_pro.survival_xgboost <- function(object, newdata, ...) {
+  if (!requireNamespace("xgboost", quietly = TRUE)) {
+    stop("Package 'xgboost' is needed for prediction.")
   }
   newdata <- .ensure_features(object, newdata)
-  X_matrix <- as.matrix(newdata)
-  as.vector(predict(object$finalModel, newdata = X_matrix, type = "lp"))
+  X_matrix <- stats::model.matrix(~ . - 1, data = newdata)
+  dtest <- xgboost::xgb.DMatrix(data = X_matrix)
+  predict(object$finalModel, dtest, outputmargin = TRUE)
 }
 
 #' @export
@@ -629,31 +630,64 @@ gbm_pro <- function(X, y_surv, tune = FALSE, cv.folds = 5, max_tune_iter = 10) {
   )
 }
 
-#' @title Train CoxBoost
-#' @description Fits a Cox model by likelihood based boosting.
+#' @title Train XGBoost Cox Model
+#' @description Fits an XGBoost model using the Cox proportional hazards objective function.
 #'
 #' @inheritParams lasso_pro
-#' @return An object of class \code{survival_coxboost} and \code{pro_model}.
+#' @return An object of class \code{survival_xgboost} and \code{pro_model}.
 #' @export
-cb_pro <- function(X, y_surv, tune = FALSE) {
+xgb_pro <- function(X, y_surv, tune = FALSE) {
 
-  if (!requireNamespace("CoxBoost", quietly = TRUE)) {
-    stop("Package 'CoxBoost' is required for this function but is not installed.
-          Please install it from GitHub using: remotes::install_github('binderh/CoxBoost')")
+  if (!requireNamespace("xgboost", quietly = TRUE)) {
+    stop("Package 'xgboost' is required.")
   }
 
-  X_matrix <- as.matrix(X)
-  stepno_val <- 100
-  if (tune) stepno_val <- 100
+  X_matrix <- stats::model.matrix(~ . - 1, data = X)
 
-  fit <- CoxBoost::CoxBoost(time = y_surv[,1], status = y_surv[,2], x = X_matrix, stepno = stepno_val, penalty = 100)
-  fit$fitted_scores <- as.vector(predict(fit, newdata = X_matrix, type = "lp"))
+  time_val <- y_surv[, 1]
+  status_val <- y_surv[, 2]
+  y_label <- ifelse(status_val == 1, time_val, -time_val)
+
+  dtrain <- xgboost::xgb.DMatrix(data = X_matrix, label = y_label)
+
+  params <- list(
+    booster = "gbtree",
+    objective = "survival:cox",
+    eval_metric = "cox-nloglik",
+    eta = 0.05,
+    max_depth = 3,
+    subsample = 0.7,
+    colsample_bytree = 0.7
+  )
+
+  nrounds_val <- 100
+  if (tune) {
+    cv_res <- xgboost::xgb.cv(
+      params = params,
+      data = dtrain,
+      nrounds = 200,
+      nfold = 5,
+      early_stopping_rounds = 20,
+      verbose = FALSE
+    )
+    nrounds_val <- cv_res$best_iteration
+  }
+
+  fit <- xgboost::xgb.train(
+    params = params,
+    data = dtrain,
+    nrounds = nrounds_val,
+    verbose = 0
+  )
+
+  fit$fitted_scores <- predict(fit, dtrain, outputmargin = TRUE)
 
   structure(
-    list(finalModel = fit, X_train_cols = colnames(X), model_type = "survival_coxboost"),
-    class = c("survival_coxboost", "pro_model")
+    list(finalModel = fit, X_train_cols = colnames(X), model_type = "survival_xgboost"),
+    class = c("survival_xgboost", "pro_model")
   )
 }
+
 
 #' @title Train Partial Least Squares Cox (PLS-Cox)
 #' @description Fits a Cox model using Partial Least Squares reduction for high-dimensional data.
@@ -951,7 +985,7 @@ get_registered_models_pro <- function() {
 
 #' @title Initialize Prognosis Modeling System
 #' @description Initializes the environment and registers default survival models
-#'   (Lasso, Elastic Net, Ridge, RSF, StepCox, GBM, CoxBoost, PLS).
+#'   (Lasso, Elastic Net, Ridge, RSF, StepCox, GBM, XGBoost, PLS).
 #' @export
 initialize_modeling_system_pro <- function() {
   if (.model_registry_env_pro$is_initialized) return(invisible(NULL))
@@ -962,7 +996,7 @@ initialize_modeling_system_pro <- function() {
   register_model_pro("rsf_pro", rsf_pro)
   register_model_pro("stepcox_pro", stepcox_pro)
   register_model_pro("gbm_pro", gbm_pro)
-  register_model_pro("cb_pro", cb_pro)
+  register_model_pro("xgb_pro", xgb_pro)
   register_model_pro("pls_pro", pls_pro)
 
   .model_registry_env_pro$is_initialized <- TRUE
