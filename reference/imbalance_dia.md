@@ -9,7 +9,7 @@ aggregates their predictions.
 ``` r
 imbalance_dia(
   data,
-  base_model_name = "xb",
+  base_model_name = "rf",
   n_estimators = 10,
   tune_base_model = FALSE,
   threshold_choices = "default",
@@ -103,23 +103,23 @@ data_imbalanced_toy <- data.frame(
 # n_estimators is reduced for a quick example
 easyensemble_results <- imbalance_dia(
   data = data_imbalanced_toy,
-  base_model_name = "xb",
+  base_model_name = "rf",
   n_estimators = 3,
   threshold_choices = "f1"
 )
-#> Running Imbalance model: EasyEnsemble_dia (base: xb)
-print_model_summary_dia("EasyEnsemble (XGBoost)", easyensemble_results)
+#> Running Imbalance model: EasyEnsemble_dia (base: rf)
+print_model_summary_dia("EasyEnsemble (RF)", easyensemble_results)
 #> 
-#> --- EasyEnsemble (XGBoost) Model (on Training Data) Metrics ---
-#> Ensemble Type: EasyEnsemble (Base: xb, Estimators: 3)
-#> Threshold Strategy: f1 (0.7441)
-#> AUROC: 0.9233 (95% CI: 0.8662 - 0.9805)
-#> AUPRC: 0.4266
-#> Accuracy: 0.9200
-#> F1: 0.6364
-#> Precision: 0.5833
-#> Recall: 0.7000
-#> Specificity: 0.9444
+#> --- EasyEnsemble (RF) Model (on Training Data) Metrics ---
+#> Ensemble Type: EasyEnsemble (Base: rf, Estimators: 3)
+#> Threshold Strategy: f1 (0.7233)
+#> AUROC: 0.9689 (95% CI: 0.9373 - 1.0000)
+#> AUPRC: 0.6785
+#> Accuracy: 0.9400
+#> F1: 0.7692
+#> Precision: 0.6250
+#> Recall: 1.0000
+#> Specificity: 0.9333
 #> --------------------------------------------------
 # }
 ```
