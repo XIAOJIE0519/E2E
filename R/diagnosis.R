@@ -453,21 +453,6 @@ rf_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
 #' @param tune_length An integer, the number of random parameter combinations to try
 #'   when tune=TRUE. Only used when search="random". Default is 20.
 #' @return A `caret::train` object representing the trained XGBoost model.
-#' @examples
-#' \donttest{
-#' set.seed(42)
-#' n_obs <- 50
-#' X_toy <- data.frame(
-#'   FeatureA = rnorm(n_obs),
-#'   FeatureB = runif(n_obs, 0, 100)
-#' )
-#' y_toy <- factor(sample(c("Control", "Case"), n_obs, replace = TRUE),
-#'                 levels = c("Control", "Case"))
-#'
-#' # Train the model
-#' xb_model <- xb_dia(X_toy, y_toy)
-#' print(xb_model)
-#' }
 #' @importFrom caret train trainControl twoClassSummary
 #' @export
 xb_dia <- function(X, y, tune = FALSE, cv_folds = 5, tune_length = 20) {
