@@ -1916,16 +1916,16 @@ voting_dia <- function(results_all_models, data,
 #' # n_estimators is reduced for a quick example
 #' easyensemble_results <- imbalance_dia(
 #'   data = data_imbalanced_toy,
-#'   base_model_name = "xb",
+#'   base_model_name = "rf",
 #'   n_estimators = 3,
 #'   threshold_choices = "f1"
 #' )
-#' print_model_summary_dia("EasyEnsemble (XGBoost)", easyensemble_results)
+#' print_model_summary_dia("EasyEnsemble (RF)", easyensemble_results)
 #' }
 #' @seealso \code{\link{initialize_modeling_system_dia}}, \code{\link{evaluate_model_dia}}
 #' @export
 imbalance_dia <- function(data,
-                          base_model_name = "xb",
+                          base_model_name = "rf",
                           n_estimators = 10,
                           tune_base_model = FALSE,
                           threshold_choices = "default",
