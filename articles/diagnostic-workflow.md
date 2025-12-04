@@ -96,18 +96,17 @@ Builds a Bagging ensemble by training a base model on multiple bootstrap
 samples.
 
 ``` r
-# Create a Bagging ensemble with XGBoost as the base model
+# Create a Bagging ensemble with RandomForest as the base model
 # n_estimators is reduced for faster execution in this example.
-bagging_xb_results <- bagging_dia(train_dia, base_model_name = "xb",
-                                  tune_base_model = FALSE, n_estimators = 5)
-#> Running Bagging model: Bagging_dia (base: xb)
-print_model_summary_dia("Bagging (XGBoost)", bagging_xb_results)
+bagging_rf_results <- bagging_dia(train_dia, base_model_name = "rf", tune_base_model = FALSE, n_estimators = 5)
+#> Running Bagging model: Bagging_dia (base: rf)
+print_model_summary_dia("Bagging (RandomForest)", bagging_rf_results)
 #> 
-#> --- Bagging (XGBoost) Model (on Training Data) Metrics ---
-#> Ensemble Type: Bagging (Base: xb, Estimators: 5)
+#> --- Bagging (RandomForest) Model (on Training Data) Metrics ---
+#> Ensemble Type: Bagging (Base: rf, Estimators: 5)
 #> Threshold Strategy: default (0.5000)
-#> AUROC: 0.9995 (95% CI: 0.9989 - 1.0000)
-#> AUPRC: 0.9999
+#> AUROC: 0.9999 (95% CI: 0.9997 - 1.0000)
+#> AUPRC: 1.0000
 #> Accuracy: 0.9919
 #> F1: 0.9955
 #> Precision: 0.9911
@@ -180,22 +179,21 @@ print_model_summary_dia("Stacking (Lasso)", stacking_lasso_results)
 Implements the EasyEnsemble algorithm.
 
 ``` r
-# Create an EasyEnsemble with XGBoost as the base model
+# Create an EasyEnsemble with RandomForest as the base model
 # n_estimators is reduced for faster execution.
-results_imbalance_dia <- imbalance_dia(train_dia, base_model_name = "xb",
-                                       tune_base_model = FALSE, n_estimators = 5)
-#> Running Imbalance model: EasyEnsemble_dia (base: xb)
-print_model_summary_dia("Imbalance (XGBoost)", results_imbalance_dia)
+results_imbalance_dia <- imbalance_dia(train_dia, base_model_name = "rf", n_estimators = 5)
+#> Running Imbalance model: EasyEnsemble_dia (base: rf)
+print_model_summary_dia("Imbalance (Random Forest)", results_imbalance_dia)
 #> 
-#> --- Imbalance (XGBoost) Model (on Training Data) Metrics ---
-#> Ensemble Type: EasyEnsemble (Base: xb, Estimators: 5)
+#> --- Imbalance (Random Forest) Model (on Training Data) Metrics ---
+#> Ensemble Type: EasyEnsemble (Base: rf, Estimators: 5)
 #> Threshold Strategy: default (0.5000)
-#> AUROC: 0.9992 (95% CI: 0.9976 - 1.0000)
-#> AUPRC: 0.9999
-#> Accuracy: 0.9768
-#> F1: 0.9871
+#> AUROC: 0.9995 (95% CI: 0.9986 - 1.0000)
+#> AUPRC: 1.0000
+#> Accuracy: 0.9873
+#> F1: 0.9929
 #> Precision: 1.0000
-#> Recall: 0.9745
+#> Recall: 0.9860
 #> Specificity: 1.0000
 #> --------------------------------------------------
 ```
@@ -207,7 +205,7 @@ Use a trained model object to make predictions on a new, unseen dataset.
 ``` r
 # Apply the trained Bagging model to the test set
 bagging_pred_new <- apply_dia(
-  trained_model_object = bagging_xb_results$model_object,
+  trained_model_object = bagging_rf_results$model_object,
   new_data = test_dia,
   label_col_name = "outcome"
 )
@@ -221,39 +219,39 @@ print(eval_results_new)
 #> [1] "f1"
 #> 
 #> $Threshold
-#> [1] 0.2747457
+#> [1] 0.5836
 #> 
 #> $Accuracy
 #>  Accuracy 
-#> 0.9836957 
+#> 0.9945652 
 #> 
 #> $Precision
 #> Precision 
-#> 0.9824047 
+#> 0.9970149 
 #> 
 #> $Recall
-#> Recall 
-#>      1 
+#>    Recall 
+#> 0.9970149 
 #> 
 #> $F1
 #>        F1 
-#> 0.9911243 
+#> 0.9970149 
 #> 
 #> $Specificity
 #> Specificity 
-#>   0.8181818 
+#>    0.969697 
 #> 
 #> $AUROC
-#> [1] 0.9977386
+#> [1] 0.9991859
 #> 
 #> $AUROC_95CI_Lower
-#> [1] 0.9951056
+#> [1] 0.9978357
 #> 
 #> $AUROC_95CI_Upper
 #> [1] 1
 #> 
 #> $AUPRC
-#> [1] 0.9997789
+#> [1] 0.9999205
 ```
 
 ### 5. Visualization (`figure_dia`)

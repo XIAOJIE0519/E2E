@@ -163,13 +163,12 @@ the most impact on the model’s output.</p>
 </h4>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># First, we need a model result object</span></span>
-<span><span class="va">bagging_xb_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bagging_dia.html">bagging_dia</a></span><span class="op">(</span><span class="va">train_dia</span>, base_model_name <span class="op">=</span> <span class="st">"xb"</span>, </span>
-<span>                                  tune_base_model <span class="op">=</span> <span class="cn">FALSE</span>, n_estimators <span class="op">=</span> <span class="fl">10</span>, seed<span class="op">=</span><span class="fl">123</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Running Bagging model: Bagging_dia (base: xb)</span></span>
+<span><span class="va">bagging_rf_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bagging_dia.html">bagging_dia</a></span><span class="op">(</span><span class="va">train_dia</span>, base_model_name <span class="op">=</span> <span class="st">"rf"</span>, n_estimators <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Running Bagging model: Bagging_dia (base: rf)</span></span>
 <span></span>
 <span><span class="co"># Now, generate the SHAP explanation plot</span></span>
 <span><span class="va">p6</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/figure_shap.html">figure_shap</a></span><span class="op">(</span></span>
-<span>  data <span class="op">=</span> <span class="va">bagging_xb_results</span>,</span>
+<span>  data <span class="op">=</span> <span class="va">bagging_rf_results</span>,</span>
 <span>  raw_data <span class="op">=</span> <span class="va">train_dia</span>,</span>
 <span>  target_type <span class="op">=</span> <span class="st">"diagnosis"</span></span>
 <span><span class="op">)</span></span>

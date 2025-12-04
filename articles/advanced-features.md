@@ -97,13 +97,12 @@ on the model’s output.
 
 ``` r
 # First, we need a model result object
-bagging_xb_results <- bagging_dia(train_dia, base_model_name = "xb", 
-                                  tune_base_model = FALSE, n_estimators = 10, seed=123)
-#> Running Bagging model: Bagging_dia (base: xb)
+bagging_rf_results <- bagging_dia(train_dia, base_model_name = "rf", n_estimators = 10)
+#> Running Bagging model: Bagging_dia (base: rf)
 
 # Now, generate the SHAP explanation plot
 p6 <- figure_shap(
-  data = bagging_xb_results,
+  data = bagging_rf_results,
   raw_data = train_dia,
   target_type = "diagnosis"
 )
