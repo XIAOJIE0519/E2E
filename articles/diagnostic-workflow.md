@@ -98,7 +98,8 @@ samples.
 ``` r
 # Create a Bagging ensemble with XGBoost as the base model
 # n_estimators is reduced for faster execution in this example.
-bagging_xb_results <- bagging_dia(train_dia, base_model_name = "xb", n_estimators = 5)
+bagging_xb_results <- bagging_dia(train_dia, base_model_name = "xb",
+                                  tune_base_model = FALSE, n_estimators = 5)
 #> Running Bagging model: Bagging_dia (base: xb)
 print_model_summary_dia("Bagging (XGBoost)", bagging_xb_results)
 #> 
@@ -181,19 +182,20 @@ Implements the EasyEnsemble algorithm.
 ``` r
 # Create an EasyEnsemble with XGBoost as the base model
 # n_estimators is reduced for faster execution.
-results_imbalance_dia <- imbalance_dia(train_dia, base_model_name = "xb", n_estimators = 5, seed = 123)
+results_imbalance_dia <- imbalance_dia(train_dia, base_model_name = "xb",
+                                       tune_base_model = FALSE, n_estimators = 5)
 #> Running Imbalance model: EasyEnsemble_dia (base: xb)
 print_model_summary_dia("Imbalance (XGBoost)", results_imbalance_dia)
 #> 
 #> --- Imbalance (XGBoost) Model (on Training Data) Metrics ---
 #> Ensemble Type: EasyEnsemble (Base: xb, Estimators: 5)
 #> Threshold Strategy: default (0.5000)
-#> AUROC: 0.9999 (95% CI: 0.9998 - 1.0000)
-#> AUPRC: 1.0000
-#> Accuracy: 0.9838
-#> F1: 0.9910
+#> AUROC: 0.9992 (95% CI: 0.9976 - 1.0000)
+#> AUPRC: 0.9999
+#> Accuracy: 0.9768
+#> F1: 0.9871
 #> Precision: 1.0000
-#> Recall: 0.9821
+#> Recall: 0.9745
 #> Specificity: 1.0000
 #> --------------------------------------------------
 ```
@@ -214,8 +216,44 @@ bagging_pred_new <- apply_dia(
 eval_results_new <- evaluate_predictions_dia(
   prediction_df = bagging_pred_new,
   threshold_choices = "f1")
-print(eval_results_new$evaluation_metrics)
-#> NULL
+print(eval_results_new)
+#> $Threshold_Strategy
+#> [1] "f1"
+#> 
+#> $Threshold
+#> [1] 0.2747457
+#> 
+#> $Accuracy
+#>  Accuracy 
+#> 0.9836957 
+#> 
+#> $Precision
+#> Precision 
+#> 0.9824047 
+#> 
+#> $Recall
+#> Recall 
+#>      1 
+#> 
+#> $F1
+#>        F1 
+#> 0.9911243 
+#> 
+#> $Specificity
+#> Specificity 
+#>   0.8181818 
+#> 
+#> $AUROC
+#> [1] 0.9977386
+#> 
+#> $AUROC_95CI_Lower
+#> [1] 0.9951056
+#> 
+#> $AUROC_95CI_Upper
+#> [1] 1
+#> 
+#> $AUPRC
+#> [1] 0.9997789
 ```
 
 ### 5. Visualization (`figure_dia`)

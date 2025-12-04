@@ -97,7 +97,8 @@ on the model’s output.
 
 ``` r
 # First, we need a model result object
-bagging_xb_results <- bagging_dia(train_dia, base_model_name = "xb", n_estimators = 10, seed=123)
+bagging_xb_results <- bagging_dia(train_dia, base_model_name = "xb", 
+                                  tune_base_model = FALSE, n_estimators = 10, seed=123)
 #> Running Bagging model: Bagging_dia (base: xb)
 
 # Now, generate the SHAP explanation plot

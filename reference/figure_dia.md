@@ -61,7 +61,7 @@ roc_plot <- figure_dia(type = "roc", data = external_eval_example_dia)
 # tempfile() creates a safe, temporary path as required by CRAN
 temp_prc_path <- tempfile(fileext = ".png")
 figure_dia(type = "prc", data = external_eval_example_dia, file = temp_prc_path)
-#> Plot saved to: /tmp/RtmpTV23N4/file1e3753d01919.png
+#> Plot saved to: /tmp/RtmpEXTBnX/file1eb94a28a61e.png
 
 # Generate a Confusion Matrix plot
 matrix_plot <- figure_dia(type = "matrix", data = external_eval_example_dia)

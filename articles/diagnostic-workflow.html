@@ -166,7 +166,8 @@ bootstrap samples.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create a Bagging ensemble with XGBoost as the base model</span></span>
 <span><span class="co"># n_estimators is reduced for faster execution in this example.</span></span>
-<span><span class="va">bagging_xb_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bagging_dia.html">bagging_dia</a></span><span class="op">(</span><span class="va">train_dia</span>, base_model_name <span class="op">=</span> <span class="st">"xb"</span>, n_estimators <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
+<span><span class="va">bagging_xb_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bagging_dia.html">bagging_dia</a></span><span class="op">(</span><span class="va">train_dia</span>, base_model_name <span class="op">=</span> <span class="st">"xb"</span>,</span>
+<span>                                  tune_base_model <span class="op">=</span> <span class="cn">FALSE</span>, n_estimators <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Running Bagging model: Bagging_dia (base: xb)</span></span>
 <span><span class="fu"><a href="../reference/print_model_summary_dia.html">print_model_summary_dia</a></span><span class="op">(</span><span class="st">"Bagging (XGBoost)"</span>, <span class="va">bagging_xb_results</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -246,19 +247,20 @@ meta-model.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create an EasyEnsemble with XGBoost as the base model</span></span>
 <span><span class="co"># n_estimators is reduced for faster execution.</span></span>
-<span><span class="va">results_imbalance_dia</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/imbalance_dia.html">imbalance_dia</a></span><span class="op">(</span><span class="va">train_dia</span>, base_model_name <span class="op">=</span> <span class="st">"xb"</span>, n_estimators <span class="op">=</span> <span class="fl">5</span>, seed <span class="op">=</span> <span class="fl">123</span><span class="op">)</span></span>
+<span><span class="va">results_imbalance_dia</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/imbalance_dia.html">imbalance_dia</a></span><span class="op">(</span><span class="va">train_dia</span>, base_model_name <span class="op">=</span> <span class="st">"xb"</span>,</span>
+<span>                                       tune_base_model <span class="op">=</span> <span class="cn">FALSE</span>, n_estimators <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Running Imbalance model: EasyEnsemble_dia (base: xb)</span></span>
 <span><span class="fu"><a href="../reference/print_model_summary_dia.html">print_model_summary_dia</a></span><span class="op">(</span><span class="st">"Imbalance (XGBoost)"</span>, <span class="va">results_imbalance_dia</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; --- Imbalance (XGBoost) Model (on Training Data) Metrics ---</span></span>
 <span><span class="co">#&gt; Ensemble Type: EasyEnsemble (Base: xb, Estimators: 5)</span></span>
 <span><span class="co">#&gt; Threshold Strategy: default (0.5000)</span></span>
-<span><span class="co">#&gt; AUROC: 0.9999 (95% CI: 0.9998 - 1.0000)</span></span>
-<span><span class="co">#&gt; AUPRC: 1.0000</span></span>
-<span><span class="co">#&gt; Accuracy: 0.9838</span></span>
-<span><span class="co">#&gt; F1: 0.9910</span></span>
+<span><span class="co">#&gt; AUROC: 0.9992 (95% CI: 0.9976 - 1.0000)</span></span>
+<span><span class="co">#&gt; AUPRC: 0.9999</span></span>
+<span><span class="co">#&gt; Accuracy: 0.9768</span></span>
+<span><span class="co">#&gt; F1: 0.9871</span></span>
 <span><span class="co">#&gt; Precision: 1.0000</span></span>
-<span><span class="co">#&gt; Recall: 0.9821</span></span>
+<span><span class="co">#&gt; Recall: 0.9745</span></span>
 <span><span class="co">#&gt; Specificity: 1.0000</span></span>
 <span><span class="co">#&gt; --------------------------------------------------</span></span></code></pre></div>
 </div>
@@ -280,8 +282,44 @@ dataset.</p>
 <span><span class="va">eval_results_new</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/evaluate_predictions_dia.html">evaluate_predictions_dia</a></span><span class="op">(</span></span>
 <span>  prediction_df <span class="op">=</span> <span class="va">bagging_pred_new</span>,</span>
 <span>  threshold_choices <span class="op">=</span> <span class="st">"f1"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">eval_results_new</span><span class="op">$</span><span class="va">evaluation_metrics</span><span class="op">)</span></span>
-<span><span class="co">#&gt; NULL</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">eval_results_new</span><span class="op">)</span></span>
+<span><span class="co">#&gt; $Threshold_Strategy</span></span>
+<span><span class="co">#&gt; [1] "f1"</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $Threshold</span></span>
+<span><span class="co">#&gt; [1] 0.2747457</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $Accuracy</span></span>
+<span><span class="co">#&gt;  Accuracy </span></span>
+<span><span class="co">#&gt; 0.9836957 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $Precision</span></span>
+<span><span class="co">#&gt; Precision </span></span>
+<span><span class="co">#&gt; 0.9824047 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $Recall</span></span>
+<span><span class="co">#&gt; Recall </span></span>
+<span><span class="co">#&gt;      1 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $F1</span></span>
+<span><span class="co">#&gt;        F1 </span></span>
+<span><span class="co">#&gt; 0.9911243 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $Specificity</span></span>
+<span><span class="co">#&gt; Specificity </span></span>
+<span><span class="co">#&gt;   0.8181818 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $AUROC</span></span>
+<span><span class="co">#&gt; [1] 0.9977386</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $AUROC_95CI_Lower</span></span>
+<span><span class="co">#&gt; [1] 0.9951056</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $AUROC_95CI_Upper</span></span>
+<span><span class="co">#&gt; [1] 1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $AUPRC</span></span>
+<span><span class="co">#&gt; [1] 0.9997789</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="visualization-figure_dia">5. Visualization (<code>figure_dia</code>)<a class="anchor" aria-label="anchor" href="#visualization-figure_dia"></a>

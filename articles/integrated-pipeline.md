@@ -26,7 +26,7 @@ results_dia <- int_dia(
   train_dia,
   test_dia,
   test_dia, #can be any other data
-  tune = TRUE,
+  tune = FALSE,
   n_estimators = 5,
   seed = 123
 )
@@ -45,7 +45,7 @@ results_imb <- int_imbalance(
   train_dia,
   test_dia,
   test_dia, #can be any other data
-  tune = TRUE,
+  tune = FALSE,
   n_estimators = 5,
   seed = 123
 )
@@ -64,7 +64,7 @@ results_pro <- int_pro(
   train_pro,
   test_pro,
   test_pro, #can be any other data
-  tune = TRUE,
+  tune = FALSE,
   n_estimators = 5,
   time_unit = "day",
   years_to_evaluate = c(1, 3, 5),
