@@ -33,7 +33,6 @@ Imports:
     readr,
     RSNNS,
     shapviz,
-    survcomp,
     survival,
     survivalROC,
     survminer,
@@ -53,6 +52,7 @@ Suggests:
     RColorBrewer,
     rmarkdown,
     rpart,
+    survcomp,
 Depends: 
     R (>= 3.5)
 LazyData: true

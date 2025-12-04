@@ -80,7 +80,8 @@ Builds a Bagging ensemble by training a base model on multiple bootstrap samples
 ```{r}
 # Create a Bagging ensemble with XGBoost as the base model
 # n_estimators is reduced for faster execution in this example.
-bagging_xb_results <- bagging_dia(train_dia, base_model_name = "xb", n_estimators = 5)
+bagging_xb_results <- bagging_dia(train_dia, base_model_name = "xb",
+                                  tune_base_model = FALSE, n_estimators = 5)
 print_model_summary_dia("Bagging (XGBoost)", bagging_xb_results)
 ```
 
@@ -119,7 +120,8 @@ Implements the EasyEnsemble algorithm.
 ```{r}
 # Create an EasyEnsemble with XGBoost as the base model
 # n_estimators is reduced for faster execution.
-results_imbalance_dia <- imbalance_dia(train_dia, base_model_name = "xb", n_estimators = 5, seed = 123)
+results_imbalance_dia <- imbalance_dia(train_dia, base_model_name = "xb",
+                                       tune_base_model = FALSE, n_estimators = 5)
 print_model_summary_dia("Imbalance (XGBoost)", results_imbalance_dia)
 ```
 
@@ -139,7 +141,7 @@ bagging_pred_new <- apply_dia(
 eval_results_new <- evaluate_predictions_dia(
   prediction_df = bagging_pred_new,
   threshold_choices = "f1")
-print(eval_results_new$evaluation_metrics)
+print(eval_results_new)
 ```
 
 

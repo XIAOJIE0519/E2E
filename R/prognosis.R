@@ -356,7 +356,6 @@ ridge_pro <- function(X, y_surv, tune = FALSE) {
 #'
 #' @return An object of class \code{survival_rsf} and \code{pro_model}.
 #' @importFrom randomForestSRC rfsrc predict.rfsrc
-#' @importFrom survcomp concordance.index
 #' @export
 rsf_pro <- function(X, y_surv, tune = FALSE, tune_params = NULL) {
   if (nrow(X) < 5 || sum(y_surv[,2]) < 2) return(NULL)
@@ -407,13 +406,18 @@ rsf_pro <- function(X, y_surv, tune = FALSE, tune_params = NULL) {
       }, error = function(e) NULL)
 
       if (!is.null(fit_tmp) && !is.null(fit_tmp$predicted.oob)) {
-        cindex_tmp <- tryCatch({
-          survcomp::concordance.index(
-            x = fit_tmp$predicted.oob,
-            surv.time = time_vals,
-            surv.event = status_vals
-          )$c.index
-        }, error = function(e) 0)
+        cindex_tmp <- 0
+        if (requireNamespace("survcomp", quietly = TRUE)) {
+          cindex_tmp <- tryCatch({
+            survcomp::concordance.index(
+              x = fit_tmp$predicted.oob,
+              surv.time = time_vals,
+              surv.event = status_vals
+            )$c.index
+          }, error = function(e) 0)
+        } else {
+          cindex_tmp <- 0.5
+        }
 
         # Directionality check: RSF usually outputs mortality, but check for concordance inversion
         if (cindex_tmp < 0.5) cindex_tmp <- 1 - cindex_tmp
@@ -894,7 +898,6 @@ stacking_pro <- function(results_all_models, data, meta_model_name, top = 3,
 #' @param meta_normalize_params Internal use.
 #'
 #' @return A list containing a dataframe of scores and a list of evaluation metrics.
-#' @importFrom survcomp concordance.index
 #' @importFrom survivalROC survivalROC
 #' @importFrom survival coxph
 #' @export
@@ -921,9 +924,17 @@ evaluate_model_pro <- function(trained_model_obj = NULL, X_data = NULL, Y_surv_o
   score[is.na(score)] <- stats::median(score, na.rm = TRUE)
 
   # 2. Metrics: C-Index
-  c_index_val <- tryCatch({
-    survcomp::concordance.index(x = score, surv.time = Y_surv_obj[,1], surv.event = Y_surv_obj[,2])$c.index
-  }, error = function(e) { NA })
+  c_index_val <- NA
+  if (requireNamespace("survcomp", quietly = TRUE)) {
+    c_index_val <- tryCatch({
+      survcomp::concordance.index(x = score, surv.time = Y_surv_obj[,1], surv.event = Y_surv_obj[,2])$c.index
+    }, error = function(e) { NA })
+  } else {
+    try({
+      c_index_val <- survival::concordance(Y_surv_obj ~ score)$concordance
+    }, silent = TRUE)
+  }
+
 
   # 3. Metrics: Time-dependent AUROC
   auroc_yearly <- list()
