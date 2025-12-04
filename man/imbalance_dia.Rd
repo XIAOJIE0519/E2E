@@ -6,7 +6,7 @@
 \usage{
 imbalance_dia(
   data,
-  base_model_name = "xb",
+  base_model_name = "rf",
   n_estimators = 10,
   tune_base_model = FALSE,
   threshold_choices = "default",
@@ -73,11 +73,11 @@ data_imbalanced_toy <- data.frame(
 # n_estimators is reduced for a quick example
 easyensemble_results <- imbalance_dia(
   data = data_imbalanced_toy,
-  base_model_name = "xb",
+  base_model_name = "rf",
   n_estimators = 3,
   threshold_choices = "f1"
 )
-print_model_summary_dia("EasyEnsemble (XGBoost)", easyensemble_results)
+print_model_summary_dia("EasyEnsemble (RF)", easyensemble_results)
 }
 }
 \seealso{
