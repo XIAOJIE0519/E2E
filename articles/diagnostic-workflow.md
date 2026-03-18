@@ -36,8 +36,18 @@ results_all_dia <- models_dia(train_dia, model = c("rf", "lasso", "xb"))
 #> AUC == 1 is always 1-1 and can be misleading.
 #> Running model: lasso
 #> Running model: xb
-#> Warning in ci.auc.roc(roc_obj, conf.level = 0.95): ci.auc() of a ROC curve with
-#> AUC == 1 is always 1-1 and can be misleading.
+#> Warning in nominalTrainWorkflow(x = x, y = y, wts = weights, info = trainInfo,
+#> : There were missing values in resampled performance measures.
+#> Something is wrong; all the ROC metric values are missing:
+#>       ROC           Sens          Spec    
+#>  Min.   : NA   Min.   : NA   Min.   : NA  
+#>  1st Qu.: NA   1st Qu.: NA   1st Qu.: NA  
+#>  Median : NA   Median : NA   Median : NA  
+#>  Mean   :NaN   Mean   :NaN   Mean   :NaN  
+#>  3rd Qu.: NA   3rd Qu.: NA   3rd Qu.: NA  
+#>  Max.   : NA   Max.   : NA   Max.   : NA  
+#>  NA's   :1     NA's   :1     NA's   :1
+#> Warning in value[[3L]](cond): Model xb failed during training: Stopping
 
 # Print a summary for a specific model (e.g., Random Forest)
 print_model_summary_dia("rf", results_all_dia$rf)
@@ -72,6 +82,18 @@ results_dia_custom <- models_dia(
 #> AUC == 1 is always 1-1 and can be misleading.
 #> Running model: lasso
 #> Running model: xb
+#> Warning in nominalTrainWorkflow(x = x, y = y, wts = weights, info = trainInfo,
+#> : There were missing values in resampled performance measures.
+#> Something is wrong; all the ROC metric values are missing:
+#>       ROC           Sens          Spec    
+#>  Min.   : NA   Min.   : NA   Min.   : NA  
+#>  1st Qu.: NA   1st Qu.: NA   1st Qu.: NA  
+#>  Median : NA   Median : NA   Median : NA  
+#>  Mean   :NaN   Mean   :NaN   Mean   :NaN  
+#>  3rd Qu.: NA   3rd Qu.: NA   3rd Qu.: NA  
+#>  Max.   : NA   Max.   : NA   Max.   : NA  
+#>  NA's   :20    NA's   :20    NA's   :20
+#> Warning in value[[3L]](cond): Model xb failed during training: Stopping
 
 # View the custom results
 print_model_summary_dia("rf", results_dia_custom$rf)
@@ -127,19 +149,17 @@ voting_soft_results <- voting_dia(
   type = "soft"
 )
 #> Running Voting model: Voting_dia (type: soft)
-#> Warning in ci.auc.roc(roc_obj, conf.level = 0.95): ci.auc() of a ROC curve with
-#> AUC == 1 is always 1-1 and can be misleading.
 print_model_summary_dia("Voting (Soft)", voting_soft_results)
 #> 
 #> --- Voting (Soft) Model (on Training Data) Metrics ---
-#> Ensemble Type: Voting (Type: soft, Weight Metric: AUROC, Base models used: rf, xb, lasso)
-#> Threshold Strategy: f1 (0.6027)
-#> AUROC: 1.0000 (95% CI: 1.0000 - 1.0000)
+#> Ensemble Type: Voting (Type: soft, Weight Metric: AUROC, Base models used: rf, lasso)
+#> Threshold Strategy: f1 (0.6302)
+#> AUROC: 0.9999 (95% CI: 0.9997 - 1.0000)
 #> AUPRC: 1.0000
-#> Accuracy: 1.0000
-#> F1: 1.0000
+#> Accuracy: 0.9988
+#> F1: 0.9994
 #> Precision: 1.0000
-#> Recall: 1.0000
+#> Recall: 0.9987
 #> Specificity: 1.0000
 #> --------------------------------------------------
 ```
@@ -162,8 +182,8 @@ stacking_lasso_results <- stacking_dia(
 print_model_summary_dia("Stacking (Lasso)", stacking_lasso_results)
 #> 
 #> --- Stacking (Lasso) Model (on Training Data) Metrics ---
-#> Ensemble Type: Stacking (Meta: lasso, Base models used: rf, xb, lasso)
-#> Threshold Strategy: f1 (0.9794)
+#> Ensemble Type: Stacking (Meta: lasso, Base models used: rf, lasso)
+#> Threshold Strategy: f1 (0.9532)
 #> AUROC: 1.0000 (95% CI: 1.0000 - 1.0000)
 #> AUPRC: 1.0000
 #> Accuracy: 1.0000

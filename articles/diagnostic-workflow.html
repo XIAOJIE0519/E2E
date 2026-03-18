@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">E2E</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -103,8 +103,18 @@ this demonstration, we’ll run a subset to save time.</p>
 <span><span class="co">#&gt; AUC == 1 is always 1-1 and can be misleading.</span></span>
 <span><span class="co">#&gt; Running model: lasso</span></span>
 <span><span class="co">#&gt; Running model: xb</span></span>
-<span><span class="co">#&gt; Warning in ci.auc.roc(roc_obj, conf.level = 0.95): ci.auc() of a ROC curve with</span></span>
-<span><span class="co">#&gt; AUC == 1 is always 1-1 and can be misleading.</span></span>
+<span><span class="co">#&gt; Warning in nominalTrainWorkflow(x = x, y = y, wts = weights, info = trainInfo,</span></span>
+<span><span class="co">#&gt; : There were missing values in resampled performance measures.</span></span>
+<span><span class="co">#&gt; Something is wrong; all the ROC metric values are missing:</span></span>
+<span><span class="co">#&gt;       ROC           Sens          Spec    </span></span>
+<span><span class="co">#&gt;  Min.   : NA   Min.   : NA   Min.   : NA  </span></span>
+<span><span class="co">#&gt;  1st Qu.: NA   1st Qu.: NA   1st Qu.: NA  </span></span>
+<span><span class="co">#&gt;  Median : NA   Median : NA   Median : NA  </span></span>
+<span><span class="co">#&gt;  Mean   :NaN   Mean   :NaN   Mean   :NaN  </span></span>
+<span><span class="co">#&gt;  3rd Qu.: NA   3rd Qu.: NA   3rd Qu.: NA  </span></span>
+<span><span class="co">#&gt;  Max.   : NA   Max.   : NA   Max.   : NA  </span></span>
+<span><span class="co">#&gt;  NA's   :1     NA's   :1     NA's   :1</span></span>
+<span><span class="co">#&gt; Warning in value[[3L]](cond): Model xb failed during training: Stopping</span></span>
 <span></span>
 <span><span class="co"># Print a summary for a specific model (e.g., Random Forest)</span></span>
 <span><span class="fu"><a href="../reference/print_model_summary_dia.html">print_model_summary_dia</a></span><span class="op">(</span><span class="st">"rf"</span>, <span class="va">results_all_dia</span><span class="op">$</span><span class="va">rf</span><span class="op">)</span></span>
@@ -139,6 +149,18 @@ parameters.</p>
 <span><span class="co">#&gt; AUC == 1 is always 1-1 and can be misleading.</span></span>
 <span><span class="co">#&gt; Running model: lasso</span></span>
 <span><span class="co">#&gt; Running model: xb</span></span>
+<span><span class="co">#&gt; Warning in nominalTrainWorkflow(x = x, y = y, wts = weights, info = trainInfo,</span></span>
+<span><span class="co">#&gt; : There were missing values in resampled performance measures.</span></span>
+<span><span class="co">#&gt; Something is wrong; all the ROC metric values are missing:</span></span>
+<span><span class="co">#&gt;       ROC           Sens          Spec    </span></span>
+<span><span class="co">#&gt;  Min.   : NA   Min.   : NA   Min.   : NA  </span></span>
+<span><span class="co">#&gt;  1st Qu.: NA   1st Qu.: NA   1st Qu.: NA  </span></span>
+<span><span class="co">#&gt;  Median : NA   Median : NA   Median : NA  </span></span>
+<span><span class="co">#&gt;  Mean   :NaN   Mean   :NaN   Mean   :NaN  </span></span>
+<span><span class="co">#&gt;  3rd Qu.: NA   3rd Qu.: NA   3rd Qu.: NA  </span></span>
+<span><span class="co">#&gt;  Max.   : NA   Max.   : NA   Max.   : NA  </span></span>
+<span><span class="co">#&gt;  NA's   :20    NA's   :20    NA's   :20</span></span>
+<span><span class="co">#&gt; Warning in value[[3L]](cond): Model xb failed during training: Stopping</span></span>
 <span></span>
 <span><span class="co"># View the custom results</span></span>
 <span><span class="fu"><a href="../reference/print_model_summary_dia.html">print_model_summary_dia</a></span><span class="op">(</span><span class="st">"rf"</span>, <span class="va">results_dia_custom</span><span class="op">$</span><span class="va">rf</span><span class="op">)</span></span>
@@ -194,19 +216,17 @@ bootstrap samples.</p>
 <span>  type <span class="op">=</span> <span class="st">"soft"</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Running Voting model: Voting_dia (type: soft)</span></span>
-<span><span class="co">#&gt; Warning in ci.auc.roc(roc_obj, conf.level = 0.95): ci.auc() of a ROC curve with</span></span>
-<span><span class="co">#&gt; AUC == 1 is always 1-1 and can be misleading.</span></span>
 <span><span class="fu"><a href="../reference/print_model_summary_dia.html">print_model_summary_dia</a></span><span class="op">(</span><span class="st">"Voting (Soft)"</span>, <span class="va">voting_soft_results</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; --- Voting (Soft) Model (on Training Data) Metrics ---</span></span>
-<span><span class="co">#&gt; Ensemble Type: Voting (Type: soft, Weight Metric: AUROC, Base models used: rf, xb, lasso)</span></span>
-<span><span class="co">#&gt; Threshold Strategy: f1 (0.6027)</span></span>
-<span><span class="co">#&gt; AUROC: 1.0000 (95% CI: 1.0000 - 1.0000)</span></span>
+<span><span class="co">#&gt; Ensemble Type: Voting (Type: soft, Weight Metric: AUROC, Base models used: rf, lasso)</span></span>
+<span><span class="co">#&gt; Threshold Strategy: f1 (0.6302)</span></span>
+<span><span class="co">#&gt; AUROC: 0.9999 (95% CI: 0.9997 - 1.0000)</span></span>
 <span><span class="co">#&gt; AUPRC: 1.0000</span></span>
-<span><span class="co">#&gt; Accuracy: 1.0000</span></span>
-<span><span class="co">#&gt; F1: 1.0000</span></span>
+<span><span class="co">#&gt; Accuracy: 0.9988</span></span>
+<span><span class="co">#&gt; F1: 0.9994</span></span>
 <span><span class="co">#&gt; Precision: 1.0000</span></span>
-<span><span class="co">#&gt; Recall: 1.0000</span></span>
+<span><span class="co">#&gt; Recall: 0.9987</span></span>
 <span><span class="co">#&gt; Specificity: 1.0000</span></span>
 <span><span class="co">#&gt; --------------------------------------------------</span></span></code></pre></div>
 </div>
@@ -228,8 +248,8 @@ meta-model.</p>
 <span><span class="fu"><a href="../reference/print_model_summary_dia.html">print_model_summary_dia</a></span><span class="op">(</span><span class="st">"Stacking (Lasso)"</span>, <span class="va">stacking_lasso_results</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; --- Stacking (Lasso) Model (on Training Data) Metrics ---</span></span>
-<span><span class="co">#&gt; Ensemble Type: Stacking (Meta: lasso, Base models used: rf, xb, lasso)</span></span>
-<span><span class="co">#&gt; Threshold Strategy: f1 (0.9794)</span></span>
+<span><span class="co">#&gt; Ensemble Type: Stacking (Meta: lasso, Base models used: rf, lasso)</span></span>
+<span><span class="co">#&gt; Threshold Strategy: f1 (0.9532)</span></span>
 <span><span class="co">#&gt; AUROC: 1.0000 (95% CI: 1.0000 - 1.0000)</span></span>
 <span><span class="co">#&gt; AUPRC: 1.0000</span></span>
 <span><span class="co">#&gt; Accuracy: 1.0000</span></span>
