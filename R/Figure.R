@@ -277,12 +277,6 @@ figure_pro <- function(type, data, file = NULL, time_unit = "days") {
     factor <- .time_factor(time_unit)
     eval_times <- eval_years * factor
 
-    # Attempt using the more robust timeROC package first
-    roc_res <- tryCatch({
-      timeROC::timeROC(T = df$time, delta = df$outcome, marker = df$score,
-                       cause = 1, times = eval_times, iid = FALSE)
-    }, error = function(e) NULL)
-
     roc_df_list <- list()
     for (i in seq_along(eval_years)) {
       yr  <- eval_years[i]
@@ -290,25 +284,16 @@ figure_pro <- function(type, data, file = NULL, time_unit = "days") {
 
       FPR <- NULL; TPR <- NULL; auc_calc <- NA_real_
 
-      # Primary method: Extract results from timeROC
-      use_timeROC <- !is.null(roc_res) && i <= NCOL(roc_res$FP) && !all(is.na(roc_res$FP[, i]))
-      if (use_timeROC) {
-        FPR <- roc_res$FP[, i]
-        TPR <- roc_res$TP[, i]
-        auc_calc <- roc_res$AUC[i]
-      } else {
-        # Fallback method: Use survivalROC for individual time points
-        sroc <- tryCatch({
-          survivalROC::survivalROC(Stime = df$time, status = df$outcome,
-                                   marker = df$score, predict.time = tpt,
-                                   method = "NNE", span = 0.25)
-        }, error = function(e) NULL)
+      sroc <- tryCatch({
+        survivalROC::survivalROC(Stime = df$time, status = df$outcome,
+                                 marker = df$score, predict.time = tpt,
+                                 method = "NNE", span = 0.25)
+      }, error = function(e) NULL)
 
-        if (!is.null(sroc) && !all(is.na(sroc$FP)) && !all(is.na(sroc$TP))) {
-          FPR <- sroc$FP
-          TPR <- sroc$TP
-          auc_calc <- sroc$AUC
-        }
+      if (!is.null(sroc) && !all(is.na(sroc$FP)) && !all(is.na(sroc$TP))) {
+        FPR <- sroc$FP
+        TPR <- sroc$TP
+        auc_calc <- sroc$AUC
       }
 
       # ***MODIFICATION***: Check if calculation was successful, otherwise warn and skip.
