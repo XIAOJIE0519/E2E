@@ -1,0 +1,168 @@
+---
+title: "2. Diagnostic Workflow"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{2. Diagnostic Workflow}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(E2E)
+```
+
+```{r, include=FALSE}
+# Set up a 2-core cluster for parallel processing in this vignette
+# This is crucial for passing R CMD check on CI/CD platforms
+cl <- parallel::makeCluster(2)
+doParallel::registerDoParallel(cl)
+```
+
+# Diagnostic Models (Classification)
+
+This track is dedicated to binary classification tasks.
+
+## 1. Initialization
+
+First, initialize the diagnostic modeling system. This registers all built-in classification models.
+
+```{r}
+initialize_modeling_system_dia()
+```
+
+## 2. Training Single Models with `models_dia`
+
+The `models_dia` function is the gateway to training one or more standard classification models.
+
+#### Basic Usage
+
+By default, `models_dia` runs all registered models. For this demonstration, we'll run a subset to save time.
+
+```{r}
+# To run all, use model = "all_dia".
+results_all_dia <- models_dia(train_dia, model = c("rf", "lasso", "xb"))
+
+# Print a summary for a specific model (e.g., Random Forest)
+print_model_summary_dia("rf", results_all_dia$rf)
+```
+
+#### Advanced Usage & Customization
+
+You can precisely control the modeling process by specifying parameters.
+
+```{r}
+# Run a specific subset of models with tuning enabled and custom thresholds
+results_dia_custom <- models_dia(
+  data = train_dia,
+  model = c("rf", "lasso", "xb"),
+  tune = TRUE,
+  seed = 123,
+  threshold_choices = list(rf = "f1", lasso = 0.6, xb = "youden")
+)
+
+# View the custom results
+print_model_summary_dia("rf", results_dia_custom$rf)
+```
+
+## 3. Ensemble Modeling
+
+### Bagging (`bagging_dia`)
+
+Builds a Bagging ensemble by training a base model on multiple bootstrap samples.
+
+```{r}
+# Create a Bagging ensemble with RandomForest as the base model
+# n_estimators is reduced for faster execution in this example.
+bagging_rf_results <- bagging_dia(train_dia, base_model_name = "rf", tune_base_model = FALSE, n_estimators = 5)
+print_model_summary_dia("Bagging (RandomForest)", bagging_rf_results)
+```
+
+### Voting (`voting_dia`)
+
+Combines predictions from multiple pre-trained models.
+
+```{r}
+# Create a soft voting ensemble from the top models
+voting_soft_results <- voting_dia(
+  results_all_models = results_all_dia,
+  data = train_dia,
+  type = "soft"
+)
+print_model_summary_dia("Voting (Soft)", voting_soft_results)
+```
+
+### Stacking (`stacking_dia`)
+
+Uses predictions from base models as features to train a final meta-model.
+
+```{r}
+# Create a Stacking ensemble with Lasso as the meta-model
+stacking_lasso_results <- stacking_dia(
+  results_all_models = results_all_dia,
+  data = train_dia,
+  meta_model_name = "lasso"
+)
+print_model_summary_dia("Stacking (Lasso)", stacking_lasso_results)
+```
+
+### Handling Imbalanced Data (`imbalance_dia`)
+
+Implements the EasyEnsemble algorithm.
+
+```{r}
+# Create an EasyEnsemble with RandomForest as the base model
+# n_estimators is reduced for faster execution.
+results_imbalance_dia <- imbalance_dia(train_dia, base_model_name = "rf", n_estimators = 5)
+print_model_summary_dia("Imbalance (Random Forest)", results_imbalance_dia)
+```
+
+## 4. Applying Models to New Data (`apply_dia`)
+
+Use a trained model object to make predictions on a new, unseen dataset.
+
+```{r}
+# Apply the trained Bagging model to the test set
+bagging_pred_new <- apply_dia(
+  trained_model_object = bagging_rf_results$model_object,
+  new_data = test_dia,
+  label_col_name = "outcome"
+)
+
+# Evaluate these new predictions
+eval_results_new <- evaluate_predictions_dia(
+  prediction_df = bagging_pred_new,
+  threshold_choices = "f1")
+print(eval_results_new)
+```
+
+
+## 5. Visualization (`figure_dia`)
+
+Generate high-quality plots to evaluate model performance.
+
+```{r, fig.width=5, fig.height=5, warning=FALSE}
+# ROC Curve
+p1 <- figure_dia(type = "roc", data = results_imbalance_dia)
+#plot(p1)
+
+# Precision-Recall Curve
+p2 <- figure_dia(type = "prc", data = results_imbalance_dia)
+#plot(p2)
+
+# Confusion Matrix
+p3 <- figure_dia(type = "matrix", data = results_imbalance_dia)
+#plot(p3)
+```
+
+
+```{r, include=FALSE}
+# Stop the parallel cluster
+parallel::stopCluster(cl)
+```

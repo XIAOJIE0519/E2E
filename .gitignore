@@ -1,4 +1,5 @@
 .Rproj.user/
 docs/
-inst/doc
 .Rhistory
+/doc/
+/Meta/

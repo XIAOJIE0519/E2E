@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Parameter Reference Guide</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Parameter Reference Guide</h1>
+
+
+
+<div id="e2e-package-parameter-reference-guide" class="section level1">
+<h1>E2E Package Parameter Reference Guide</h1>
+<p>This guide provides comprehensive parameter documentation for all E2E
+functions.</p>
+<div id="built-in-datasets" class="section level2">
+<h2>Built-in Datasets</h2>
+<p>E2E includes example datasets for both diagnostic and prognostic
+modeling:</p>
+<div id="diagnostic-datasets" class="section level3">
+<h3>Diagnostic Datasets</h3>
+<ul>
+<li><strong>train_dia</strong>: Training data with sample IDs (column
+1), outcomes 0/1 (column 2), and features (columns 3+)</li>
+<li><strong>test_dia</strong>: Test data with the same structure</li>
+</ul>
+</div>
+<div id="prognostic-datasets" class="section level3">
+<h3>Prognostic Datasets</h3>
+<ul>
+<li><strong>train_pro</strong>: Training data with sample IDs (column
+1), survival status 0/1 (column 2), survival time (column 3), and
+features (columns 4+)</li>
+<li><strong>test_pro</strong>: Test data with the same structure</li>
+</ul>
+</div>
+</div>
+<div id="built-in-models" class="section level2">
+<h2>Built-in Models</h2>
+<div id="diagnostic-models-12-algorithms" class="section level3">
+<h3>Diagnostic Models (12 algorithms)</h3>
+<ul>
+<li><strong>rf</strong>: Random Forest</li>
+<li><strong>xb</strong>: XGBoost<br />
+</li>
+<li><strong>svm</strong>: Support Vector Machine</li>
+<li><strong>mlp</strong>: Multi-Layer Perceptron</li>
+<li><strong>lasso</strong>: L1-regularized Logistic Regression</li>
+<li><strong>en</strong>: Elastic Net</li>
+<li><strong>ridge</strong>: L2-regularized Logistic Regression</li>
+<li><strong>lda</strong>: Linear Discriminant Analysis</li>
+<li><strong>qda</strong>: Quadratic Discriminant Analysis</li>
+<li><strong>nb</strong>: Naive Bayes</li>
+<li><strong>dt</strong>: Decision Tree</li>
+<li><strong>gbm</strong>: Gradient Boosting Machine</li>
+</ul>
+</div>
+<div id="prognostic-models-9-algorithms" class="section level3">
+<h3>Prognostic Models (9 algorithms)</h3>
+<ul>
+<li><strong>lasso_pro</strong>: Lasso Cox Regression</li>
+<li><strong>en_pro</strong>: Elastic Net Cox Regression<br />
+</li>
+<li><strong>ridge_pro</strong>: Ridge Cox Regression</li>
+<li><strong>stepcox_pro</strong>: Stepwise Cox Regression</li>
+<li><strong>gbm_pro</strong>: Gradient Boosting Machine for Cox</li>
+<li><strong>rsf_pro</strong>: Random Survival Forest</li>
+<li><strong>xgb_pro</strong>: XGBoost for prognosis</li>
+<li><strong>pc_pro</strong>: Supervised Principal Components
+(SuperPC)</li>
+<li><strong>pls_pro</strong>: Partial Least Squares Cox Regression</li>
+</ul>
+</div>
+</div>
+</div>
+<div id="integrated-pipeline-functions" class="section level1">
+<h1>Integrated Pipeline Functions</h1>
+<div id="int_dia" class="section level2">
+<h2>int_dia()</h2>
+<p>Comprehensive diagnostic modeling pipeline executing single models,
+bagging, stacking, and voting ensembles.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><p><code>...</code> (required): Data frames for analysis. First =
+training dataset; subsequent = test datasets. Structure: column 1 =
+sample ID, column 2 = outcome (0/1), columns 3+ = features</p></li>
+<li><p><code>tune</code>: Logical (default TRUE). Enable hyperparameter
+tuning for base models</p></li>
+<li><p><code>n_estimators</code>: Integer (default 10). Number of
+bootstrap samples for bagging</p></li>
+<li><p><code>seed</code>: Integer (default 123). Random seed for
+reproducibility</p></li>
+</ul>
+</div>
+<div id="int_pro" class="section level2">
+<h2>int_pro()</h2>
+<p>Comprehensive prognostic modeling pipeline for survival analysis.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><p><code>...</code> (required): Data frames. First = training;
+others = test sets. Structure: column 1 = ID, column 2 = survival status
+(0/1), column 3 = survival time, columns 4+ = features</p></li>
+<li><p><code>tune</code>: Logical (default TRUE). Enable tuning</p></li>
+<li><p><code>n_estimators</code>: Integer (default 10). Bagging
+iterations</p></li>
+<li><p><code>seed</code>: Integer (default 123). Random seed</p></li>
+<li><p><code>time_unit</code>: String (default “day”). Time unit: “day”,
+“month”, or “year”</p></li>
+<li><p><code>years_to_evaluate</code>: Numeric vector (default
+c(1,3,5)). Years for time-dependent AUROC</p></li>
+</ul>
+</div>
+<div id="plot_integrated_results" class="section level2">
+<h2>plot_integrated_results()</h2>
+<p>Visualizes integrated modeling results with heatmap and summary
+plots.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><p><code>results_obj</code> (required): Output from
+<code>int_dia()</code>, <code>int_imbalance()</code>, or
+<code>int_pro()</code></p></li>
+<li><p><code>metric_name</code>: Character string (default “AUROC”).
+Metric name for plot labels (e.g., “AUROC”, “C-index”)</p></li>
+</ul>
+<p><strong>Returns:</strong> ggplot object (invisibly)</p>
+</div>
+</div>
+<div id="diagnostic-modeling-functions" class="section level1">
+<h1>Diagnostic Modeling Functions</h1>
+<div id="models_dia" class="section level2">
+<h2>models_dia()</h2>
+<p>Trains base classification models for diagnostic tasks.
+<strong>Parameters:</strong></p>
+<ul>
+<li><p><code>data</code> (required): Data frame with sample names
+(column 1), outcomes 0/1 (column 2), features (columns 3+)</p></li>
+<li><p><code>model</code> (required): Character vector of model names or
+“all_dia” for all models</p></li>
+<li><p><code>tune</code>: Logical (default FALSE). Whether to perform
+hyperparameter tuning</p></li>
+<li><p><code>threshold_choices</code>: Threshold selection method</p>
+<ul>
+<li>“default” (default): Fixed 0.5 threshold</li>
+<li>“f1”: Optimize F1 score</li>
+<li>“youden”: Optimize Youden index<br />
+</li>
+<li>Numeric value (0-1): Custom threshold</li>
+</ul></li>
+<li><p><code>seed</code>: Integer (default 123). Random seed for
+reproducibility</p></li>
+</ul>
+</div>
+<div id="bagging_dia" class="section level2">
+<h2>bagging_dia()</h2>
+<p>Bootstrap aggregating ensemble method.
+<strong>Parameters:</strong></p>
+<ul>
+<li><p><code>data</code> (required): Training data frame</p></li>
+<li><p><code>base_model_name</code> (required): Base model name (e.g.,
+“xb”, “rf”)</p></li>
+<li><p><code>n_estimators</code>: Integer (default 50). Number of base
+models</p></li>
+<li><p><code>subset_fraction</code>: Numeric (default 0.632). Bootstrap
+sampling fraction</p></li>
+<li><p><code>tune_base_model</code>: Logical (default FALSE). Tune base
+models</p></li>
+<li><p><code>threshold_choices</code>: Same as models_dia()</p></li>
+<li><p><code>seed</code>: Integer (default 123). Random seed</p></li>
+</ul>
+</div>
+<div id="voting_dia" class="section level2">
+<h2>voting_dia()</h2>
+<p>Voting ensemble combining multiple models.
+<strong>Parameters:</strong></p>
+<ul>
+<li><p><code>results_all_models</code> (required): Output from
+models_dia()</p></li>
+<li><p><code>data</code> (required): Training data</p></li>
+<li><p><code>type</code>: Voting type</p>
+<ul>
+<li>“soft” (default): Weighted probability averaging</li>
+<li>“hard”: Majority voting</li>
+</ul></li>
+<li><p><code>weight_metric</code>: String (default “AUROC”). Metric for
+soft voting weights</p></li>
+<li><p><code>top</code>: Integer (default 5). Number of top models to
+use</p></li>
+<li><p><code>threshold_choices</code>: Same as models_dia()</p></li>
+<li><p><code>seed</code>: Integer (default 123). Random seed</p></li>
+</ul>
+</div>
+<div id="stacking_dia" class="section level2">
+<h2>stacking_dia()</h2>
+<p>Stacking ensemble with meta-model. <strong>Parameters:</strong></p>
+<ul>
+<li><p><code>results_all_models</code> (required): Output from
+models_dia()</p></li>
+<li><p><code>data</code> (required): Training data</p></li>
+<li><p><code>meta_model_name</code> (required): Meta-model name (e.g.,
+“lasso”, “gbm”)</p></li>
+<li><p><code>top</code>: Integer (default 5). Number of top base
+models</p></li>
+<li><p><code>tune_meta</code>: Logical (default FALSE). Tune
+meta-model</p></li>
+<li><p><code>threshold_choices</code>: Same as models_dia()</p></li>
+<li><p><code>seed</code>: Integer (default 123). Random seed</p></li>
+</ul>
+</div>
+<div id="imbalance_dia" class="section level2">
+<h2>imbalance_dia()</h2>
+<p>Handles imbalanced datasets using EasyEnsemble-like algorithm.
+<strong>Parameters:</strong></p>
+<ul>
+<li><p><code>data</code> (required): Imbalanced training data</p></li>
+<li><p><code>base_model_name</code> (required): Base model for balanced
+subsets</p></li>
+<li><p><code>n_estimators</code>: Integer (default 10). Number of
+balanced subsets</p></li>
+<li><p><code>tune_base_model</code>: Logical (default FALSE). Tune base
+models</p></li>
+<li><p><code>threshold_choices</code>: Same as models_dia()</p></li>
+<li><p><code>seed</code>: Integer (default 123). Random seed</p></li>
+</ul>
+</div>
+<div id="apply_dia" class="section level2">
+<h2>apply_dia()</h2>
+<p>Applies trained model to new data. <strong>Parameters:</strong></p>
+<ul>
+<li><p><code>trained_model_object</code> (required): Trained model
+object from E2E functions</p></li>
+<li><p><code>new_data</code> (required): New data for prediction (sample
+IDs in column 1)</p></li>
+<li><p><code>label_col_name</code>: String (default NULL). True label
+column name if available</p></li>
+</ul>
+</div>
+<div id="evaluate_predictions_dia" class="section level2">
+<h2>evaluate_predictions_dia()</h2>
+<p>Evaluates model predictions. <strong>Parameters:</strong></p>
+<ul>
+<li><p><code>prediction_df</code> (required): Prediction data frame from
+apply_dia()</p></li>
+<li><p><code>threshold_choices</code>: Same as models_dia()</p></li>
+</ul>
+</div>
+</div>
+<div id="prognostic-modeling-functions" class="section level1">
+<h1>Prognostic Modeling Functions</h1>
+<div id="models_pro" class="section level2">
+<h2>models_pro()</h2>
+<p>Trains base survival models. <strong>Parameters:</strong></p>
+<ul>
+<li><p><code>data</code> (required): Data frame with sample ID, survival
+status, time, features</p></li>
+<li><p><code>model</code> (required): Model names or “all_pro” for all
+models</p></li>
+<li><p><code>tune</code>: Logical (default FALSE). Hyperparameter
+tuning</p></li>
+<li><p><code>time_unit</code>: String (default “day”). Time unit (“day”,
+“month”, “year”)</p></li>
+<li><p><code>years_to_evaluate</code>: Numeric vector (default
+c(1,3,5)). Time points for time-dependent AUROC</p></li>
+<li><p><code>seed</code>: Integer (default 789). Random seed</p></li>
+</ul>
+</div>
+<div id="stacking_pro" class="section level2">
+<h2>stacking_pro()</h2>
+<p>Stacking ensemble for survival analysis.
+<strong>Parameters:</strong></p>
+<ul>
+<li><p><code>results_all_models</code> (required): Output from
+models_pro()</p></li>
+<li><p><code>data</code> (required): Training data</p></li>
+<li><p><code>meta_model_name</code> (required): Meta-model name</p></li>
+<li><p><code>top</code>: Integer (default 3). Number of top base
+models</p></li>
+<li><p><code>tune_meta</code>: Logical (default FALSE). Tune
+meta-model</p></li>
+<li><p><code>time_unit</code>: String (default “day”). Time
+unit</p></li>
+<li><p><code>years_to_evaluate</code>: Numeric vector (default
+c(1,3,5)). Evaluation time points</p></li>
+<li><p><code>seed</code>: Integer (default 789). Random seed</p></li>
+</ul>
+</div>
+<div id="bagging_pro" class="section level2">
+<h2>bagging_pro()</h2>
+<p>Bootstrap aggregating for survival analysis.
+<strong>Parameters:</strong></p>
+<ul>
+<li><p><code>data</code> (required): Training data</p></li>
+<li><p><code>base_model_name</code> (required): Base model name</p></li>
+<li><p><code>n_estimators</code>: Integer (default 10). Number of base
+models</p></li>
+<li><p><code>subset_fraction</code>: Numeric (default 0.632). Bootstrap
+sampling fraction</p></li>
+<li><p><code>tune_base_model</code>: Logical (default FALSE). Tune base
+models</p></li>
+<li><p><code>time_unit</code>: String (default “day”). Time
+unit</p></li>
+<li><p><code>years_to_evaluate</code>: Numeric vector (default
+c(1,3,5)). Evaluation time points</p></li>
+<li><p><code>seed</code>: Integer (default 456). Random seed</p></li>
+</ul>
+</div>
+<div id="apply_pro" class="section level2">
+<h2>apply_pro()</h2>
+<p>Applies trained survival model to new data.
+<strong>Parameters:</strong></p>
+<ul>
+<li><p><code>trained_model_object</code> (required): Trained model
+object</p></li>
+<li><p><code>new_data</code> (required): New data with same structure as
+training data</p></li>
+<li><p><code>time_unit</code>: String (default “day”). Time
+unit</p></li>
+</ul>
+</div>
+<div id="evaluate_predictions_pro" class="section level2">
+<h2>evaluate_predictions_pro()</h2>
+<p>Evaluates survival model predictions.
+<strong>Parameters:</strong></p>
+<ul>
+<li><p><code>prediction_df</code> (required): Prediction data frame from
+apply_pro()</p></li>
+<li><p><code>years_to_evaluate</code>: Numeric vector (default
+c(1,3,5)). Evaluation time points</p></li>
+</ul>
+</div>
+</div>
+<div id="visualization-functions" class="section level1">
+<h1>Visualization Functions</h1>
+<div id="figure_dia" class="section level2">
+<h2>figure_dia()</h2>
+<p>Creates diagnostic model evaluation plots.
+<strong>Parameters:</strong></p>
+<ul>
+<li><code>type</code> (required): Plot type
+<ul>
+<li>“roc”: ROC curve</li>
+<li>“prc”: Precision-recall curve</li>
+<li>“matrix”: Confusion matrix</li>
+</ul></li>
+<li><code>data</code> (required): Model results object</li>
+</ul>
+</div>
+<div id="figure_pro" class="section level2">
+<h2>figure_pro()</h2>
+<p>Creates prognostic model evaluation plots.
+<strong>Parameters:</strong></p>
+<ul>
+<li><p><code>type</code> (required): Plot type</p>
+<ul>
+<li>“km”: Kaplan-Meier survival curves</li>
+<li>“tdroc”: Time-dependent ROC curves</li>
+</ul></li>
+<li><p><code>data</code> (required): Model results object</p></li>
+<li><p><code>time_unit</code>: String (default “days”). Time unit for
+axis labels</p></li>
+</ul>
+</div>
+<div id="figure_shap" class="section level2">
+<h2>figure_shap()</h2>
+<p>Creates SHAP interpretation plots. <strong>Parameters:</strong></p>
+<ul>
+<li><p><code>data</code> (required): Model results with sample_score
+data frame</p></li>
+<li><p><code>raw_data</code> (required): Original feature data</p></li>
+<li><p><code>target_type</code> (required): Data type</p>
+<ul>
+<li>“diagnosis”: Features start from column 3</li>
+<li>“prognosis”: Features start from column 4</li>
+</ul></li>
+</ul>
+</div>
+</div>
+<div id="custom-model-registration" class="section level1">
+<h1>Custom Model Registration</h1>
+<div id="register_model_dia-register_model_pro" class="section level2">
+<h2>register_model_dia() / register_model_pro()</h2>
+<p>Registers custom algorithms.</p>
+<p><strong>Usage:</strong> 1. Define custom function following E2E
+conventions 2. Register with
+<code>register_model_dia(&quot;model_name&quot;, custom_function)</code> 3. Use
+registered model in E2E workflows</p>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
