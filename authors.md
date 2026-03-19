@@ -7,7 +7,7 @@
 ## Citation
 
 Source:
-[`inst/CITATION`](https://github.com/xiaojie0519/E2E/blob/main/inst/CITATION)
+[`inst/CITATION`](https://github.com/xiaojie0519/E2E/blob/v0.1.3/inst/CITATION)
 
 Luan S, Wang X (2025). “E2E: An R Package for Easy-to-Build Ensemble
 Models.” *Med Research*.
