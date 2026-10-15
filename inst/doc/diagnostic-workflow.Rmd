@@ -53,6 +53,27 @@ results_all_dia <- models_dia(train_dia, model = c("rf", "lasso", "xb"))
 print_model_summary_dia("rf", results_all_dia$rf)
 ```
 
+These summaries evaluate predictions on the same data used to fit the model.
+Random forests can fit the training data perfectly, so an AUROC of 1 here does
+not establish performance on new samples. The cross-validation used during
+training selects model settings; it does not turn these summaries into
+cross-validation estimates. A confidence interval of 1 to 1 for a perfect
+training AUROC does not measure uncertainty about performance on new data.
+
+Evaluate the fitted model on the separate `test_dia` dataset, using the threshold
+chosen on the training data:
+
+```{r}
+rf_test_predictions <- apply_dia(results_all_dia$rf$model_object, test_dia,
+                                 label_col_name = "outcome")
+rf_test_metrics <- evaluate_predictions_dia(
+  rf_test_predictions,
+  threshold_choices = results_all_dia$rf$evaluation_metrics$Final_Threshold
+)
+print_model_summary_dia("rf", list(evaluation_metrics = rf_test_metrics),
+                        on_new_data = TRUE)
+```
+
 #### Advanced Usage & Customization
 
 You can precisely control the modeling process by specifying parameters.
@@ -70,6 +91,11 @@ results_dia_custom <- models_dia(
 # View the custom results
 print_model_summary_dia("rf", results_dia_custom$rf)
 ```
+
+The `f1` and `youden` strategies select thresholds using the training data.
+Keep each selected `Final_Threshold` fixed when evaluating a validation or test
+dataset. Optimizing it on the test labels would use the test set for model
+selection.
 
 ## 3. Ensemble Modeling
 
@@ -138,7 +164,7 @@ bagging_pred_new <- apply_dia(
 # Evaluate these new predictions
 eval_results_new <- evaluate_predictions_dia(
   prediction_df = bagging_pred_new,
-  threshold_choices = "f1")
+  threshold_choices = bagging_rf_results$evaluation_metrics$Final_Threshold)
 print(eval_results_new)
 ```
 

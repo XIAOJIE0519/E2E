@@ -43,6 +43,7 @@ Suggests:
     ada,
     doParallel,
     e1071,
+    foreach,
     kernlab,
     klaR,
     knitr,

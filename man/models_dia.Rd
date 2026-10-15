@@ -50,6 +50,9 @@ contains its trained \code{model_object}, \code{sample_score} data frame, and
 }
 \description{
 Trains and evaluates one or more registered diagnostic models on a given dataset.
+Reported metrics use predictions on the training data and may be optimistic.
+Use \code{\link[=apply_dia]{apply_dia()}} and \code{\link[=evaluate_predictions_dia]{evaluate_predictions_dia()}} on held-out data to
+assess generalization, keeping the training threshold fixed.
 }
 \examples{
 \donttest{

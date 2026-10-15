@@ -456,6 +456,57 @@ rf_dia <- function(X, y, tune = FALSE, cv_folds = 5) {
 #' @importFrom caret train trainControl twoClassSummary
 #' @export
 xb_dia <- function(X, y, tune = FALSE, cv_folds = 5, tune_length = 20) {
+  if (!is.factor(y) || nlevels(y) != 2L || anyNA(y)) {
+    stop("'y' must be a factor with two non-missing classes.")
+  }
+  if (!is.numeric(cv_folds) || length(cv_folds) != 1L || !is.finite(cv_folds) ||
+      cv_folds < 2 || cv_folds != as.integer(cv_folds) ||
+      min(table(y)) < cv_folds) {
+    stop("'cv_folds' must be at least 2 and no greater than the smaller class count.")
+  }
+
+  # Keep caret's metadata on an ordinary list. Recent XGBoost boosters cannot
+  # accept the fields that caret adds to its fitted models.
+  xgb_model <- caret::getModelInfo("xgbTree", regex = FALSE)[[1]]
+  xgb_model$label <- "E2E XGBoost"
+  # Fit each candidate separately, avoiding caret's removed ntreelimit API.
+  xgb_model$loop <- NULL
+  xgb_model$fit <- function(x, y, wts, param, lev, last, classProbs, ...) {
+    dtrain <- xgboost::xgb.DMatrix(
+      data = as.matrix(x), label = as.numeric(y == lev[1]), missing = NA
+    )
+    if (!is.null(wts)) xgboost::setinfo(dtrain, "weight", wts)
+    params <- as.list(param[1, setdiff(names(param), "nrounds"), drop = FALSE])
+    params$objective <- "binary:logistic"
+    params$eval_metric <- "logloss"
+    # Parallelism is managed by caret; avoid nested OpenMP thread pools.
+    params$nthread <- 1L
+    list(booster = xgboost::xgb.train(
+      params = params, data = dtrain, nrounds = param$nrounds, verbose = 0
+    ), obsLevels = lev)
+  }
+  xgb_model$prob <- function(modelFit, newdata, submodels = NULL) {
+    dtest <- xgboost::xgb.DMatrix(data = as.matrix(newdata), missing = NA)
+    prob <- as.numeric(stats::predict(modelFit$booster, dtest))
+    out <- data.frame(prob, 1 - prob)
+    names(out) <- modelFit$obsLevels
+    out
+  }
+  xgb_model$predict <- function(modelFit, newdata, submodels = NULL) {
+    dtest <- xgboost::xgb.DMatrix(data = as.matrix(newdata), missing = NA)
+    prob <- as.numeric(stats::predict(modelFit$booster, dtest))
+    modelFit$obsLevels[ifelse(prob >= 0.5, 1L, 2L)]
+  }
+  xgb_model$varImp <- function(object, ...) {
+    importance <- xgboost::xgb.importance(model = object$booster)
+    out <- data.frame(Overall = rep(0, length(object$xNames)),
+                      row.names = object$xNames)
+    if (nrow(importance) > 0L) out[importance$Feature, "Overall"] <- importance$Gain
+    out
+  }
+  xgb_model$predictors <- function(x, ...) {
+    xgboost::xgb.importance(model = x$booster)$Feature
+  }
 
   if (tune) {
     ctrl <- caret::trainControl(
@@ -467,19 +518,9 @@ xb_dia <- function(X, y, tune = FALSE, cv_folds = 5, tune_length = 20) {
       allowParallel = TRUE
     )
 
-    grid <- expand.grid(
-      nrounds = c(50, 100),
-      max_depth = c(2, 3, 4, 6),
-      eta = c(0.01, 0.05, 0.1, 0.3),
-      gamma = c(0, 0.1, 0.5, 1, 2),
-      colsample_bytree = c(0.5, 0.7, 0.9, 1),
-      min_child_weight = c(1, 3, 5, 7),
-      subsample = c(0.6, 0.8, 1)
-    )
-
     model <- caret::train(
       x = X, y = y,
-      method = "xgbTree",
+      method = xgb_model,
       metric = "ROC",
       trControl = ctrl,
       tuneLength = tune_length
@@ -500,7 +541,7 @@ xb_dia <- function(X, y, tune = FALSE, cv_folds = 5, tune_length = 20) {
 
     model <- caret::train(
       x = X, y = y,
-      method = "xgbTree",
+      method = xgb_model,
       metric = "ROC",
       trControl = ctrl,
       tuneGrid = grid
@@ -1232,6 +1273,9 @@ evaluate_model_dia <- function(model_obj = NULL, X_data = NULL, y_data, sample_i
 
 #' @title Run Multiple Diagnostic Models
 #' @description Trains and evaluates one or more registered diagnostic models on a given dataset.
+#'   Reported metrics use predictions on the training data and may be optimistic.
+#'   Use [apply_dia()] and [evaluate_predictions_dia()] on held-out data to
+#'   assess generalization, keeping the training threshold fixed.
 #'
 #' @param data A data frame where the first column is the sample ID, the second
 #'   is the outcome label, and subsequent columns are features.
@@ -2415,6 +2459,9 @@ print_model_summary_dia <- function(model_name, results_list, on_new_data = FALS
   } else {
     data_source_str <- if(on_new_data) "on New Data" else "on Training Data"
     message(sprintf("\n--- %s Model (%s) Metrics ---", model_name, data_source_str))
+    if (!on_new_data) {
+      message("Training-set metrics may be optimistic; evaluate on held-out data to assess generalization.")
+    }
 
     if (!is.null(model_info) && !is.null(model_info$model_type)) {
       if (model_info$model_type == "bagging") {
@@ -2434,7 +2481,10 @@ print_model_summary_dia <- function(model_name, results_list, on_new_data = FALS
       }
     }
 
-    message(sprintf("Threshold Strategy: %s (%.4f)", metrics$Threshold_Strategy, metrics$Final_Threshold))
+    threshold <- metrics[["Final_Threshold"]]
+    if (is.null(threshold)) threshold <- metrics[["Threshold"]]
+    if (is.null(threshold)) threshold <- NA_real_
+    message(sprintf("Threshold Strategy: %s (%.4f)", metrics$Threshold_Strategy, threshold))
     message(sprintf("AUROC: %.4f (95%% CI: %.4f - %.4f)",
                     metrics$AUROC, metrics$AUROC_95CI_Lower, metrics$AUROC_95CI_Upper))
     message(sprintf("AUPRC: %.4f", metrics$AUPRC))

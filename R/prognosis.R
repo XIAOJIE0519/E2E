@@ -658,6 +658,7 @@ xgb_pro <- function(X, y_surv, tune = FALSE) {
     booster = "gbtree",
     objective = "survival:cox",
     eval_metric = "cox-nloglik",
+    nthread = 1L,
     eta = 0.05,
     max_depth = 3,
     subsample = 0.7,
@@ -684,10 +685,9 @@ xgb_pro <- function(X, y_surv, tune = FALSE) {
     verbose = 0
   )
 
-  fit$fitted_scores <- predict(fit, dtrain, outputmargin = TRUE)
-
   structure(
-    list(finalModel = fit, X_train_cols = colnames(X), model_type = "survival_xgboost"),
+    list(finalModel = fit, X_train_cols = colnames(X), model_type = "survival_xgboost",
+         fitted_scores = predict(fit, dtrain, outputmargin = TRUE)),
     class = c("survival_xgboost", "pro_model")
   )
 }
